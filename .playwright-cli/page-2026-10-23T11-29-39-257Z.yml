@@ -1,0 +1,29 @@
+- main [ref=e3]:
+  - region [ref=e4]:
+    - generic [ref=e9]:
+      - paragraph [ref=e10]: Dispatch
+      - paragraph [ref=e11]: Emergency Response Command Center
+    - generic [ref=e12]:
+      - paragraph [ref=e13]: Masuk ke command center
+      - heading "Siap menerima laporan?" [level=1] [ref=e14]
+      - paragraph [ref=e15]: Gunakan akun yang terdaftar untuk mengakses peta kendaraan dan panel sesuai role.
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: Email
+        - textbox "Email" [active] [ref=e19]:
+          - /placeholder: nama@dispatch.local
+      - generic [ref=e20]:
+        - generic [ref=e21]: Password
+        - textbox "Password" [ref=e22]:
+          - /placeholder: ••••••••••
+      - button "Masuk" [ref=e23] [cursor=pointer]
+    - paragraph [ref=e24]: Akses terbatas untuk petugas Dispatch. Semua aktivitas tercatat.
+  - complementary [aria-hidden] [ref=e25]:
+    - generic [ref=e27]:
+      - paragraph [ref=e28]: Fase 1 · Foundation
+      - heading [level=2] [ref=e29]: Koordinasi respons dimulai dari satu layar.
+      - list [ref=e30]:
+        - listitem [ref=e31]: Auth dengan role dispatcher, driver, dan admin
+        - listitem [ref=e32]: Posisi kendaraan langsung dari PostGIS
+        - listitem [ref=e33]: Peta operasi Bandung berbasis OpenStreetMap
+      - paragraph [ref=e34]: Dispatcher · Driver · Administrator

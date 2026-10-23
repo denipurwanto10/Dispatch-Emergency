@@ -1,0 +1,152 @@
+- generic [ref=e35]:
+  - banner [ref=e36]:
+    - generic [ref=e41]:
+      - paragraph [ref=e42]: Dispatch
+      - paragraph [ref=e43]: Panel Admin · MVP
+    - generic [ref=e44]:
+      - link "Peta operasi" [ref=e45] [cursor=pointer]:
+        - /url: /map
+      - generic [ref=e46]:
+        - generic [ref=e47]: Admin Dispatch
+        - generic [ref=e48]: admin
+      - button "Keluar" [ref=e49] [cursor=pointer]
+  - main [ref=e50]:
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - paragraph [ref=e53]: Pengelolaan operasi
+        - heading "Panel Admin" [level=1] [ref=e54]
+        - paragraph [ref=e55]: Kelola akun user dan armada yang dipakai dispatcher di seluruh kota.
+      - tablist "Bagian admin" [ref=e56]:
+        - tab "Users 14" [selected] [ref=e57] [cursor=pointer]:
+          - text: Users
+          - generic [ref=e58]: "14"
+        - tab "Kendaraan 36" [ref=e59] [cursor=pointer]:
+          - text: Kendaraan
+          - generic [ref=e60]: "36"
+    - generic [ref=e62]:
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - heading "Daftar User" [level=2] [ref=e65]
+          - paragraph [ref=e66]: Admin, dispatcher, dan driver. Password tidak pernah ditampilkan.
+        - button "+ User" [ref=e67] [cursor=pointer]
+      - table [ref=e69]:
+        - rowgroup [ref=e70]:
+          - row [ref=e71]:
+            - columnheader "Nama" [ref=e72]
+            - columnheader "Email" [ref=e73]
+            - columnheader "Role" [ref=e74]
+            - columnheader "Kota" [ref=e75]
+            - columnheader "Aksi" [ref=e76]
+        - rowgroup [ref=e77]:
+          - row [ref=e78]:
+            - cell "Rizky Nasution" [ref=e79]
+            - cell "driver.medan1@dispatch.local" [ref=e80]
+            - cell "Driver" [ref=e81]
+            - cell "Medan" [ref=e83]
+            - cell [ref=e84]:
+              - button "Edit" [ref=e85] [cursor=pointer]
+              - button "Hapus" [ref=e86] [cursor=pointer]
+          - row [ref=e87]:
+            - cell "Maya Siregar" [ref=e88]
+            - cell "driver.medan2@dispatch.local" [ref=e89]
+            - cell "Driver" [ref=e90]
+            - cell "Medan" [ref=e92]
+            - cell [ref=e93]:
+              - button "Edit" [ref=e94] [cursor=pointer]
+              - button "Hapus" [ref=e95] [cursor=pointer]
+          - row [ref=e96]:
+            - cell "Andi Wijaya" [ref=e97]
+            - cell "driver.jakarta1@dispatch.local" [ref=e98]
+            - cell "Driver" [ref=e99]
+            - cell "Jakarta" [ref=e101]
+            - cell [ref=e102]:
+              - button "Edit" [ref=e103] [cursor=pointer]
+              - button "Hapus" [ref=e104] [cursor=pointer]
+          - row [ref=e105]:
+            - cell "Rina Kartika" [ref=e106]
+            - cell "driver.jakarta2@dispatch.local" [ref=e107]
+            - cell "Driver" [ref=e108]
+            - cell "Jakarta" [ref=e110]
+            - cell [ref=e111]:
+              - button "Edit" [ref=e112] [cursor=pointer]
+              - button "Hapus" [ref=e113] [cursor=pointer]
+          - row [ref=e114]:
+            - cell "Budi Santoso" [ref=e115]
+            - cell "driver.bandung1@dispatch.local" [ref=e116]
+            - cell "Driver" [ref=e117]
+            - cell "Bandung" [ref=e119]
+            - cell [ref=e120]:
+              - button "Edit" [ref=e121] [cursor=pointer]
+              - button "Hapus" [ref=e122] [cursor=pointer]
+          - row [ref=e123]:
+            - cell "Siti Rahayu" [ref=e124]
+            - cell "driver.bandung2@dispatch.local" [ref=e125]
+            - cell "Driver" [ref=e126]
+            - cell "Bandung" [ref=e128]
+            - cell [ref=e129]:
+              - button "Edit" [ref=e130] [cursor=pointer]
+              - button "Hapus" [ref=e131] [cursor=pointer]
+          - row [ref=e132]:
+            - cell "Joko Susilo" [ref=e133]
+            - cell "driver.semarang1@dispatch.local" [ref=e134]
+            - cell "Driver" [ref=e135]
+            - cell "Semarang" [ref=e137]
+            - cell [ref=e138]:
+              - button "Edit" [ref=e139] [cursor=pointer]
+              - button "Hapus" [ref=e140] [cursor=pointer]
+          - row [ref=e141]:
+            - cell "Nia Puspita" [ref=e142]
+            - cell "driver.semarang2@dispatch.local" [ref=e143]
+            - cell "Driver" [ref=e144]
+            - cell "Semarang" [ref=e146]
+            - cell [ref=e147]:
+              - button "Edit" [ref=e148] [cursor=pointer]
+              - button "Hapus" [ref=e149] [cursor=pointer]
+          - row [ref=e150]:
+            - cell "Hendra Gunawan" [ref=e151]
+            - cell "driver.surabaya1@dispatch.local" [ref=e152]
+            - cell "Driver" [ref=e153]
+            - cell "Surabaya" [ref=e155]
+            - cell [ref=e156]:
+              - button "Edit" [ref=e157] [cursor=pointer]
+              - button "Hapus" [ref=e158] [cursor=pointer]
+          - row [ref=e159]:
+            - cell "Lestari Wulandari" [ref=e160]
+            - cell "driver.surabaya2@dispatch.local" [ref=e161]
+            - cell "Driver" [ref=e162]
+            - cell "Surabaya" [ref=e164]
+            - cell [ref=e165]:
+              - button "Edit" [ref=e166] [cursor=pointer]
+              - button "Hapus" [ref=e167] [cursor=pointer]
+          - row [ref=e168]:
+            - cell "Fajar Ramadhan" [ref=e169]
+            - cell "driver.makassar1@dispatch.local" [ref=e170]
+            - cell "Driver" [ref=e171]
+            - cell "Makassar" [ref=e173]
+            - cell [ref=e174]:
+              - button "Edit" [ref=e175] [cursor=pointer]
+              - button "Hapus" [ref=e176] [cursor=pointer]
+          - row [ref=e177]:
+            - cell "Nurul Hasanah" [ref=e178]
+            - cell "driver.makassar2@dispatch.local" [ref=e179]
+            - cell "Driver" [ref=e180]
+            - cell "Makassar" [ref=e182]
+            - cell [ref=e183]:
+              - button "Edit" [ref=e184] [cursor=pointer]
+              - button "Hapus" [ref=e185] [cursor=pointer]
+          - row [ref=e186]:
+            - cell "Admin Dispatch" [ref=e187]
+            - cell "admin@dispatch.local" [ref=e188]
+            - cell "Admin" [ref=e189]
+            - cell "Nasional" [ref=e191]
+            - cell [ref=e192]:
+              - button "Edit" [ref=e193] [cursor=pointer]
+              - button "Hapus" [ref=e194] [cursor=pointer]
+          - row [ref=e195]:
+            - cell "Dewi Lestari" [ref=e196]
+            - cell "dispatcher@dispatch.local" [ref=e197]
+            - cell "Dispatcher" [ref=e198]
+            - cell "Nasional" [ref=e200]
+            - cell [ref=e201]:
+              - button "Edit" [ref=e202] [cursor=pointer]
+              - button "Hapus" [ref=e203] [cursor=pointer]

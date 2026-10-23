@@ -1,0 +1,411 @@
+- generic [ref=e35]:
+  - banner [ref=e36]:
+    - generic [ref=e41]:
+      - paragraph [ref=e42]: Dispatch
+      - paragraph [ref=e43]: Panel Admin · MVP
+    - generic [ref=e44]:
+      - link "Peta operasi" [ref=e45] [cursor=pointer]:
+        - /url: /map
+      - generic [ref=e46]:
+        - generic [ref=e47]: Admin Dispatch
+        - generic [ref=e48]: admin
+      - button "Keluar" [ref=e49] [cursor=pointer]
+  - main [ref=e50]:
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - paragraph [ref=e53]: Pengelolaan operasi
+        - heading "Panel Admin" [level=1] [ref=e54]
+        - paragraph [ref=e55]: Kelola akun user dan armada yang dipakai dispatcher di seluruh kota.
+      - tablist "Bagian admin" [ref=e56]:
+        - tab "Users 14" [ref=e57] [cursor=pointer]:
+          - text: Users
+          - generic [ref=e58]: "14"
+        - tab "Kendaraan 36" [active] [selected] [ref=e59] [cursor=pointer]:
+          - text: Kendaraan
+          - generic [ref=e60]: "36"
+    - generic [ref=e62]:
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - heading "Daftar Kendaraan" [level=2] [ref=e204]
+          - paragraph [ref=e66]: Perubahan langsung dipakai dispatcher pada peta dan pencarian kandidat.
+        - generic [ref=e205]:
+          - combobox "Filter kota kendaraan" [ref=e206]:
+            - option "Semua kota" [selected]
+            - option "Medan"
+            - option "Jakarta"
+            - option "Bandung"
+            - option "Semarang"
+            - option "Surabaya"
+            - option "Makassar"
+          - button "+ Kendaraan" [ref=e207] [cursor=pointer]
+      - table [ref=e69]:
+        - rowgroup [ref=e70]:
+          - row [ref=e208]:
+            - columnheader "Nama" [ref=e72]
+            - columnheader "Plat" [ref=e209]
+            - columnheader "Tipe" [ref=e210]
+            - columnheader "Kota" [ref=e75]
+            - columnheader "Status" [ref=e211]
+            - columnheader "Driver" [ref=e212]
+            - columnheader "Aksi" [ref=e213]
+        - rowgroup [ref=e77]:
+          - row [ref=e214]:
+            - cell "Ambulans Medan 01" [ref=e215]
+            - cell "BK 9101 AM" [ref=e216]
+            - cell "Ambulans" [ref=e217]
+            - cell "Medan" [ref=e83]
+            - cell "Tersedia" [ref=e218]
+            - cell "Rizky Nasution" [ref=e220]
+            - cell [ref=e221]:
+              - button "Edit" [ref=e222] [cursor=pointer]
+              - button "Hapus" [ref=e223] [cursor=pointer]
+          - row [ref=e224]:
+            - cell "Ambulans Medan 02" [ref=e225]
+            - cell "BK 9102 AM" [ref=e226]
+            - cell "Ambulans" [ref=e227]
+            - cell "Medan" [ref=e92]
+            - cell "Tersedia" [ref=e228]
+            - cell "Tanpa driver" [ref=e230]
+            - cell [ref=e231]:
+              - button "Edit" [ref=e232] [cursor=pointer]
+              - button "Hapus" [ref=e233] [cursor=pointer]
+          - row [ref=e234]:
+            - cell "Damkar Medan 01" [ref=e235]
+            - cell "BK 9103 PM" [ref=e236]
+            - cell "Damkar" [ref=e237]
+            - cell "Medan" [ref=e238]
+            - cell "Tersedia" [ref=e239]
+            - cell "Maya Siregar" [ref=e241]
+            - cell [ref=e242]:
+              - button "Edit" [ref=e243] [cursor=pointer]
+              - button "Hapus" [ref=e244] [cursor=pointer]
+          - row [ref=e245]:
+            - cell "Damkar Medan 02" [ref=e246]
+            - cell "BK 9104 PM" [ref=e247]
+            - cell "Damkar" [ref=e248]
+            - cell "Medan" [ref=e249]
+            - cell "Tersedia" [ref=e250]
+            - cell "Tanpa driver" [ref=e252]
+            - cell [ref=e253]:
+              - button "Edit" [ref=e254] [cursor=pointer]
+              - button "Hapus" [ref=e255] [cursor=pointer]
+          - row [ref=e256]:
+            - cell "Patroli Medan 01" [ref=e257]
+            - cell "BK 9105 PL" [ref=e258]
+            - cell "Patroli" [ref=e259]
+            - cell "Medan" [ref=e260]
+            - cell "Tersedia" [ref=e261]
+            - cell "Tanpa driver" [ref=e263]
+            - cell [ref=e264]:
+              - button "Edit" [ref=e265] [cursor=pointer]
+              - button "Hapus" [ref=e266] [cursor=pointer]
+          - row [ref=e267]:
+            - cell "Patroli Medan 02" [ref=e268]
+            - cell "BK 9106 PL" [ref=e269]
+            - cell "Patroli" [ref=e270]
+            - cell "Medan" [ref=e271]
+            - cell "Tersedia" [ref=e272]
+            - cell "Tanpa driver" [ref=e274]
+            - cell [ref=e275]:
+              - button "Edit" [ref=e276] [cursor=pointer]
+              - button "Hapus" [ref=e277] [cursor=pointer]
+          - row [ref=e278]:
+            - cell "Ambulans Jakarta 01" [ref=e279]
+            - cell "B 9107 AM" [ref=e280]
+            - cell "Ambulans" [ref=e281]
+            - cell "Jakarta" [ref=e282]
+            - cell "Tersedia" [ref=e283]
+            - cell "Andi Wijaya" [ref=e285]
+            - cell [ref=e286]:
+              - button "Edit" [ref=e287] [cursor=pointer]
+              - button "Hapus" [ref=e288] [cursor=pointer]
+          - row [ref=e289]:
+            - cell "Ambulans Jakarta 02" [ref=e290]
+            - cell "B 9108 AM" [ref=e291]
+            - cell "Ambulans" [ref=e292]
+            - cell "Jakarta" [ref=e293]
+            - cell "Tersedia" [ref=e294]
+            - cell "Tanpa driver" [ref=e296]
+            - cell [ref=e297]:
+              - button "Edit" [ref=e298] [cursor=pointer]
+              - button "Hapus" [ref=e299] [cursor=pointer]
+          - row [ref=e300]:
+            - cell "Damkar Jakarta 01" [ref=e301]
+            - cell "B 9109 PM" [ref=e302]
+            - cell "Damkar" [ref=e303]
+            - cell "Jakarta" [ref=e304]
+            - cell "Tersedia" [ref=e305]
+            - cell "Rina Kartika" [ref=e307]
+            - cell [ref=e308]:
+              - button "Edit" [ref=e309] [cursor=pointer]
+              - button "Hapus" [ref=e310] [cursor=pointer]
+          - row [ref=e311]:
+            - cell "Damkar Jakarta 02" [ref=e312]
+            - cell "B 9110 PM" [ref=e313]
+            - cell "Damkar" [ref=e314]
+            - cell "Jakarta" [ref=e315]
+            - cell "Tersedia" [ref=e316]
+            - cell "Tanpa driver" [ref=e318]
+            - cell [ref=e319]:
+              - button "Edit" [ref=e320] [cursor=pointer]
+              - button "Hapus" [ref=e321] [cursor=pointer]
+          - row [ref=e322]:
+            - cell "Patroli Jakarta 01" [ref=e323]
+            - cell "B 9111 PL" [ref=e324]
+            - cell "Patroli" [ref=e325]
+            - cell "Jakarta" [ref=e326]
+            - cell "Tersedia" [ref=e327]
+            - cell "Tanpa driver" [ref=e329]
+            - cell [ref=e330]:
+              - button "Edit" [ref=e331] [cursor=pointer]
+              - button "Hapus" [ref=e332] [cursor=pointer]
+          - row [ref=e333]:
+            - cell "Patroli Jakarta 02" [ref=e334]
+            - cell "B 9112 PL" [ref=e335]
+            - cell "Patroli" [ref=e336]
+            - cell "Jakarta" [ref=e337]
+            - cell "Tersedia" [ref=e338]
+            - cell "Tanpa driver" [ref=e340]
+            - cell [ref=e341]:
+              - button "Edit" [ref=e342] [cursor=pointer]
+              - button "Hapus" [ref=e343] [cursor=pointer]
+          - row [ref=e344]:
+            - cell "Ambulans Bandung 01" [ref=e345]
+            - cell "D 9113 AM" [ref=e346]
+            - cell "Ambulans" [ref=e347]
+            - cell "Bandung" [ref=e348]
+            - cell "Tersedia" [ref=e349]
+            - cell "Budi Santoso" [ref=e351]
+            - cell [ref=e352]:
+              - button "Edit" [ref=e353] [cursor=pointer]
+              - button "Hapus" [ref=e354] [cursor=pointer]
+          - row [ref=e355]:
+            - cell "Ambulans Bandung 02" [ref=e356]
+            - cell "D 9114 AM" [ref=e357]
+            - cell "Ambulans" [ref=e358]
+            - cell "Bandung" [ref=e359]
+            - cell "Tersedia" [ref=e360]
+            - cell "Tanpa driver" [ref=e362]
+            - cell [ref=e363]:
+              - button "Edit" [ref=e364] [cursor=pointer]
+              - button "Hapus" [ref=e365] [cursor=pointer]
+          - row [ref=e366]:
+            - cell "Damkar Bandung 01" [ref=e367]
+            - cell "D 9115 PM" [ref=e368]
+            - cell "Damkar" [ref=e369]
+            - cell "Bandung" [ref=e370]
+            - cell "Tersedia" [ref=e371]
+            - cell "Siti Rahayu" [ref=e373]
+            - cell [ref=e374]:
+              - button "Edit" [ref=e375] [cursor=pointer]
+              - button "Hapus" [ref=e376] [cursor=pointer]
+          - row [ref=e377]:
+            - cell "Damkar Bandung 02" [ref=e378]
+            - cell "D 9116 PM" [ref=e379]
+            - cell "Damkar" [ref=e380]
+            - cell "Bandung" [ref=e381]
+            - cell "Tersedia" [ref=e382]
+            - cell "Tanpa driver" [ref=e384]
+            - cell [ref=e385]:
+              - button "Edit" [ref=e386] [cursor=pointer]
+              - button "Hapus" [ref=e387] [cursor=pointer]
+          - row [ref=e388]:
+            - cell "Patroli Bandung 01" [ref=e389]
+            - cell "D 9117 PL" [ref=e390]
+            - cell "Patroli" [ref=e391]
+            - cell "Bandung" [ref=e392]
+            - cell "Tersedia" [ref=e393]
+            - cell "Tanpa driver" [ref=e395]
+            - cell [ref=e396]:
+              - button "Edit" [ref=e397] [cursor=pointer]
+              - button "Hapus" [ref=e398] [cursor=pointer]
+          - row [ref=e399]:
+            - cell "Patroli Bandung 02" [ref=e400]
+            - cell "D 9118 PL" [ref=e401]
+            - cell "Patroli" [ref=e402]
+            - cell "Bandung" [ref=e403]
+            - cell "Tersedia" [ref=e404]
+            - cell "Tanpa driver" [ref=e406]
+            - cell [ref=e407]:
+              - button "Edit" [ref=e408] [cursor=pointer]
+              - button "Hapus" [ref=e409] [cursor=pointer]
+          - row [ref=e410]:
+            - cell "Ambulans Semarang 01" [ref=e411]
+            - cell "H 9119 AM" [ref=e412]
+            - cell "Ambulans" [ref=e413]
+            - cell "Semarang" [ref=e414]
+            - cell "Tersedia" [ref=e415]
+            - cell "Joko Susilo" [ref=e417]
+            - cell [ref=e418]:
+              - button "Edit" [ref=e419] [cursor=pointer]
+              - button "Hapus" [ref=e420] [cursor=pointer]
+          - row [ref=e421]:
+            - cell "Ambulans Semarang 02" [ref=e422]
+            - cell "H 9120 AM" [ref=e423]
+            - cell "Ambulans" [ref=e424]
+            - cell "Semarang" [ref=e425]
+            - cell "Tersedia" [ref=e426]
+            - cell "Tanpa driver" [ref=e428]
+            - cell [ref=e429]:
+              - button "Edit" [ref=e430] [cursor=pointer]
+              - button "Hapus" [ref=e431] [cursor=pointer]
+          - row [ref=e432]:
+            - cell "Damkar Semarang 01" [ref=e433]
+            - cell "H 9121 PM" [ref=e434]
+            - cell "Damkar" [ref=e435]
+            - cell "Semarang" [ref=e436]
+            - cell "Tersedia" [ref=e437]
+            - cell "Nia Puspita" [ref=e439]
+            - cell [ref=e440]:
+              - button "Edit" [ref=e441] [cursor=pointer]
+              - button "Hapus" [ref=e442] [cursor=pointer]
+          - row [ref=e443]:
+            - cell "Damkar Semarang 02" [ref=e444]
+            - cell "H 9122 PM" [ref=e445]
+            - cell "Damkar" [ref=e446]
+            - cell "Semarang" [ref=e447]
+            - cell "Tersedia" [ref=e448]
+            - cell "Tanpa driver" [ref=e450]
+            - cell [ref=e451]:
+              - button "Edit" [ref=e452] [cursor=pointer]
+              - button "Hapus" [ref=e453] [cursor=pointer]
+          - row [ref=e454]:
+            - cell "Patroli Semarang 01" [ref=e455]
+            - cell "H 9123 PL" [ref=e456]
+            - cell "Patroli" [ref=e457]
+            - cell "Semarang" [ref=e458]
+            - cell "Tersedia" [ref=e459]
+            - cell "Tanpa driver" [ref=e461]
+            - cell [ref=e462]:
+              - button "Edit" [ref=e463] [cursor=pointer]
+              - button "Hapus" [ref=e464] [cursor=pointer]
+          - row [ref=e465]:
+            - cell "Patroli Semarang 02" [ref=e466]
+            - cell "H 9124 PL" [ref=e467]
+            - cell "Patroli" [ref=e468]
+            - cell "Semarang" [ref=e469]
+            - cell "Tersedia" [ref=e470]
+            - cell "Tanpa driver" [ref=e472]
+            - cell [ref=e473]:
+              - button "Edit" [ref=e474] [cursor=pointer]
+              - button "Hapus" [ref=e475] [cursor=pointer]
+          - row [ref=e476]:
+            - cell "Ambulans Surabaya 01" [ref=e477]
+            - cell "L 9125 AM" [ref=e478]
+            - cell "Ambulans" [ref=e479]
+            - cell "Surabaya" [ref=e480]
+            - cell "Tersedia" [ref=e481]
+            - cell "Hendra Gunawan" [ref=e483]
+            - cell [ref=e484]:
+              - button "Edit" [ref=e485] [cursor=pointer]
+              - button "Hapus" [ref=e486] [cursor=pointer]
+          - row [ref=e487]:
+            - cell "Ambulans Surabaya 02" [ref=e488]
+            - cell "L 9126 AM" [ref=e489]
+            - cell "Ambulans" [ref=e490]
+            - cell "Surabaya" [ref=e491]
+            - cell "Tersedia" [ref=e492]
+            - cell "Tanpa driver" [ref=e494]
+            - cell [ref=e495]:
+              - button "Edit" [ref=e496] [cursor=pointer]
+              - button "Hapus" [ref=e497] [cursor=pointer]
+          - row [ref=e498]:
+            - cell "Damkar Surabaya 01" [ref=e499]
+            - cell "L 9127 PM" [ref=e500]
+            - cell "Damkar" [ref=e501]
+            - cell "Surabaya" [ref=e502]
+            - cell "Tersedia" [ref=e503]
+            - cell "Lestari Wulandari" [ref=e505]
+            - cell [ref=e506]:
+              - button "Edit" [ref=e507] [cursor=pointer]
+              - button "Hapus" [ref=e508] [cursor=pointer]
+          - row [ref=e509]:
+            - cell "Damkar Surabaya 02" [ref=e510]
+            - cell "L 9128 PM" [ref=e511]
+            - cell "Damkar" [ref=e512]
+            - cell "Surabaya" [ref=e513]
+            - cell "Tersedia" [ref=e514]
+            - cell "Tanpa driver" [ref=e516]
+            - cell [ref=e517]:
+              - button "Edit" [ref=e518] [cursor=pointer]
+              - button "Hapus" [ref=e519] [cursor=pointer]
+          - row [ref=e520]:
+            - cell "Patroli Surabaya 01" [ref=e521]
+            - cell "L 9129 PL" [ref=e522]
+            - cell "Patroli" [ref=e523]
+            - cell "Surabaya" [ref=e524]
+            - cell "Tersedia" [ref=e525]
+            - cell "Tanpa driver" [ref=e527]
+            - cell [ref=e528]:
+              - button "Edit" [ref=e529] [cursor=pointer]
+              - button "Hapus" [ref=e530] [cursor=pointer]
+          - row [ref=e531]:
+            - cell "Patroli Surabaya 02" [ref=e532]
+            - cell "L 9130 PL" [ref=e533]
+            - cell "Patroli" [ref=e534]
+            - cell "Surabaya" [ref=e535]
+            - cell "Tersedia" [ref=e536]
+            - cell "Tanpa driver" [ref=e538]
+            - cell [ref=e539]:
+              - button "Edit" [ref=e540] [cursor=pointer]
+              - button "Hapus" [ref=e541] [cursor=pointer]
+          - row [ref=e542]:
+            - cell "Ambulans Makassar 01" [ref=e543]
+            - cell "DD 9131 AM" [ref=e544]
+            - cell "Ambulans" [ref=e545]
+            - cell "Makassar" [ref=e546]
+            - cell "Tersedia" [ref=e547]
+            - cell "Fajar Ramadhan" [ref=e549]
+            - cell [ref=e550]:
+              - button "Edit" [ref=e551] [cursor=pointer]
+              - button "Hapus" [ref=e552] [cursor=pointer]
+          - row [ref=e553]:
+            - cell "Ambulans Makassar 02" [ref=e554]
+            - cell "DD 9132 AM" [ref=e555]
+            - cell "Ambulans" [ref=e556]
+            - cell "Makassar" [ref=e557]
+            - cell "Tersedia" [ref=e558]
+            - cell "Tanpa driver" [ref=e560]
+            - cell [ref=e561]:
+              - button "Edit" [ref=e562] [cursor=pointer]
+              - button "Hapus" [ref=e563] [cursor=pointer]
+          - row [ref=e564]:
+            - cell "Damkar Makassar 01" [ref=e565]
+            - cell "DD 9133 PM" [ref=e566]
+            - cell "Damkar" [ref=e567]
+            - cell "Makassar" [ref=e568]
+            - cell "Tersedia" [ref=e569]
+            - cell "Nurul Hasanah" [ref=e571]
+            - cell [ref=e572]:
+              - button "Edit" [ref=e573] [cursor=pointer]
+              - button "Hapus" [ref=e574] [cursor=pointer]
+          - row [ref=e575]:
+            - cell "Damkar Makassar 02" [ref=e576]
+            - cell "DD 9134 PM" [ref=e577]
+            - cell "Damkar" [ref=e578]
+            - cell "Makassar" [ref=e579]
+            - cell "Tersedia" [ref=e580]
+            - cell "Tanpa driver" [ref=e582]
+            - cell [ref=e583]:
+              - button "Edit" [ref=e584] [cursor=pointer]
+              - button "Hapus" [ref=e585] [cursor=pointer]
+          - row [ref=e586]:
+            - cell "Patroli Makassar 01" [ref=e587]
+            - cell "DD 9135 PL" [ref=e588]
+            - cell "Patroli" [ref=e589]
+            - cell "Makassar" [ref=e590]
+            - cell "Tersedia" [ref=e591]
+            - cell "Tanpa driver" [ref=e593]
+            - cell [ref=e594]:
+              - button "Edit" [ref=e595] [cursor=pointer]
+              - button "Hapus" [ref=e596] [cursor=pointer]
+          - row [ref=e597]:
+            - cell "Patroli Makassar 02" [ref=e598]
+            - cell "DD 9136 PL" [ref=e599]
+            - cell "Patroli" [ref=e600]
+            - cell "Makassar" [ref=e601]
+            - cell "Tersedia" [ref=e602]
+            - cell "Tanpa driver" [ref=e604]
+            - cell [ref=e605]:
+              - button "Edit" [ref=e606] [cursor=pointer]
+              - button "Hapus" [ref=e607] [cursor=pointer]

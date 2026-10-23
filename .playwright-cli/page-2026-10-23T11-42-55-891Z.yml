@@ -1,0 +1,116 @@
+- generic [ref=e35]:
+  - banner [ref=e36]:
+    - generic [ref=e41]:
+      - paragraph [ref=e42]: Dispatch
+      - paragraph [ref=e43]: Peta operasi · Indonesia
+    - generic [ref=e44]:
+      - generic [ref=e45]: Terhubung ke API
+      - generic [ref=e47]:
+        - generic [ref=e48]: Dewi Lestari
+        - generic [ref=e49]: dispatcher
+      - button "Keluar" [ref=e50] [cursor=pointer]
+  - main [ref=e51]:
+    - complementary "Ringkasan armada" [ref=e52]:
+      - paragraph [ref=e53]: Armada nasional
+      - generic [ref=e54]:
+        - generic [ref=e55]: Kota operasi
+        - combobox "Filter kota operasi" [ref=e56] [cursor=pointer]:
+          - option "Semua Kota"
+          - option "Medan"
+          - option "Jakarta"
+          - option "Bandung" [selected]
+          - option "Semarang"
+          - option "Surabaya"
+          - option "Makassar"
+      - paragraph [ref=e57]:
+        - strong [ref=e58]: "6"
+        - text: kendaraan
+      - paragraph [ref=e59]: Kota Bandung
+      - paragraph [ref=e60]:
+        - text: Posisi terakhir dari tabel
+        - code [ref=e61]: vehicles
+        - text: . Klik peta untuk membuat insiden, atau klik marker untuk detail unit.
+      - list [ref=e62]:
+        - listitem [ref=e63]:
+          - text: Ambulans
+          - strong [ref=e65]: "2"
+        - listitem [ref=e66]:
+          - text: Damkar
+          - strong [ref=e68]: "2"
+        - listitem [ref=e69]:
+          - text: Patroli
+          - strong [ref=e71]: "2"
+      - generic [ref=e72]:
+        - generic [ref=e73]: Snapshot REST
+        - generic [ref=e74]: 18.33.33
+      - button "Muat ulang" [ref=e75] [cursor=pointer]
+    - generic [ref=e76]:
+      - generic "Peta kendaraan seluruh Indonesia" [ref=e77]:
+        - generic:
+          - generic:
+            - button "A" [ref=e380] [cursor=pointer]
+            - button "A" [ref=e383] [cursor=pointer]
+            - button "D" [ref=e386] [cursor=pointer]
+            - button "D" [ref=e389] [cursor=pointer]
+            - button "P" [ref=e392] [cursor=pointer]
+            - button "P" [ref=e395] [cursor=pointer]
+            - button "!" [ref=e398] [cursor=pointer]
+        - generic:
+          - generic [ref=e186]:
+            - button "Zoom in" [ref=e187] [cursor=pointer]: +
+            - button "Zoom out" [ref=e188] [cursor=pointer]: −
+          - generic [ref=e189]:
+            - link "Leaflet" [ref=e190] [cursor=pointer]:
+              - /url: https://leafletjs.com
+            - text: "| ©"
+            - link "OpenStreetMap" [ref=e195] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/copyright
+            - text: contributors
+      - complementary "Insiden" [ref=e196]:
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - paragraph [ref=e199]: Insiden
+            - heading "Detail insiden" [level=2] [ref=e282]
+          - button "Muat ulang" [ref=e201] [cursor=pointer]
+        - generic [ref=e283]:
+          - button "← Kembali ke daftar" [ref=e284] [cursor=pointer]
+          - heading "Kebakaran Pasar Baru" [level=3] [ref=e285]
+          - paragraph [ref=e286]: Open
+          - paragraph [ref=e287]: Damkar · High · Bandung
+          - paragraph [ref=e288]: Tanpa deskripsi.
+          - paragraph [ref=e289]: "Koordinat: -6.91757, 107.61898"
+          - paragraph [ref=e290]: Dibuat 23/10/26, 18.34
+          - generic [ref=e291]:
+            - button "Cari Kendaraan Terdekat" [ref=e292] [cursor=pointer]
+            - button "Batalkan Insiden" [ref=e293] [cursor=pointer]
+          - generic [ref=e325]:
+            - paragraph [ref=e326]: 3 kandidat · radius 50 km
+            - list [ref=e327]:
+              - listitem [ref=e328]:
+                - generic [ref=e329]:
+                  - strong [ref=e330]: Patroli Bandung 01
+                  - generic [ref=e331]: D 9117 PL
+                - paragraph [ref=e332]: Patroli · Tanpa driver
+                - paragraph [ref=e333]:
+                  - generic [ref=e334]: 3.4 km
+                  - generic [ref=e335]: ETA 5 menit
+                - button "Assign" [ref=e336] [cursor=pointer]
+              - listitem [ref=e337]:
+                - generic [ref=e338]:
+                  - strong [ref=e339]: Damkar Bandung 02
+                  - generic [ref=e340]: D 9116 PM
+                - paragraph [ref=e341]: Damkar · Tanpa driver
+                - paragraph [ref=e342]:
+                  - generic [ref=e343]: 4.2 km
+                  - generic [ref=e344]: ETA 6 menit
+                  - generic [ref=e345]: Sesuai Tipe
+                - button "Assign" [ref=e346] [cursor=pointer]
+              - listitem [ref=e347]:
+                - generic [ref=e348]:
+                  - strong [ref=e349]: Ambulans Bandung 02
+                  - generic [ref=e350]: D 9114 AM
+                - paragraph [ref=e351]: Ambulans · Tanpa driver
+                - paragraph [ref=e352]:
+                  - generic [ref=e353]: 3.8 km
+                  - generic [ref=e354]: ETA 6 menit
+                - button "Assign" [ref=e355] [cursor=pointer]
