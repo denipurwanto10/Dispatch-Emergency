@@ -23,6 +23,7 @@ import type {
   User,
   VehicleType,
 } from '../types'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 type Tab = 'users' | 'vehicles'
 
@@ -367,9 +368,15 @@ export function AdminPage() {
             Peta operasi
           </Link>
           <div className="user-chip">
-            <span className="user-chip-name">{session.user.name}</span>
-            <span className="user-chip-role">{session.user.role}</span>
+            <span className="avatar" aria-hidden="true">
+              {session.user.name.charAt(0).toUpperCase()}
+            </span>
+            <div className="user-chip-text">
+              <span className="user-chip-name">{session.user.name}</span>
+              <span className="user-chip-role">{session.user.role}</span>
+            </div>
           </div>
+          <ThemeToggle />
           <button className="button button-ghost" type="button" onClick={handleLogout}>
             Keluar
           </button>
@@ -402,6 +409,25 @@ export function AdminPage() {
             >
               Kendaraan <span>{vehicles.length}</span>
             </button>
+          </div>
+        </div>
+
+        <div className="admin-stats" aria-label="Ringkasan">
+          <div className="admin-stat">
+            <span>Total user</span>
+            <strong>{users.length}</strong>
+          </div>
+          <div className="admin-stat">
+            <span>Driver</span>
+            <strong>{users.filter((item) => item.role === 'driver').length}</strong>
+          </div>
+          <div className="admin-stat admin-stat--accent">
+            <span>Kendaraan</span>
+            <strong>{vehicles.length}</strong>
+          </div>
+          <div className="admin-stat admin-stat--success">
+            <span>Tersedia</span>
+            <strong>{vehicles.filter((item) => item.status === 'available').length}</strong>
           </div>
         </div>
 
@@ -478,14 +504,14 @@ export function AdminPage() {
                   <tbody>
                     {users.map((user) => (
                       <tr key={user.id}>
-                        <td>{user.name}</td>
-                        <td className="admin-mono">{user.email}</td>
-                        <td>
+                        <td data-label="Nama">{user.name}</td>
+                        <td data-label="Email" className="admin-mono">{user.email}</td>
+                        <td data-label="Role">
                           <span className={`admin-badge admin-badge--${user.role}`}>
                             {ROLE_LABEL[user.role]}
                           </span>
                         </td>
-                        <td>{user.operating_city ?? 'Nasional'}</td>
+                        <td data-label="Kota">{user.operating_city ?? 'Nasional'}</td>
                         <td className="admin-col-actions">
                           <button className="admin-link" type="button" onClick={() => openEditUser(user)}>
                             Edit
@@ -520,16 +546,16 @@ export function AdminPage() {
                   <tbody>
                     {vehicles.map((vehicle) => (
                       <tr key={vehicle.id}>
-                        <td>{vehicle.name}</td>
-                        <td className="admin-mono">{vehicle.plate}</td>
-                        <td>{TYPE_LABEL[vehicle.type]}</td>
-                        <td>{vehicle.operating_city ?? '—'}</td>
-                        <td>
+                        <td data-label="Nama">{vehicle.name}</td>
+                        <td data-label="Plat" className="admin-mono">{vehicle.plate}</td>
+                        <td data-label="Tipe">{TYPE_LABEL[vehicle.type]}</td>
+                        <td data-label="Kota">{vehicle.operating_city ?? '—'}</td>
+                        <td data-label="Status">
                           <span className={`admin-badge admin-badge--status-${vehicle.status}`}>
                             {STATUS_LABEL[vehicle.status] ?? vehicle.status}
                           </span>
                         </td>
-                        <td>{vehicle.driver_name ?? 'Tanpa driver'}</td>
+                        <td data-label="Driver">{vehicle.driver_name ?? 'Tanpa driver'}</td>
                         <td className="admin-col-actions">
                           <button
                             className="admin-link"
@@ -553,6 +579,18 @@ export function AdminPage() {
               </div>
             )}
           </section>
+
+          {userForm || vehicleForm ? (
+            <div
+              className="admin-backdrop"
+              aria-hidden="true"
+              onClick={() => {
+                setUserForm(null)
+                setVehicleForm(null)
+                setFormError(null)
+              }}
+            />
+          ) : null}
 
           {userForm ? (
             <aside className="admin-form-card" aria-label="Form user">

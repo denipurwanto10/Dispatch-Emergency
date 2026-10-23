@@ -6,7 +6,7 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 
 import {
@@ -20,7 +20,9 @@ import {
   fetchAssignment,
 } from '../api/client'
 import { API_BASE } from '../api/client'
-import { clearSession, readSession } from '../auth/session'
+import { clearSession, homeForRole, readSession } from '../auth/session'
+import { addBasemap } from '../lib/basemap'
+import { syncVehicleMarkers } from '../lib/vehicleMarker'
 import {
   CITY_OPTIONS,
   INDONESIA_BOUNDS,
@@ -28,6 +30,7 @@ import {
   INDONESIA_ZOOM,
   findCity,
 } from '../cities'
+import { ThemeToggle } from '../components/ThemeToggle'
 import type {
   Incident,
   IncidentPriority,
@@ -90,17 +93,6 @@ interface DraftPoint {
 
 function emptyIncidentForm(): IncidentForm {
   return { title: '', description: '', type: 'ambulance', priority: 'medium' }
-}
-
-function vehicleIcon(vehicle: Vehicle): L.DivIcon {
-  const meta = TYPE_META[vehicle.type] ?? { label: 'Kendaraan', short: '?' }
-  return L.divIcon({
-    className: 'vehicle-marker-wrap',
-    html: `<span class="vehicle-marker vehicle-marker--${vehicle.type}"><span>${meta.short}</span></span>`,
-    iconSize: [38, 38],
-    iconAnchor: [19, 19],
-    popupAnchor: [0, -22],
-  })
 }
 
 function incidentIcon(incident: Incident): L.DivIcon {
@@ -216,6 +208,12 @@ export function MapPage() {
   const [nearestError, setNearestError] = useState<string | null>(null)
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [sheetCollapsed, setSheetCollapsed] = useState(false)
+
+  // Bottom sheet (mobile) otomatis terbuka saat mode panel berubah.
+  useEffect(() => {
+    setSheetCollapsed(false)
+  }, [panelMode])
 
   // Assignment & WebSocket state
   const [routePolyline, setRoutePolyline] = useState<L.Polyline | null>(null)
@@ -223,6 +221,7 @@ export function MapPage() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
   const markerLayerRef = useRef<L.LayerGroup | null>(null)
+  const vehicleMarkersRef = useRef<Map<number, L.Marker>>(new Map())
   const incidentLayerRef = useRef<L.LayerGroup | null>(null)
   const requestIDRef = useRef(0)
   const incidentRequestIDRef = useRef(0)
@@ -302,10 +301,7 @@ export function MapPage() {
       zoomControl: true,
     })
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map)
+    addBasemap(map, { simple: true })
 
     markerLayerRef.current = L.layerGroup().addTo(map)
     incidentLayerRef.current = L.layerGroup().addTo(map)
@@ -330,6 +326,7 @@ export function MapPage() {
       map.remove()
       mapRef.current = null
       markerLayerRef.current = null
+      vehicleMarkersRef.current = new Map()
       incidentLayerRef.current = null
     }
   }, [])
@@ -433,15 +430,7 @@ export function MapPage() {
     const layer = markerLayerRef.current
     if (!layer) return
 
-    layer.clearLayers()
-    for (const vehicle of vehicles) {
-      L.marker([vehicle.lat, vehicle.lng], {
-        icon: vehicleIcon(vehicle),
-        title: vehicle.name,
-      })
-        .bindPopup(buildVehiclePopup(vehicle))
-        .addTo(layer)
-    }
+    syncVehicleMarkers(layer, vehicleMarkersRef.current, vehicles, buildVehiclePopup)
   }, [vehicles])
 
   useEffect(() => {
@@ -670,15 +659,26 @@ export function MapPage() {
             <span className="connection-dot" aria-hidden="true" />
             {connectionError ? 'Gagal memuat' : 'Terhubung ke API'}
           </span>
+          {session && session.user.role !== 'dispatcher' ? (
+            <Link className="button button-ghost" to={homeForRole(session.user.role)}>
+              ← {session.user.role === 'admin' ? 'Panel Admin' : 'Layar Driver'}
+            </Link>
+          ) : null}
           {session ? (
             <div className="user-chip">
-              <span className="user-chip-name">{session.user.name}</span>
-              <span className="user-chip-role">
-                {session.user.role}
-                {session.user.operating_city ? ` · ${session.user.operating_city}` : ''}
+              <span className="avatar" aria-hidden="true">
+                {session.user.name.charAt(0).toUpperCase()}
               </span>
+              <div className="user-chip-text">
+                <span className="user-chip-name">{session.user.name}</span>
+                <span className="user-chip-role">
+                  {session.user.role}
+                  {session.user.operating_city ? ` · ${session.user.operating_city}` : ''}
+                </span>
+              </div>
             </div>
           ) : null}
+          <ThemeToggle />
           <button className="button button-ghost" type="button" onClick={handleLogout}>
             Keluar
           </button>
@@ -710,6 +710,16 @@ export function MapPage() {
             klik marker untuk detail unit.
           </p>
 
+          <div className="fleet-bar" aria-hidden="true">
+            {(['ambulance', 'fire', 'police'] as const).map((type) => (
+              <span
+                key={type}
+                className={`legend-dot--${type}`}
+                style={{ width: `${vehicles.length ? (counts[type] / vehicles.length) * 100 : 0}%` }}
+              />
+            ))}
+          </div>
+
           <ul className="fleet-legend">
             <li>
               <span className="legend-dot legend-dot--ambulance" aria-hidden="true" />
@@ -738,7 +748,17 @@ export function MapPage() {
         <section className="map-stage">
           <div ref={mapContainerRef} className="map-canvas" aria-label="Peta kendaraan seluruh Indonesia" />
 
-          <aside className="incident-panel" aria-label="Insiden">
+          <aside
+            className={`incident-panel ${sheetCollapsed ? 'incident-panel--collapsed' : ''}`}
+            aria-label="Insiden"
+          >
+            <button
+              className="sheet-handle"
+              type="button"
+              aria-label={sheetCollapsed ? 'Buka panel insiden' : 'Tutup panel insiden'}
+              aria-expanded={!sheetCollapsed}
+              onClick={() => setSheetCollapsed((value) => !value)}
+            />
             <div className="incident-panel-head">
               <div>
                 <p className="eyebrow">Insiden</p>

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { clearSession, readSession } from '../auth/session'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 interface RoleHomePageProps {
   role: 'driver' | 'admin'
@@ -53,10 +54,16 @@ export function RoleHomePage({ role }: RoleHomePageProps) {
         <div className="topbar-right">
           {session ? (
             <div className="user-chip">
-              <span className="user-chip-name">{session.user.name}</span>
-              <span className="user-chip-role">{session.user.role}</span>
+              <span className="avatar" aria-hidden="true">
+                {session.user.name.charAt(0).toUpperCase()}
+              </span>
+              <div className="user-chip-text">
+                <span className="user-chip-name">{session.user.name}</span>
+                <span className="user-chip-role">{session.user.role}</span>
+              </div>
             </div>
           ) : null}
+          <ThemeToggle />
           <button className="button button-ghost" type="button" onClick={handleLogout}>
             Keluar
           </button>

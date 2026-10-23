@@ -12,7 +12,10 @@ import {
   startAssignment,
 } from '../api/client'
 import { clearSession, readSession } from '../auth/session'
+import { addBasemap } from '../lib/basemap'
+import { syncVehicleMarkers } from '../lib/vehicleMarker'
 import { findCity } from '../cities'
+import { ThemeToggle } from '../components/ThemeToggle'
 import type {
   AssignmentHistoryItem,
   AssignmentStatusEvent,
@@ -50,16 +53,6 @@ const VEHICLE_STATUS_LABEL: Record<string, string> = {
   en_route: 'Menuju lokasi',
   on_scene: 'Di lokasi',
   offline: 'Offline',
-}
-
-function vehicleMarkerIcon(vehicle: Vehicle): L.DivIcon {
-  const short = vehicle.type === 'ambulance' ? 'A' : vehicle.type === 'fire' ? 'D' : 'P'
-  return L.divIcon({
-    className: 'vehicle-marker-wrap',
-    html: `<span class="vehicle-marker vehicle-marker--${vehicle.type}"><span>${short}</span></span>`,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-  })
 }
 
 function incidentMarkerIcon(): L.DivIcon {
@@ -111,6 +104,7 @@ export function DriverPage() {
   const [mapNode, setMapNode] = useState<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
   const vehicleMarkerRef = useRef<L.Marker | null>(null)
+  const vehicleMarkersRef = useRef<Map<number, L.Marker>>(new Map())
   const incidentMarkerRef = useRef<L.Marker | null>(null)
   const routeLineRef = useRef<L.Polyline | null>(null)
   const assignmentRef = useRef<AssignmentWithRelations | null>(null)
@@ -305,10 +299,7 @@ export function DriverPage() {
       zoom: city?.zoom ?? 5,
       zoomControl: true,
     })
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map)
+    addBasemap(map, { simple: true })
     mapRef.current = map
     fittedAssignmentRef.current = null
 
@@ -318,6 +309,7 @@ export function DriverPage() {
       map.remove()
       mapRef.current = null
       vehicleMarkerRef.current = null
+      vehicleMarkersRef.current = new Map()
       incidentMarkerRef.current = null
       routeLineRef.current = null
     }
@@ -326,19 +318,13 @@ export function DriverPage() {
   useEffect(() => {
     const map = mapRef.current
     if (!map || !myVehicle) return
-    if (!vehicleMarkerRef.current) {
-      vehicleMarkerRef.current = L.marker([myVehicle.lat, myVehicle.lng], {
-        icon: vehicleMarkerIcon(myVehicle),
-        title: myVehicle.name,
-      }).addTo(map)
-    } else {
-      vehicleMarkerRef.current.setLatLng([myVehicle.lat, myVehicle.lng])
-    }
-    vehicleMarkerRef.current.bindPopup(
-      `<strong>${myVehicle.name}</strong><br/>${myVehicle.plate} · ${
-        VEHICLE_STATUS_LABEL[myVehicle.status] ?? myVehicle.status
+    const store = vehicleMarkersRef.current
+    syncVehicleMarkers(map, store, [myVehicle], (vehicle) =>
+      `<strong>${vehicle.name}</strong><br/>${vehicle.plate} · ${
+        VEHICLE_STATUS_LABEL[vehicle.status] ?? vehicle.status
       }`,
     )
+    vehicleMarkerRef.current = store.get(myVehicle.id) ?? null
   }, [myVehicle, mapNode])
 
   useEffect(() => {
@@ -476,7 +462,13 @@ export function DriverPage() {
             <span className="connection-dot" aria-hidden="true" />
             {wsConnected ? 'Live WebSocket' : 'Menyambung ulang…'}
           </span>
-          <span>{session.user.name}</span>
+          <span className="driver-user-name">
+            <span className="avatar" aria-hidden="true">
+              {session.user.name.charAt(0).toUpperCase()}
+            </span>
+            <span>{session.user.name}</span>
+          </span>
+          <ThemeToggle />
           <button className="button button-ghost" type="button" onClick={handleLogout}>
             Keluar
           </button>
