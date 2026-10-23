@@ -389,8 +389,11 @@ Rescue/
 │   └── src/
 │       ├── api/       # client API
 │       ├── auth/      # session localStorage
+│       ├── lib/       # utilitas (vehicleMarker.ts)
 │       ├── pages/     # Login, Map, Driver, Admin
 │       └── cities.ts  # pusat 6 kota + bounds Indonesia
+├── .playwright-cli/   # Playwright test artifacts (auto-generated)
+├── docs/screenshots/  # Screenshot demo (Playwright output)
 ├── .env.example
 ├── AGENT.md
 └── README.md
@@ -429,20 +432,7 @@ Get-ChildItem -Recurse -Force -Include Dockerfile,docker-compose.yml,docker-comp
 
 ## Screenshot Portfolio
 
-Berikut 8 screenshot dari skenario demo Bandung yang deterministik. Semua diambil dengan browser nyata (Playwright/Chromium), viewport dispatcher/admin 1440px, driver 390px.
-
-| # | Gambar | Caption |
-|---|--------|---------|
-| 1 | ![01](docs/screenshots/01-dispatcher-nasional.png) | Peta nasional Indonesia, filter "Semua Kota", 36 marker kendaraan |
-| 2 | ![02](docs/screenshots/02-dispatcher-bandung-nearest.png) | Peta Bandung, insiden "Kebakaran Pasar Baru" baru dibuat, panel nearest menampilkan 3 kandidat |
-| 3 | ![03](docs/screenshots/03-dispatcher-en-route.png) | Kendaraan Damkar Bandung 01 sedang en_route (progres ~40–60%), polyline rute dan countdown ETA terlihat |
-| 4 | ![04](docs/screenshots/04-dispatcher-on-scene.png) | Lencana ON SCENE terlihat setelah kendaraan tiba di lokasi insiden |
-| 5 | ![05](docs/screenshots/05-driver-tugas.png) | Layar driver 390px saat en_route: kartu tugas + peta mini + rute |
-| 6 | ![06](docs/screenshots/06-driver-riwayat.png) | Layar driver setelah complete: tugas muncul di riwayat dengan response time terisi |
-| 7 | ![07](docs/screenshots/07-admin-users.png) | Panel admin tab Users (14 user seed) |
-| 8 | ![08](docs/screenshots/08-admin-vehicles.png) | Panel admin tab Kendaraan (36 kendaraan seed) |
-
-> File screenshot tersimpan di `docs/screenshots/` dan ikut ter-commit (bukan di-ignore `.gitignore`).
+Screenshot demo tersedia di folder `docs/screenshots/`. Jalankan `npm run test:e2e` (Playwright) untuk menghasilkan screenshot terbaru dari skenario demo Bandung.
 
 ## Demo dalam 5 Menit
 
