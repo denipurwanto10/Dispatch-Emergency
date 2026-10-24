@@ -27,12 +27,6 @@ func New(cfg config.Config, db *sql.DB, manager *auth.Manager) (*gin.Engine, *si
 	authHandler := handler.NewAuthHandler(users, manager)
 	vehicleHandler := handler.NewVehicleHandler(vehicles)
 	adminHandler := handler.NewAdminHandler(users, vehicles)
-	incidentHandler := handler.NewIncidentHandler(
-		incidents,
-		vehicles,
-		osrm.NewClient(cfg.OSRMBaseURL),
-		cfg.DispatchRadiusM,
-	)
 
 	// WebSocket hub
 	wsHub := ws.NewHub(manager)
@@ -41,6 +35,14 @@ func New(cfg config.Config, db *sql.DB, manager *auth.Manager) (*gin.Engine, *si
 	broadcast := func(eventType string, data any) {
 		wsHub.Broadcast(ws.BroadcastEvent{Type: eventType, Data: data})
 	}
+
+	incidentHandler := handler.NewIncidentHandler(
+		incidents,
+		vehicles,
+		osrm.NewClient(cfg.OSRMBaseURL),
+		cfg.DispatchRadiusM,
+		broadcast,
+	)
 
 	assignmentHandler := handler.NewAssignmentHandler(
 		incidents,
@@ -88,8 +90,10 @@ func New(cfg config.Config, db *sql.DB, manager *auth.Manager) (*gin.Engine, *si
 
 	incidentRoutes := r.Group("/incidents")
 	incidentRoutes.Use(middleware.RequireAuth(manager))
-	incidentRoutes.POST("", middleware.RequireRole("dispatcher"), incidentHandler.Create)
-	incidentRoutes.POST("/:id/cancel", middleware.RequireRole("dispatcher"), incidentHandler.Cancel)
+	// Admin punya hak penuh seperti dispatcher di Peta Operasi, termasuk
+	// membuat dan membatalkan laporan.
+	incidentRoutes.POST("", middleware.RequireRole("dispatcher", "admin"), incidentHandler.Create)
+	incidentRoutes.POST("/:id/cancel", middleware.RequireRole("dispatcher", "admin"), incidentHandler.Cancel)
 	incidentRoutes.GET("", middleware.RequireRole("dispatcher", "admin"), incidentHandler.List)
 	incidentRoutes.GET("/:id/nearest", middleware.RequireRole("dispatcher", "admin"), incidentHandler.Nearest)
 	incidentRoutes.GET("/:id", middleware.RequireRole("dispatcher", "admin"), incidentHandler.Get)
@@ -98,13 +102,14 @@ func New(cfg config.Config, db *sql.DB, manager *auth.Manager) (*gin.Engine, *si
 	assignmentRoutes := r.Group("/assignments")
 	assignmentRoutes.Use(middleware.RequireAuth(manager))
 	assignmentRoutes.POST("/:id/start", middleware.RequireRole("driver"), assignmentHandler.Start)
+	assignmentRoutes.POST("/:id/arrive", middleware.RequireRole("driver"), assignmentHandler.Arrive)
 	assignmentRoutes.POST("/:id/complete", middleware.RequireRole("driver", "dispatcher", "admin"), assignmentHandler.Complete)
 	assignmentRoutes.GET("/mine/active", middleware.RequireRole("driver"), assignmentHandler.GetMineActive)
 	assignmentRoutes.GET("/mine/history", middleware.RequireRole("driver"), assignmentHandler.ListMineHistory)
 	assignmentRoutes.GET("/:id", middleware.RequireRole("dispatcher", "admin", "driver"), assignmentHandler.GetByID)
 
-	// Incident assign (dispatcher only)
-	incidentRoutes.POST("/:id/assign", middleware.RequireRole("dispatcher"), assignmentHandler.Assign)
+	// Incident assign (dispatcher or admin)
+	incidentRoutes.POST("/:id/assign", middleware.RequireRole("dispatcher", "admin"), assignmentHandler.Assign)
 
 	admin := r.Group("/admin")
 	admin.Use(middleware.RequireAuth(manager), middleware.RequireRole("admin"))

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
+import { createRouteLine } from '../lib/routeLine'
 
 import {
   API_BASE,
   ApiError,
+  arriveAssignment,
   completeAssignment,
   fetchMyActiveAssignment,
   fetchMyHistory,
@@ -88,6 +90,68 @@ function formatCountdown(seconds: number | null): string {
   return `${minutes}:${String(rest).padStart(2, '0')}`
 }
 
+function formatDistance(meters: number | null | undefined): string {
+  if (meters == null || meters <= 0) return '—'
+  return `${(meters / 1000).toFixed(1)} km`
+}
+
+// Helper to safely get bounds from route line
+function getRouteBounds(routeLine: L.FeatureGroup | null): L.LatLngBounds | null {
+  if (!routeLine) return null
+  try {
+    return routeLine.getBounds()
+  } catch {
+    return null
+  }
+}
+
+// OSRM Route response types
+interface OSRMRouteResponse {
+  code: string
+  routes: Array<{
+    geometry: { coordinates: number[][]; type: string }
+    distance: number
+    duration: number
+    legs: Array<{ distance: number; duration: number }>
+  }>
+  waypoints: Array<{ location: number[] }>
+}
+
+/**
+ * Fetch route from OSRM directly (frontend fallback)
+ * Uses public OSRM demo server - in production should use self-hosted
+ */
+async function fetchRouteFromOSRM(
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number
+): Promise<{ coordinates: number[][]; distanceM: number; durationSec: number } | null> {
+  const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson&steps=false`
+  
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      console.warn('[OSRM] HTTP error:', response.status)
+      return null
+    }
+    const data = await response.json() as OSRMRouteResponse
+    if (data.code !== 'Ok' || !data.routes?.length) {
+      console.warn('[OSRM] No route found:', data.code)
+      return null
+    }
+    const route = data.routes[0]
+    return {
+      coordinates: route.geometry.coordinates,
+      distanceM: route.distance,
+      durationSec: Math.round(route.duration),
+    }
+  } catch (err) {
+    console.error('[OSRM] Fetch error:', err)
+    return null
+  }
+}
+
 export function DriverPage() {
   const navigate = useNavigate()
   const [session] = useState<Session | null>(() => readSession())
@@ -95,22 +159,36 @@ export function DriverPage() {
   const [myVehicle, setMyVehicle] = useState<Vehicle | null>(null)
   const [history, setHistory] = useState<AssignmentHistoryItem[]>([])
   const [etaRemaining, setEtaRemaining] = useState<number | null>(null)
+  const [distanceRemaining, setDistanceRemaining] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState(false)
   const [starting, setStarting] = useState(false)
+  const [arriving, setArriving] = useState(false)
   const [completing, setCompleting] = useState(false)
   const [wsConnected, setWsConnected] = useState(false)
+  const [routeError, setRouteError] = useState<string | null>(null)
+  const [fetchingRoute, setFetchingRoute] = useState(false)
 
   const [mapNode, setMapNode] = useState<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
   const vehicleMarkerRef = useRef<L.Marker | null>(null)
   const vehicleMarkersRef = useRef<Map<number, L.Marker>>(new Map())
   const incidentMarkerRef = useRef<L.Marker | null>(null)
-  const routeLineRef = useRef<L.Polyline | null>(null)
+  const routeLineRef = useRef<L.FeatureGroup | null>(null)
+
   const assignmentRef = useRef<AssignmentWithRelations | null>(null)
   const myVehicleIDRef = useRef<number | null>(null)
   const fittedAssignmentRef = useRef<number | null>(null)
   const hasConnectedRef = useRef(false)
+  const routeFetchedRef = useRef(false) // prevent duplicate OSRM calls
+  const fetchingRouteRef = useRef(false) // prevent duplicate OSRM calls in flight
+  // Refs untuk callback load agar effect WebSocket tidak
+  // ter-trigger reconnect saat callback berubah. Diinisialisasi dengan no-op
+  // lalu di-update setelah useCallback didefinisikan.
+  const loadActiveRef = useRef<() => Promise<void>>(async () => {})
+  const loadVehicleRef = useRef<() => Promise<void>>(async () => {})
+  const loadHistoryRef = useRef<() => Promise<void>>(async () => {})
 
   const handleUnauthorized = useCallback(() => {
     clearSession()
@@ -121,18 +199,125 @@ export function DriverPage() {
     if (!session) return
     try {
       const data = await fetchMyActiveAssignment(session.token)
+      console.log('[DriverPage] PAYLOAD ASSIGNMENT:', JSON.stringify(data, null, 2))
       assignmentRef.current = data
       setAssignment(data)
-      setEtaRemaining(data ? data.assignment.eta_seconds : null)
+      // A finished request means the earlier failure (if any) is stale
       setError(null)
+      if (data) {
+        // Initialize from assignment data
+        setEtaRemaining(data.assignment.eta_seconds)
+        setDistanceRemaining(data.assignment.distance_m)
+        // Reset route fetched flag for new assignment
+        routeFetchedRef.current = false
+        // Check if we need fallback routing
+        const hasRouteGeoJSON = !!data.assignment.route_geojson
+        const hasValidEta = data.assignment.eta_seconds > 0
+        const hasValidDistance = data.assignment.distance_m > 0
+        
+        if (!hasRouteGeoJSON || !hasValidEta || !hasValidDistance) {
+          // The map effect below triggers the OSRM fallback once assignment state lands
+          setRouteError('Mengambil rute dari layanan peta...')
+        } else {
+          setRouteError(null)
+        }
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         handleUnauthorized()
         return
       }
-      setError(err instanceof ApiError ? err.message : 'Tugas aktif gagal dimuat. Tarik ulang halaman ini.')
+      if (err instanceof ApiError && err.status === 403) {
+        setError('Akses ditolak: Anda tidak memiliki tugas aktif atau token tidak valid.')
+      } else if (err instanceof ApiError && err.status === 404) {
+        setError('Tidak ada tugas aktif untuk Anda.')
+      } else {
+        setError(err instanceof ApiError ? err.message : 'Tugas aktif gagal dimuat. Periksa koneksi dan coba lagi.')
+      }
+      console.error('[DriverPage] loadActive error:', err)
     }
   }, [session, handleUnauthorized])
+
+  // Fallback routing function - calls OSRM directly from frontend
+  const fetchAndApplyRouteFallback = useCallback(
+    async (startLat: number, startLng: number, endLat: number, endLng: number) => {
+      if (fetchingRouteRef.current || routeFetchedRef.current) return
+
+      // Validate coordinates
+      const hasValidCoords = [startLat, startLng, endLat, endLng].every(
+        (value) => Number.isFinite(value),
+      )
+      if (!hasValidCoords) {
+        console.warn('[Fallback] Invalid coordinates:', { startLat, startLng, endLat, endLng })
+        setRouteError('Koordinat tidak valid untuk perhitungan rute')
+        return
+      }
+
+      fetchingRouteRef.current = true
+      setFetchingRoute(true)
+      setRouteError('Menghitung rute...')
+
+      try {
+        const routeData = await fetchRouteFromOSRM(startLat, startLng, endLat, endLng)
+        if (!routeData) {
+          // Mark as attempted so the effect does not retry OSRM in a loop
+          routeFetchedRef.current = true
+          setRouteError('Gagal menghitung rute. Coba lagi atau hubungi dispatcher.')
+          return
+        }
+
+        routeFetchedRef.current = true
+        console.log('[Fallback] Route fetched:', routeData)
+
+        const routeGeoJSON = JSON.stringify({
+          type: 'LineString',
+          coordinates: routeData.coordinates,
+        })
+
+        // Update local state for immediate UI feedback
+        setEtaRemaining(routeData.durationSec)
+        setDistanceRemaining(routeData.distanceM)
+        setRouteError(null)
+
+        // Update assignment with fallback data
+        setAssignment((prev) =>
+          prev
+            ? {
+                ...prev,
+                assignment: {
+                  ...prev.assignment,
+                  route_geojson: routeGeoJSON,
+                  distance_m: routeData.distanceM,
+                  eta_seconds: routeData.durationSec,
+                },
+              }
+            : prev,
+        )
+
+        // Also update the ref for WebSocket handlers
+        const current = assignmentRef.current
+        if (current) {
+          assignmentRef.current = {
+            ...current,
+            assignment: {
+              ...current.assignment,
+              route_geojson: routeGeoJSON,
+              distance_m: routeData.distanceM,
+              eta_seconds: routeData.durationSec,
+            },
+          }
+        }
+      } catch (err) {
+        console.error('[Fallback] Error:', err)
+        routeFetchedRef.current = true
+        setRouteError('Gagal menghitung rute. Periksa koneksi internet.')
+      } finally {
+        fetchingRouteRef.current = false
+        setFetchingRoute(false)
+      }
+    },
+    [],
+  )
 
   const loadVehicle = useCallback(async () => {
     if (!session) return
@@ -145,6 +330,7 @@ export function DriverPage() {
       if (err instanceof ApiError && err.status === 401) {
         handleUnauthorized()
       }
+      console.error('[DriverPage] loadVehicle error:', err)
     }
   }, [session, handleUnauthorized])
 
@@ -158,9 +344,30 @@ export function DriverPage() {
         handleUnauthorized()
         return
       }
-      setError(err instanceof ApiError ? err.message : 'Riwayat tugas gagal dimuat.')
+      console.error('[DriverPage] loadHistory error:', err)
     }
   }, [session, handleUnauthorized])
+
+  // Sync refs so WebSocket effect always calls latest versions without
+  // adding them to its dependency array.
+  useEffect(() => {
+    loadActiveRef.current = loadActive
+  }, [loadActive])
+  useEffect(() => {
+    loadVehicleRef.current = loadVehicle
+  }, [loadVehicle])
+  useEffect(() => {
+    loadHistoryRef.current = loadHistory
+  }, [loadHistory])
+
+  const retryLoad = useCallback(async () => {
+    setRetrying(true)
+    setError(null)
+    setRouteError(null)
+    routeFetchedRef.current = false
+    await Promise.all([loadActive(), loadVehicle(), loadHistory()])
+    setRetrying(false)
+  }, [loadActive, loadVehicle, loadHistory])
 
   useEffect(() => {
     let cancelled = false
@@ -168,13 +375,11 @@ export function DriverPage() {
       await Promise.all([loadActive(), loadVehicle(), loadHistory()])
       if (!cancelled) setLoading(false)
     }
-    // oxlint-disable-next-line react/set-state-in-effect -- pemuatan awal data driver
     void initialLoad()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [loadActive, loadVehicle, loadHistory])
 
+  // WebSocket connection for real-time updates
   useEffect(() => {
     if (!session) return
 
@@ -193,8 +398,11 @@ export function DriverPage() {
         assignmentRef.current = null
         setAssignment(null)
         setEtaRemaining(null)
-        void loadHistory()
-        void loadVehicle()
+        setDistanceRemaining(null)
+        setRouteError(null)
+        routeFetchedRef.current = false
+        void loadHistoryRef.current()
+        void loadVehicleRef.current()
         return
       }
 
@@ -209,16 +417,29 @@ export function DriverPage() {
         myVehicleIDRef.current = event.vehicle.id
         setMyVehicle(event.vehicle)
       }
+      // Update ETA/distance from assignment data
       if (event.assignment.status === 'arrived') {
         setEtaRemaining(0)
-      } else if (event.assignment.status === 'assigned') {
+        setDistanceRemaining(0)
+      } else {
         setEtaRemaining(event.assignment.eta_seconds)
+        setDistanceRemaining(event.assignment.distance_m)
+      }
+      // If we got valid route data from backend, clear fallback flag
+      if (event.assignment.route_geojson && event.assignment.eta_seconds > 0) {
+        routeFetchedRef.current = false
+        setRouteError(null)
       }
     }
 
     const applyVehiclePosition = (event: VehiclePositionEvent) => {
       if (assignmentRef.current?.assignment.id !== event.assignment_id) return
       setEtaRemaining(event.eta_remaining_seconds)
+      const currentAssignment = assignmentRef.current
+      if (currentAssignment?.assignment.distance_m) {
+        const remainingDistance = currentAssignment.assignment.distance_m * (1 - event.progress_pct / 100)
+        setDistanceRemaining(Math.max(0, remainingDistance))
+      }
       setAssignment((previous) =>
         previous
           ? {
@@ -252,11 +473,11 @@ export function DriverPage() {
 
       socket.onopen = () => {
         setWsConnected(true)
+        console.log('[DriverPage] WebSocket connected')
         if (hasConnectedRef.current) {
-          // Setelah reconnect, segarkan state supaya tidak ada event yang terlewat.
-          void loadActive()
-          void loadVehicle()
-          void loadHistory()
+          void loadActiveRef.current()
+          void loadVehicleRef.current()
+          void loadHistoryRef.current()
         }
         hasConnectedRef.current = true
       }
@@ -265,18 +486,22 @@ export function DriverPage() {
         try {
           handleMessage(JSON.parse(event.data) as WSMessage)
         } catch (err) {
-          console.error('WS parse error:', err)
+          console.error('[DriverPage] WS parse error:', err)
         }
       }
 
       socket.onclose = () => {
         setWsConnected(false)
+        console.log('[DriverPage] WebSocket disconnected')
         if (!cancelled) {
           reconnectTimer = window.setTimeout(connect, 3000)
         }
       }
 
-      socket.onerror = () => {
+      socket.onerror = (err) => {
+        // Abaikan error dari socket yang sudah dibuang (mis. cleanup StrictMode)
+        if (cancelled) return
+        console.error('[DriverPage] WebSocket error:', err)
         socket?.close()
       }
     }
@@ -288,8 +513,9 @@ export function DriverPage() {
       if (reconnectTimer != null) window.clearTimeout(reconnectTimer)
       socket?.close()
     }
-  }, [session, loadActive, loadVehicle, loadHistory])
+  }, [session])
 
+  // Map initialization
   useEffect(() => {
     if (!mapNode) return
 
@@ -318,6 +544,7 @@ export function DriverPage() {
     }
   }, [session, mapNode])
 
+  // Vehicle marker sync
   useEffect(() => {
     const map = mapRef.current
     if (!map || !myVehicle) return
@@ -330,10 +557,12 @@ export function DriverPage() {
     vehicleMarkerRef.current = store.get(myVehicle.id) ?? null
   }, [myVehicle, mapNode])
 
+  // Map layers: incident marker, route polyline, fit bounds
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
 
+    // Clean up previous layers
     if (routeLineRef.current) {
       map.removeLayer(routeLineRef.current)
       routeLineRef.current = null
@@ -346,6 +575,8 @@ export function DriverPage() {
     if (!assignment?.incident) return
 
     const incident = assignment.incident
+
+    // Incident marker
     incidentMarkerRef.current = L.marker([incident.lat, incident.lng], {
       icon: incidentMarkerIcon(),
       title: incident.title,
@@ -353,27 +584,43 @@ export function DriverPage() {
       .bindPopup(`<strong>${incident.title}</strong><br/>${TYPE_LABEL[incident.type] ?? incident.type}`)
       .addTo(map)
 
-    if (assignment?.assignment?.route_geojson) {
-      try {
-        const geojson = JSON.parse(assignment.assignment.route_geojson) as {
-          type: string
-          coordinates: number[][]
+    // Route polyline - try backend route_geojson first, fallback to OSRM
+    const drawRoute = async () => {
+      // Try backend route_geojson first
+      if (assignment?.assignment?.route_geojson) {
+        try {
+          const geojson = JSON.parse(assignment.assignment.route_geojson) as {
+            type: string
+            coordinates: number[][]
+          }
+          if (geojson.type === 'LineString' && geojson.coordinates.length >= 2) {
+            const latlngs = geojson.coordinates.map(
+              (coordinate) => [coordinate[1], coordinate[0]] as [number, number],
+            )
+            routeLineRef.current = createRouteLine(latlngs).addTo(map)
+            setRouteError(null)
+            return
+          }
+        } catch (err) {
+          console.error('[DriverPage] Route parse error:', err)
         }
-        if (geojson.type === 'LineString' && geojson.coordinates.length >= 2) {
-          const latlngs = geojson.coordinates.map(
-            (coordinate) => [coordinate[1], coordinate[0]] as [number, number],
-          )
-          routeLineRef.current = L.polyline(latlngs, {
-            color: '#0b8f86',
-            weight: 5,
-            opacity: 0.9,
-          }).addTo(map)
-        }
-      } catch (err) {
-        console.error('Route parse error:', err)
+      }
+
+      // Fallback: fetch from OSRM if we have coordinates and haven't fetched yet
+      if (!routeFetchedRef.current && myVehicle && incident) {
+        await fetchAndApplyRouteFallback(myVehicle.lat, myVehicle.lng, incident.lat, incident.lng)
+        // After fallback, the assignment state will update and trigger this effect again
+      } else if (routeLineRef.current) {
+        // Route already drawn from fallback
+        setRouteError(null)
+      } else if (!fetchingRoute) {
+        setRouteError('Data rute tidak tersedia. Hubungi dispatcher.')
       }
     }
 
+    void drawRoute()
+
+    // Fit bounds to show both vehicle and incident
     const assignmentId = assignment?.assignment?.id
     if (assignmentId && fittedAssignmentRef.current !== assignmentId) {
       fittedAssignmentRef.current = assignmentId
@@ -381,13 +628,15 @@ export function DriverPage() {
         [incident.lat, incident.lng],
         myVehicle ? [myVehicle.lat, myVehicle.lng] : [incident.lat, incident.lng],
       ])
-      if (routeLineRef.current) {
-        bounds.extend(routeLineRef.current.getBounds())
+      const routeBounds = getRouteBounds(routeLineRef.current)
+      if (routeBounds) {
+        bounds.extend(routeBounds)
       }
       map.fitBounds(bounds, { padding: [28, 28], maxZoom: 15 })
     }
-  }, [assignment, myVehicle, mapNode])
+  }, [assignment, myVehicle, mapNode, fetchAndApplyRouteFallback, fetchingRoute])
 
+  // Action handlers
   async function handleStart() {
     if (!session || !assignment?.assignment?.id) return
     setStarting(true)
@@ -398,6 +647,9 @@ export function DriverPage() {
       assignmentRef.current = next
       setAssignment(next)
       setEtaRemaining(updated.eta_seconds)
+      setDistanceRemaining(updated.distance_m)
+      setRouteError(updated.route_geojson ? null : 'Data rute tidak tersedia')
+      routeFetchedRef.current = false // Allow re-fetch if needed
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         handleUnauthorized()
@@ -406,6 +658,28 @@ export function DriverPage() {
       setError(err instanceof ApiError ? err.message : 'Perjalanan belum bisa dimulai. Coba lagi.')
     } finally {
       setStarting(false)
+    }
+  }
+
+  async function handleArrive() {
+    if (!session || !assignment?.assignment?.id) return
+    setArriving(true)
+    setError(null)
+    try {
+      const updated = await arriveAssignment(session.token, assignment.assignment.id)
+      const next: AssignmentWithRelations = { ...assignment, assignment: updated }
+      assignmentRef.current = next
+      setAssignment(next)
+      setEtaRemaining(0)
+      setDistanceRemaining(0)
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        handleUnauthorized()
+        return
+      }
+      setError(err instanceof ApiError ? err.message : 'Gagal menandai tiba di lokasi. Coba lagi.')
+    } finally {
+      setArriving(false)
     }
   }
 
@@ -418,6 +692,9 @@ export function DriverPage() {
       assignmentRef.current = null
       setAssignment(null)
       setEtaRemaining(null)
+      setDistanceRemaining(null)
+      setRouteError(null)
+      routeFetchedRef.current = false
       await Promise.all([loadHistory(), loadVehicle()])
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -439,19 +716,33 @@ export function DriverPage() {
 
   const incident = assignment?.incident ?? null
   const status = assignment?.assignment?.status ?? 'assigned'
+  const isAssigned = status === 'assigned'
+  const isEnRoute = status === 'en_route'
+  const isArrived = status === 'arrived'
+  const isCompleted = status === 'completed'
+  const isCancelled = status === 'cancelled'
 
-  const etaLabel =
-    status === 'arrived'
-      ? 'Tiba di lokasi'
-      : status === 'en_route'
-        ? formatCountdown(etaRemaining)
-        : assignment?.assignment?.eta_seconds
-          ? `${Math.ceil((assignment.assignment?.eta_seconds ?? 0) / 60)} menit`
+  // Always compute labels from assignment data as fallback
+  const assignmentEtaSeconds = assignment?.assignment?.eta_seconds ?? 0
+  const assignmentDistanceM = assignment?.assignment?.distance_m ?? 0
+
+  const etaLabel = isArrived || isCompleted
+    ? 'Tiba di lokasi'
+    : isEnRoute
+      ? formatCountdown(etaRemaining)
+      : assignmentEtaSeconds > 0
+        ? `${Math.ceil(assignmentEtaSeconds / 60)} menit`
+        : fetchingRoute
+          ? 'Menghitung...'
           : '—'
 
-  const distanceLabel = assignment?.assignment?.distance_m
-    ? `${(assignment.assignment.distance_m / 1000).toFixed(1)} km`
-    : '—'
+  const distanceLabel = isArrived || isCompleted
+    ? '0 km'
+    : formatDistance(distanceRemaining ?? assignmentDistanceM)
+
+  const progressPercent = assignmentEtaSeconds > 0 && etaRemaining != null
+    ? Math.min(100, Math.max(0, 100 - (etaRemaining / assignmentEtaSeconds) * 100))
+    : 0
 
   return (
     <div className="driver-shell">
@@ -463,9 +754,37 @@ export function DriverPage() {
       </AppHeader>
 
       <main className="driver-main">
-        {error ? (
+        {/* Error banner with retry - ONLY shows if error state is set AND no assignment data */}
+        {error && !assignment ? (
           <div className="driver-alert" role="alert">
-            {error}
+            <span>{error}</span>
+            <button
+              className="button button-ghost button-sm"
+              type="button"
+              onClick={retryLoad}
+              disabled={retrying}
+            >
+              {retrying ? 'Memuat…' : 'Coba Lagi'}
+            </button>
+          </div>
+        ) : null}
+
+        {/* Route warning (non-blocking) */}
+        {routeError && !error ? (
+          <div className="driver-alert driver-alert--warning" role="alert">
+            <span>⚠ {routeError}</span>
+            {fetchingRoute ? (
+              <span className="spinner" style={{ width: 16, height: 16 }} />
+            ) : (
+              <button
+                className="button button-ghost button-sm"
+                type="button"
+                onClick={retryLoad}
+                disabled={retrying}
+              >
+                {retrying ? 'Memuat…' : 'Coba Lagi'}
+              </button>
+            )}
           </div>
         ) : null}
 
@@ -474,7 +793,7 @@ export function DriverPage() {
             <span className="spinner" aria-hidden="true" />
             Memeriksa tugas…
           </div>
-        ) : assignment ? (
+        ) : assignment && !isCompleted && !isCancelled ? (
           <div className="driver-content">
             <section className="driver-task-card" aria-label="Tugas aktif">
               <header className="driver-task-header">
@@ -482,8 +801,8 @@ export function DriverPage() {
                   <p className="driver-kicker">Tugas Anda saat ini</p>
                   <h1>{incident?.title ?? 'Tugas tanpa judul'}</h1>
                 </div>
-                <span className={`driver-status driver-status--${assignment.assignment?.status ?? 'assigned'}`}>
-                  {STATUS_LABEL[assignment.assignment?.status ?? 'assigned'] ?? assignment.assignment?.status ?? 'Ditugaskan'}
+                <span className={`driver-status driver-status--${status}`}>
+                  {STATUS_LABEL[status] ?? status}
                 </span>
               </header>
 
@@ -491,14 +810,21 @@ export function DriverPage() {
                 <div ref={setMapNode} className="driver-map" aria-label="Peta tugas aktif" />
 
                 <div className="driver-task-side">
-                  <div className={`driver-eta ${status === 'arrived' ? 'driver-eta--text' : ''}`}>
+                  {/* ETA & Distance Widget */}
+                  <div className={`driver-eta ${isArrived || isCompleted ? 'driver-eta--text' : ''}`}>
                     <span className="driver-eta-label">
-                      {status === 'arrived' ? 'Posisi' : 'Perkiraan tiba'}
+                      {isArrived || isCompleted ? 'Posisi' : isEnRoute ? 'Sisa waktu' : 'Perkiraan tiba'}
                     </span>
                     <strong>{etaLabel}</strong>
-                    <span className="driver-eta-sub">Jarak rute {distanceLabel}</span>
+                    <span className="driver-eta-sub">Jarak tersisa {distanceLabel}</span>
+                    {(isEnRoute || isArrived) && assignmentEtaSeconds > 0 && (
+                      <div className="driver-progress" role="progressbar" aria-valuenow={Math.round(progressPercent)} aria-valuemin={0} aria-valuemax={100}>
+                        <div className="driver-progress-bar" style={{ width: `${progressPercent}%` }} />
+                      </div>
+                    )}
                   </div>
 
+                  {/* Task Details */}
                   <dl className="driver-task-details">
                     <div>
                       <dt>Jenis kejadian</dt>
@@ -539,30 +865,44 @@ export function DriverPage() {
                     </div>
                   ) : null}
 
+                  {/* Action Buttons - Full width, thumb-friendly */}
                   <div className="driver-task-actions">
-                    {status === 'assigned' ? (
+                    {isAssigned ? (
                       <button
-                        className="button button-primary"
+                        className="button button-primary button-lg button-full"
                         type="button"
                         onClick={handleStart}
                         disabled={starting}
                       >
-                        {starting ? 'Memulai…' : 'Berangkat sekarang'}
+                        {starting ? 'Memulai…' : 'Mulai Perjalanan'}
                       </button>
                     ) : null}
-                    {status === 'arrived' ? (
+
+                    {isEnRoute ? (
                       <button
-                        className="button button-primary"
+                        className="button button-warning button-lg button-full"
+                        type="button"
+                        onClick={handleArrive}
+                        disabled={arriving}
+                      >
+                        {arriving ? 'Memproses…' : 'Sampai di Lokasi'}
+                      </button>
+                    ) : null}
+
+                    {isArrived ? (
+                      <button
+                        className="button button-success button-lg button-full"
                         type="button"
                         onClick={handleComplete}
                         disabled={completing}
                       >
-                        {completing ? 'Menutup tugas…' : 'Tugas selesai'}
+                        {completing ? 'Menyelesaikan…' : 'Selesaikan Tugas'}
                       </button>
                     ) : null}
-                    {status === 'en_route' ? (
-                      <button className="button button-ghost" type="button" disabled>
-                        Dalam perjalanan ke lokasi
+
+                    {(isCompleted || isCancelled) ? (
+                      <button className="button button-ghost button-lg button-full" type="button" disabled>
+                        {isCompleted ? 'Tugas Selesai' : 'Tugas Dibatalkan'}
                       </button>
                     ) : null}
                   </div>

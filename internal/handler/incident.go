@@ -16,6 +16,7 @@ import (
 	"dispatch/internal/model"
 	"dispatch/internal/osrm"
 	"dispatch/internal/repository"
+	"dispatch/internal/ws"
 )
 
 type IncidentHandler struct {
@@ -23,6 +24,7 @@ type IncidentHandler struct {
 	vehicles  *repository.VehicleRepository
 	osrm      *osrm.Client
 	radiusM   int
+	broadcast func(eventType string, data any)
 }
 
 func NewIncidentHandler(
@@ -30,12 +32,14 @@ func NewIncidentHandler(
 	vehicles *repository.VehicleRepository,
 	osrmClient *osrm.Client,
 	radiusM int,
+	broadcast func(eventType string, data any),
 ) *IncidentHandler {
 	return &IncidentHandler{
 		incidents: incidents,
 		vehicles:  vehicles,
 		osrm:      osrmClient,
 		radiusM:   radiusM,
+		broadcast: broadcast,
 	}
 }
 
@@ -121,6 +125,9 @@ func (h *IncidentHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// Semua dispatcher/admin yang terhubung langsung melihat laporan baru.
+	h.broadcastIncident(incident)
+
 	c.JSON(http.StatusCreated, gin.H{"incident": incident})
 }
 
@@ -179,7 +186,17 @@ func (h *IncidentHandler) Cancel(c *gin.Context) {
 		return
 	}
 
+	h.broadcastIncident(incident)
+
 	c.JSON(http.StatusOK, gin.H{"incident": incident})
+}
+
+// broadcastIncident mengirim perubahan status insiden ke seluruh klien WebSocket.
+func (h *IncidentHandler) broadcastIncident(incident model.Incident) {
+	if h.broadcast == nil {
+		return
+	}
+	h.broadcast("incident_status", ws.IncidentStatusEvent{Incident: incident})
 }
 
 func (h *IncidentHandler) Nearest(c *gin.Context) {

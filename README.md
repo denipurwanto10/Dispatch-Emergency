@@ -532,6 +532,16 @@ Repo tidak menyimpan file screenshot agar tetap ringan. Untuk portofolio, jalank
 9. **Driver klik "Selesai Ditangani"** → assignment `completed`, kendaraan `available` di lokasi insiden, insiden `resolved`
 10. **Cek riwayat driver** → tugas baru muncul dengan `response_seconds` terisi
 
+## Perbaikan Bug & Perbaikan Kualitas (Update Terbaru)
+
+- **RBAC Admin** — Endpoint `POST /incidents` dan `POST /incidents/:id/cancel` kini mengizinkan role `admin` selain `dispatcher`. Middleware `RequireRole` menormalkan role (trim + lowercase) agar toleran terhadap variasi casing dari JWT.
+- **Error Handling Backend** — Semua `ExecContext` di handler assignment (Start, Arrive, Complete) dan simulator kini menangani error dengan benar: gagal update vehicle/incident status akan membatalkan response dan mengembalikan `500` bukan diam-diam diabaikan.
+- **Context Propagation** — `broadcastAssignment` menerima `context.Context` agar timeout/cancellation request diteruskan ke query DB relasi insiden/kendaraan. Simulator menggunakan `s.ctx` (bukan `context.Background()`).
+- **Simulator Reliability** — Broadcast event yang di-drop saat channel penuh kini dicatat ke log. Interpolasi posisi pakai context simulator.
+- **WebSocket Stabilitas** — MapPage & DriverPage memakai refs untuk callback load agar effect WebSocket tidak reconnect tidak perlu saat callback berubah. Reconnect otomatis 3 detik + refresh data pasca-reconnect.
+- **Logging Diagnostik** — Frontend `api/client.ts` log error response (method, URL, status, code, message) ke console untuk debugging cepat. Middleware Go log penolakan role dengan path endpoint.
+- **TypeScript/Build** — Zero error `tsc -b`, zero error `oxlint`, zero error `go build/vet`. Warning pre-existing saja.
+
 ### Reset Data Demo (Idempotent)
 
 Setelah demo, bersihkan data uji sambil mempertahankan seed baseline:

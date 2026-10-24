@@ -50,11 +50,17 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     } catch {
       // Biarkan pesan fallback dipakai bila body bukan JSON.
     }
-    throw new ApiError(
-      response.status,
-      payload.error?.code ?? 'request_failed',
-      payload.error?.message ?? `Permintaan gagal (HTTP ${response.status}).`,
-    )
+    const code = payload.error?.code ?? 'request_failed'
+    const message = payload.error?.message ?? `Permintaan gagal (HTTP ${response.status}).`
+    // Jejak diagnostik: endpoint + status persis yang ditolak backend.
+    console.error('[api] permintaan gagal', {
+      method: (options.method ?? 'GET').toUpperCase(),
+      url: `${API_BASE}${path}`,
+      status: response.status,
+      code,
+      message,
+    })
+    throw new ApiError(response.status, code, message)
   }
 
   return (await response.json()) as T
@@ -136,18 +142,38 @@ export async function assignIncident(
   return payload.assignment
 }
 
+// Backend mengirim assignment dengan relasi incident/vehicle di level yang sama
+// (struct di-embed), sedangkan UI memakai bentuk bersarang { assignment, incident, vehicle }.
+type AssignmentRelationsPayload = Assignment & {
+  incident?: Incident | null
+  vehicle?: Vehicle | null
+}
+
+function normalizeAssignmentWithRelations(
+  payload: AssignmentWithRelations | AssignmentRelationsPayload,
+): AssignmentWithRelations {
+  if ('assignment' in payload) {
+    return payload
+  }
+  const { incident, vehicle, ...assignment } = payload
+  return { assignment, incident: incident ?? null, vehicle: vehicle ?? null }
+}
+
 export async function fetchAssignment(token: string, id: number): Promise<AssignmentWithRelations> {
-  const payload = await request<{ assignment: AssignmentWithRelations }>(`/assignments/${id}`, {
+  const payload = await request<{ assignment: AssignmentRelationsPayload }>(`/assignments/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
-  return payload.assignment
+  return normalizeAssignmentWithRelations(payload.assignment)
 }
 
 export async function fetchMyActiveAssignment(token: string): Promise<AssignmentWithRelations | null> {
-  const payload = await request<{ assignment: AssignmentWithRelations | null }>(`/assignments/mine/active`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  return payload.assignment
+  const payload = await request<{ assignment: AssignmentRelationsPayload | null }>(
+    `/assignments/mine/active`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
+  return payload.assignment ? normalizeAssignmentWithRelations(payload.assignment) : null
 }
 
 export async function startAssignment(token: string, id: number): Promise<Assignment> {
@@ -160,6 +186,14 @@ export async function startAssignment(token: string, id: number): Promise<Assign
 
 export async function completeAssignment(token: string, id: number): Promise<Assignment> {
   const payload = await request<{ assignment: Assignment }>(`/assignments/${id}/complete`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return payload.assignment
+}
+
+export async function arriveAssignment(token: string, id: number): Promise<Assignment> {
+  const payload = await request<{ assignment: Assignment }>(`/assignments/${id}/arrive`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
   })

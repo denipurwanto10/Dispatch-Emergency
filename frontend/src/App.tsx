@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { homeForRole, readSession } from './auth/session'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import { useTheme } from './context/ThemeContext'
+import { ThemeProvider, useTheme } from './context/ThemeContext'
 import { LoginPage } from './pages/LoginPage'
 import { MapPage } from './pages/MapPage'
 import { DriverPage } from './pages/DriverPage'
@@ -30,10 +30,12 @@ function ThemeSync() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ThemeSync />
-      <AnimatedRoutes />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <ThemeSync />
+        <AnimatedRoutes />
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 

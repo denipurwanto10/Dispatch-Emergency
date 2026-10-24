@@ -8,6 +8,8 @@ import {
 } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import L from 'leaflet'
+import { toast } from 'sonner'
+import { createRouteLine } from '../lib/routeLine'
 
 import {
   ApiError,
@@ -15,7 +17,6 @@ import {
   cancelIncident,
   createIncident,
   fetchIncidents,
-  fetchNearest,
   fetchVehicles,
   fetchAssignment,
 } from '../api/client'
@@ -61,6 +62,7 @@ import type {
   AssignmentStatusEvent,
   SnapshotEvent,
   IncidentStatusEvent,
+  WSMessage,
 } from '../types'
 
 const TYPE_META: Record<IncidentType, { label: string; short: string }> = {
@@ -79,11 +81,22 @@ const STATUS_LABEL: Record<Vehicle['status'], string> = {
 
 const INCIDENT_STATUS_LABEL: Record<Incident['status'], string> = {
   open: 'Menunggu unit',
-  assigned: 'Ditugaskan',
-  en_route: 'Menuju lokasi',
-  on_scene: 'Di lokasi',
-  resolved: 'Selesai',
+  assigned: 'Unit ditugaskan',
+  en_route: 'Unit Menuju Lokasi',
+  on_scene: 'Unit Tiba di Lokasi',
+  resolved: 'Laporan Selesai',
   cancelled: 'Dibatalkan',
+}
+
+// Status insiden yang sudah tidak bisa dibatalkan lagi.
+const CLOSED_INCIDENT_STATUS: Incident['status'][] = ['resolved', 'cancelled']
+
+function upsertIncident(list: Incident[], incident: Incident): Incident[] {
+  const index = list.findIndex((item) => item.id === incident.id)
+  if (index === -1) return [incident, ...list]
+  const next = list.slice()
+  next[index] = incident
+  return next
 }
 
 const PRIORITY_LABEL: Record<IncidentPriority, string> = {
@@ -282,7 +295,6 @@ export function MapPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [nearest, setNearest] = useState<NearestResult | null>(null)
-  const [nearestLoading, setNearestLoading] = useState(false)
   const [nearestError, setNearestError] = useState<string | null>(null)
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
@@ -295,7 +307,16 @@ export function MapPage() {
   }, [panelMode])
 
   // Assignment & WebSocket state
-  const [routePolyline, setRoutePolyline] = useState<L.Polyline | null>(null)
+  const [wsConnected, setWsConnected] = useState(false)
+  const routePolylineRef = useRef<L.FeatureGroup | null>(null)
+  // Status terakhir per assignment agar toast hanya muncul saat status berubah.
+  const assignmentStatusRef = useRef<Map<number, string>>(new Map())
+  const hasConnectedRef = useRef(false)
+  // Refs untuk callback load/loadIncidents agar effect WebSocket tidak
+  // ter-trigger reconnect saat callback berubah. Diinisialisasi dengan no-op
+  // lalu di-update setelah useCallback didefinisikan.
+  const loadRef = useRef<() => Promise<void>>(async () => {})
+  const loadIncidentsRef = useRef<() => Promise<void>>(async () => {})
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
@@ -305,7 +326,6 @@ export function MapPage() {
   const incidentLayerRef = useRef<L.LayerGroup | null>(null)
   const requestIDRef = useRef(0)
   const incidentRequestIDRef = useRef(0)
-  const nearestRequestIDRef = useRef(0)
   const regionRequestIDRef = useRef(0)
 
   const handleUnauthorized = useCallback(() => {
@@ -372,6 +392,15 @@ export function MapPage() {
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect -- memuat insiden dari API saat mount
     void loadIncidents()
+  }, [loadIncidents])
+
+  // Sync refs so WebSocket effect always calls latest versions without
+  // adding them to its dependency array.
+  useEffect(() => {
+    loadRef.current = load
+  }, [load])
+  useEffect(() => {
+    loadIncidentsRef.current = loadIncidents
   }, [loadIncidents])
 
   const palette = REGION_PALETTES[theme]
@@ -651,38 +680,10 @@ export function MapPage() {
     }
   }, [beginIncidentAt])
 
-  // WebSocket connection
-  useEffect(() => {
-    if (!session) return
-
-    const wsUrl = `${API_BASE.replace('http', 'ws')}/ws?token=${session.token}`
-    const socket = new WebSocket(wsUrl)
-
-    socket.onopen = () => {
-    }
-
-    socket.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data)
-        handleWSMessage(msg)
-      } catch (e) {
-        console.error('WS parse error:', e)
-      }
-    }
-
-    socket.onclose = () => {
-    }
-
-    socket.onerror = (err) => {
-      console.error('WebSocket error:', err)
-    }
-
-    return () => {
-      socket.close()
-    }
-  }, [session])
-
-  const handleWSMessage = useCallback((msg: any) => {
+  // Handler event WebSocket. Didefinisikan sebelum effect koneksi dan hanya
+  // bergantung pada setter stabil, sehingga socket tidak ikut reconnect saat
+  // state lain berubah.
+  const handleWSMessage = useCallback((msg: WSMessage) => {
     if (!msg.type) return
 
     switch (msg.type) {
@@ -690,14 +691,19 @@ export function MapPage() {
         const data = msg.data as SnapshotEvent
         setVehicles(data.vehicles)
         setIncidents(data.incidents)
+        // Simpan status awal agar reconnect tidak memunculkan toast untuk
+        // kejadian yang sudah lewat.
+        assignmentStatusRef.current = new Map(
+          data.assignments.map((assignment) => [assignment.id, assignment.status]),
+        )
         // Restore route polyline for active assignments
         for (const assignment of data.assignments) {
           if (assignment.status === 'en_route' && assignment.route_geojson) {
             const geojson = JSON.parse(assignment.route_geojson)
             if (geojson.type === 'LineString' && geojson.coordinates.length >= 2) {
               const latlngs = geojson.coordinates.map((c: number[]) => [c[1], c[0]] as [number, number])
-              const polyline = L.polyline(latlngs, { color: '#0b8f86', weight: 5, opacity: 0.9 }).addTo(mapRef.current!)
-              setRoutePolyline(polyline)
+              const polyline = createRouteLine(latlngs).addTo(mapRef.current!)
+              routePolylineRef.current = polyline
             }
           }
         }
@@ -712,27 +718,108 @@ export function MapPage() {
       }
       case 'assignment_status': {
         const data = msg.data as AssignmentStatusEvent
-        if (data.incident) {
-          setIncidents(prev => prev.map(i => i.id === data.incident!.id ? data.incident! : i))
+        const { assignment, incident, vehicle } = data
+        const previousStatus = assignmentStatusRef.current.get(assignment.id)
+        assignmentStatusRef.current.set(assignment.id, assignment.status)
+
+        if (incident) {
+          setIncidents((prev) => upsertIncident(prev, incident))
+          // Panel "Detail laporan" memakai state sendiri, jadi ikut disinkronkan.
+          setSelectedIncident((prev) =>
+            prev && prev.id === incident.id ? incident : prev,
+          )
         }
-        if (data.vehicle) {
-          setVehicles(prev => prev.map(v => v.id === data.vehicle!.id ? data.vehicle! : v))
+        if (vehicle) {
+          setVehicles(prev => prev.map(v => v.id === vehicle.id ? vehicle : v))
         }
-        if (data.assignment.status === 'completed' || data.assignment.status === 'cancelled') {
-          if (routePolyline) {
-            mapRef.current?.removeLayer(routePolyline)
-            setRoutePolyline(null)
+        if (assignment.status === 'completed' || assignment.status === 'cancelled') {
+          if (routePolylineRef.current) {
+            mapRef.current?.removeLayer(routePolylineRef.current)
+            routePolylineRef.current = null
           }
+        }
+
+        // Toast hanya saat status benar-benar berubah, bukan tiap event berulang.
+        if (previousStatus === assignment.status) break
+
+        if (assignment.status === 'arrived') {
+          toast.success(`Unit ${vehicle?.name ?? 'bantuan'} telah tiba di lokasi!`, {
+            description: incident?.title,
+          })
+        } else if (assignment.status === 'completed') {
+          toast.success(
+            `Laporan ${incident?.title ?? 'kejadian'} telah diselesaikan oleh ${
+              vehicle?.name ?? 'unit terkait'
+            }!`,
+          )
         }
         break
       }
       case 'incident_status': {
         const data = msg.data as IncidentStatusEvent
-        setIncidents(prev => prev.map(i => i.id === data.incident.id ? data.incident : i))
+        setIncidents(prev => upsertIncident(prev, data.incident))
+        setSelectedIncident((prev) =>
+          prev && prev.id === data.incident.id ? data.incident : prev,
+        )
         break
       }
     }
-  }, [routePolyline])
+  }, [])
+
+  // WebSocket connection dengan reconnect otomatis. Semua dispatcher yang login
+  // menerima broadcast yang sama dari hub.
+  useEffect(() => {
+    if (!session) return
+
+    let cancelled = false
+    let socket: WebSocket | null = null
+    let reconnectTimer: number | null = null
+
+    const connect = () => {
+      if (cancelled) return
+
+      const wsUrl = `${API_BASE.replace('http', 'ws')}/ws?token=${session.token}`
+      socket = new WebSocket(wsUrl)
+
+      socket.onopen = () => {
+        if (cancelled) return
+        setWsConnected(true)
+        if (hasConnectedRef.current) {
+          // Setelah reconnect, tarik ulang data agar event yang terlewat tersusul.
+          void loadIncidentsRef.current()
+          void loadRef.current()
+        }
+        hasConnectedRef.current = true
+      }
+
+      socket.onmessage = (event) => {
+        try {
+          handleWSMessage(JSON.parse(event.data) as WSMessage)
+        } catch (err) {
+          console.error('WS parse error:', err)
+        }
+      }
+
+      socket.onclose = () => {
+        if (cancelled) return
+        setWsConnected(false)
+        reconnectTimer = window.setTimeout(connect, 3000)
+      }
+
+      socket.onerror = () => {
+        if (cancelled) return
+        socket?.close()
+      }
+    }
+
+    connect()
+
+    return () => {
+      cancelled = true
+      if (reconnectTimer != null) window.clearTimeout(reconnectTimer)
+      socket?.close()
+    }
+  }, [session, handleWSMessage])
 
   const visibleVehicles = useMemo(() => {
     if (regionLevel === 'indonesia') return []
@@ -1121,28 +1208,6 @@ export function MapPage() {
     }
   }
 
-  async function handleNearest() {
-    if (!session || !selectedIncident) return
-    const requestID = ++nearestRequestIDRef.current
-    setNearestLoading(true)
-    setNearestError(null)
-    setNearest(null)
-    try {
-      const data = await fetchNearest(session.token, selectedIncident.id)
-      if (requestID !== nearestRequestIDRef.current) return
-      setNearest(data)
-    } catch (err) {
-      if (requestID !== nearestRequestIDRef.current) return
-      if (err instanceof ApiError && err.status === 401) {
-        handleUnauthorized()
-        return
-      }
-      setNearestError(errorText(err, 'Pencarian unit gagal. Coba lagi.'))
-    } finally {
-      if (requestID === nearestRequestIDRef.current) setNearestLoading(false)
-    }
-  }
-
   async function handleAssign(incidentId: number, vehicleId: number) {
     if (!session) return
     try {
@@ -1151,11 +1216,11 @@ export function MapPage() {
       const geojson = JSON.parse(assignment.route_geojson)
       if (geojson.type === 'LineString' && geojson.coordinates.length >= 2) {
         const latlngs = geojson.coordinates.map((c: number[]) => [c[1], c[0]] as [number, number])
-        if (routePolyline) {
-          mapRef.current?.removeLayer(routePolyline)
+        if (routePolylineRef.current) {
+          mapRef.current?.removeLayer(routePolylineRef.current)
         }
-        const polyline = L.polyline(latlngs, { color: '#0b8f86', weight: 5, opacity: 0.9 }).addTo(mapRef.current!)
-        setRoutePolyline(polyline)
+        const polyline = createRouteLine(latlngs).addTo(mapRef.current!)
+        routePolylineRef.current = polyline
       }
       // Refresh incidents and vehicles
       await loadIncidents()
@@ -1221,9 +1286,13 @@ export function MapPage() {
   return (
     <div className="map-shell">
       <AppHeader subtitle="Peta operasi" session={session} onLogout={handleLogout}>
-        <span className={`connection ${connectionError ? 'connection--off' : ''}`}>
+        <span className={`connection ${connectionError || !wsConnected ? 'connection--off' : ''}`}>
           <span className="connection-dot" aria-hidden="true" />
-          {connectionError ? 'Koneksi bermasalah' : 'Tersambung'}
+          {connectionError
+            ? 'Koneksi bermasalah'
+            : wsConnected
+              ? 'Tersambung'
+              : 'Menyambung ulang…'}
         </span>
         {session && session.user.role !== 'dispatcher' ? (
           <Link className="button button-ghost" to={homeForRole(session.user.role)}>
@@ -1396,7 +1465,9 @@ export function MapPage() {
                     ? 'Klik kota/kabupaten untuk melihat kecamatan'
                     : regionLevel === 'city'
                       ? 'Klik kecamatan untuk memfilter unit'
-                      : 'Klik kecamatan lain untuk berpindah'}
+                      : regionLevel === 'district'
+                        ? 'Klik kecamatan lain untuk berpindah'
+                        : 'Klik area pada peta untuk melihat detail unit'}
             </p>
 
             {regionLoading ? (
@@ -1599,65 +1670,62 @@ export function MapPage() {
 
             {panelMode === 'detail' && selectedIncident ? (
               <div className="incident-panel-body">
-                <button
-                  className="panel-back"
-                  type="button"
-                  onClick={() => {
-                    setPanelMode('list')
-                    setSelectedIncident(null)
-                    setNearest(null)
-                    setNearestError(null)
-                    setCancelError(null)
-                  }}
-                >
-                  <IconBack size={16} />
-                  Kembali ke daftar
-                </button>
-                <h3 className="incident-detail-title">{selectedIncident.title}</h3>
-                <p className={`incident-status incident-status--${selectedIncident.status}`}>
-                  {INCIDENT_STATUS_LABEL[selectedIncident.status] ?? selectedIncident.status}
-                </p>
-                <p className="incident-detail-meta">
-                  <span className={`type-chip type-chip--${selectedIncident.type}`} aria-hidden="true">
-                    {TYPE_META[selectedIncident.type]?.short ?? '?'}
-                  </span>
-                  {TYPE_META[selectedIncident.type]?.label ?? selectedIncident.type}
-                  <span className={`priority-tag priority-tag--${selectedIncident.priority}`}>
-                    {PRIORITY_LABEL[selectedIncident.priority] ?? selectedIncident.priority}
-                  </span>
-                  {selectedIncident.operating_city ?? 'Kota belum diatur'}
-                </p>
-                <p className="incident-description">
-                  {selectedIncident.description || 'Tidak ada keterangan tambahan.'}
-                </p>
-                <p className="incident-coords">
-                  <span>Lokasi</span>
-                  {selectedIncident.lat.toFixed(5)}, {selectedIncident.lng.toFixed(5)}
-                </p>
-                <p className="incident-created">
-                  Dilaporkan {formatIncidentTime(selectedIncident.created_at)}
-                </p>
-
-                {selectedIncident.status === 'open' ? (
-                  <div className="incident-actions">
+                <div className="incident-detail-header">
+                  <button
+                    className="panel-back"
+                    type="button"
+                    onClick={() => {
+                      setPanelMode('list')
+                      setSelectedIncident(null)
+                      setNearest(null)
+                      setNearestError(null)
+                      setCancelError(null)
+                    }}
+                  >
+                    <IconBack size={16} />
+                    Kembali ke daftar
+                  </button>
+                  {!CLOSED_INCIDENT_STATUS.includes(selectedIncident.status) ? (
                     <button
-                      className="button button-primary"
-                      type="button"
-                      onClick={handleNearest}
-                      disabled={nearestLoading}
-                    >
-                      {nearestLoading ? 'Mencari unit…' : 'Cari unit terdekat'}
-                    </button>
-                    <button
-                      className="button button-danger"
+                      className="button button-ghost button-danger"
                       type="button"
                       onClick={handleCancel}
                       disabled={cancelling}
                     >
                       {cancelling ? 'Membatalkan…' : 'Batalkan laporan'}
                     </button>
+                  ) : null}
+                </div>
+
+                <div className="incident-detail-content">
+                  <h3 className="incident-detail-title">{selectedIncident.title}</h3>
+                  <p className={`incident-status incident-status--${selectedIncident.status}`}>
+                    {INCIDENT_STATUS_LABEL[selectedIncident.status] ?? selectedIncident.status}
+                  </p>
+                  <p className="incident-detail-meta">
+                    <span className={`type-chip type-chip--${selectedIncident.type}`} aria-hidden="true">
+                      {TYPE_META[selectedIncident.type]?.short ?? '?'}
+                    </span>
+                    {TYPE_META[selectedIncident.type]?.label ?? selectedIncident.type}
+                    <span className={`priority-tag priority-tag--${selectedIncident.priority}`}>
+                      {PRIORITY_LABEL[selectedIncident.priority] ?? selectedIncident.priority}
+                    </span>
+                    {selectedIncident.operating_city ?? 'Kota belum diatur'}
+                  </p>
+                  <p className="incident-description">
+                    {selectedIncident.description || 'Tidak ada keterangan tambahan.'}
+                  </p>
+                  <div className="incident-meta-grid">
+                    <p className="incident-coords">
+                      <span>Lokasi</span>
+                      {selectedIncident.lat.toFixed(5)}, {selectedIncident.lng.toFixed(5)}
+                    </p>
+                    <p className="incident-created">
+                      <span>Dilaporkan</span>
+                      {formatIncidentTime(selectedIncident.created_at)}
+                    </p>
                   </div>
-                ) : null}
+                </div>
 
                 {cancelError ? (
                   <p className="form-error" role="alert">
@@ -1678,36 +1746,45 @@ export function MapPage() {
                         {Math.round(nearest.radius_m / 1000)} km, diurutkan dari yang tercepat
                       </p>
                       <ol className="nearest-list">
-                        {nearest.candidates.map((candidate) => (
-                          <li className="nearest-candidate" key={candidate.vehicle_id}>
-                            <div className="nearest-candidate-head">
-                              <strong>{candidate.name}</strong>
-                              <span className="vehicle-popup-plate">{candidate.plate}</span>
-                            </div>
-                            <p className="nearest-candidate-meta">
-                              {TYPE_META[candidate.type]?.label ?? candidate.type}, driver{' '}
-                              {candidate.driver_name ?? 'belum ditentukan'}
-                            </p>
-                            <p className="nearest-eta">
-                              <strong>
-                                {candidate.eta_minutes}
-                                <small>menit</small>
-                              </strong>
-                              <span>{formatDistance(candidate.distance_m)} lewat jalan</span>
-                              {candidate.type_match ? (
-                                <span className="badge badge-match">Jenis sesuai</span>
-                              ) : null}
-                            </p>
-                            <button
-                              className="button button-primary assign-btn"
-                              type="button"
-                              onClick={() => handleAssign(nearest.incident_id, candidate.vehicle_id)}
-                              disabled={nearestLoading}
-                            >
-                              Tugaskan unit ini
-                            </button>
-                          </li>
-                        ))}
+                        {nearest.candidates.map((candidate) => {
+                          const hasDriver = !!candidate.driver_name;
+                          return (
+                            <li className="nearest-candidate" key={candidate.vehicle_id}>
+                              <div className="nearest-candidate-head">
+                                <strong>{candidate.name}</strong>
+                                <span className="vehicle-popup-plate">{candidate.plate}</span>
+                              </div>
+                              <p className="nearest-candidate-meta">
+                                {TYPE_META[candidate.type]?.label ?? candidate.type}, driver{' '}
+                                {candidate.driver_name ? (
+                                  <>
+                                    {candidate.driver_name}
+                                    {candidate.type_match && (
+                                      <span className="badge badge-match">Jenis sesuai</span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-warning">belum ditentukan</span>
+                                )}
+                              </p>
+                              <p className="nearest-eta">
+                                <strong>
+                                  {candidate.eta_minutes}
+                                  <small>menit</small>
+                                </strong>
+                                <span>{formatDistance(candidate.distance_m)} lewat jalan</span>
+                              </p>
+                              <button
+                                className="button button-primary assign-btn"
+                                type="button"
+                                onClick={() => handleAssign(nearest.incident_id, candidate.vehicle_id)}
+                                disabled={!hasDriver}
+                              >
+                                {hasDriver ? 'Tugaskan unit ini' : 'Butuh driver'}
+                              </button>
+                            </li>
+                          );
+                        })}
                       </ol>
                     </div>
                   ) : (

@@ -158,19 +158,21 @@ func (s *Simulator) tick() {
 			assignment = updated
 
 			// Update vehicle status ke on_scene, pos_geom = incident location
-			var err2 error
-			_, err2 = s.incidents.GetByID(s.ctx, assignment.IncidentID)
-			if err2 == nil {
-				_, _ = s.vehicles.DB().ExecContext(s.ctx, `
+			if _, err := s.incidents.GetByID(s.ctx, assignment.IncidentID); err == nil {
+				if _, err := s.vehicles.DB().ExecContext(s.ctx, `
 					UPDATE vehicles
 					SET status = 'on_scene',
 					    pos_geom = (SELECT geom FROM incidents WHERE id = $1),
 					    pos_updated_at = now()
-					WHERE id = $2`, assignment.IncidentID, assignment.VehicleID)
+					WHERE id = $2`, assignment.IncidentID, assignment.VehicleID); err != nil {
+					log.Printf("simulasi: error update vehicle on_scene: %v", err)
+				}
 
 				// Update incident status ke on_scene
-				_, _ = s.incidents.DB().ExecContext(s.ctx, `
-					UPDATE incidents SET status = 'on_scene' WHERE id = $1`, assignment.IncidentID)
+				if _, err := s.incidents.DB().ExecContext(s.ctx, `
+					UPDATE incidents SET status = 'on_scene' WHERE id = $1`, assignment.IncidentID); err != nil {
+					log.Printf("simulasi: error update incident on_scene: %v", err)
+				}
 			}
 
 			// Broadcast assignment status changed
@@ -198,9 +200,11 @@ func (s *Simulator) tick() {
 		lat, lng := s.interpolatePosition(assignment)
 		if lat != 0 || lng != 0 {
 			// Update vehicle position in memory (pos_geom akan dipersist berkala)
-			_, _ = s.vehicles.DB().ExecContext(s.ctx, `
+			if _, err := s.vehicles.DB().ExecContext(s.ctx, `
 				UPDATE vehicles SET pos_geom = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE id = $3`,
-				lng, lat, assignment.VehicleID)
+				lng, lat, assignment.VehicleID); err != nil {
+				log.Printf("simulasi: error update vehicle position: %v", err)
+			}
 
 			// Hitung ETA remaining (waktu nyata, bukan simulasi)
 			remainingDistance := assignment.DistanceM - assignment.ProgressM
@@ -240,11 +244,15 @@ func (s *Simulator) tick() {
 		for _, assignment := range assignments {
 			lat, lng := s.interpolatePosition(assignment)
 			if lat != 0 || lng != 0 {
-				_, _ = s.vehicles.DB().ExecContext(s.ctx, `
+				if _, err := s.vehicles.DB().ExecContext(s.ctx, `
 					UPDATE vehicles SET pos_geom = ST_SetSRID(ST_MakePoint($1, $2), 4326), pos_updated_at = now() WHERE id = $3`,
-					lng, lat, assignment.VehicleID)
-				_, _ = s.assignments.DB().ExecContext(s.ctx, `
-					UPDATE assignments SET progress_m = progress_m WHERE id = $1`, assignment.ID)
+					lng, lat, assignment.VehicleID); err != nil {
+					log.Printf("simulasi: error persist vehicle position: %v", err)
+				}
+				if _, err := s.assignments.DB().ExecContext(s.ctx, `
+					UPDATE assignments SET progress_m = progress_m WHERE id = $1`, assignment.ID); err != nil {
+					log.Printf("simulasi: error persist assignment progress: %v", err)
+				}
 			}
 		}
 	}
@@ -259,12 +267,11 @@ func (s *Simulator) interpolatePosition(assignment model.Assignment) (float64, f
 	// For now, simple linear interpolation between start and end
 	// TODO: proper interpolation along LineString
 	// Get vehicle start position and incident position
-	ctx := context.Background()
-	vehicle, err := s.vehicles.GetByID(ctx, assignment.VehicleID)
+	vehicle, err := s.vehicles.GetByID(s.ctx, assignment.VehicleID)
 	if err != nil {
 		return 0, 0
 	}
-	incident, err := s.incidents.GetByID(ctx, assignment.IncidentID)
+	incident, err := s.incidents.GetByID(s.ctx, assignment.IncidentID)
 	if err != nil {
 		return 0, 0
 	}
@@ -295,5 +302,6 @@ func (s *Simulator) broadcastEvent(event BroadcastEvent) {
 	case s.broadcast <- event:
 	default:
 		// Channel full, drop event to avoid blocking
+		log.Printf("simulasi: broadcast channel full, dropping event %s", event.Type)
 	}
 }

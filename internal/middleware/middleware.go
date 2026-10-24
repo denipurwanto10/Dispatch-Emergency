@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"strings"
 
@@ -47,10 +48,12 @@ func RequireAuth(manager *auth.Manager) gin.HandlerFunc {
 }
 
 // RequireRole hanya meloloskan user dengan salah satu role yang diberikan.
+// Perbandingan role dinormalisasi (trim + lowercase) agar nilai dari JWT
+// seperti "Admin" atau " admin " tetap dikenali sebagai "admin".
 func RequireRole(roles ...string) gin.HandlerFunc {
 	allowed := make(map[string]struct{}, len(roles))
 	for _, role := range roles {
-		allowed[role] = struct{}{}
+		allowed[normalizeRole(role)] = struct{}{}
 	}
 
 	return func(c *gin.Context) {
@@ -60,12 +63,17 @@ func RequireRole(roles ...string) gin.HandlerFunc {
 			httpx.Error(c, http.StatusUnauthorized, "unauthorized", "Identitas user tidak ditemukan.")
 			return
 		}
-		if _, ok := allowed[role]; !ok {
+		if _, ok := allowed[normalizeRole(role)]; !ok {
+			log.Printf("middleware: role %q ditolak pada %s %s", role, c.Request.Method, c.Request.URL.Path)
 			httpx.Error(c, http.StatusForbidden, "forbidden", "Role kamu tidak punya akses ke endpoint ini.")
 			return
 		}
 		c.Next()
 	}
+}
+
+func normalizeRole(role string) string {
+	return strings.ToLower(strings.TrimSpace(role))
 }
 
 // CORS mengizinkan origin frontend yang terdaftar lewat CORS_ORIGIN.

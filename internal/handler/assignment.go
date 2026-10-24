@@ -204,7 +204,7 @@ func (h *AssignmentHandler) Assign(c *gin.Context) {
 		return
 	}
 
-	h.broadcastAssignment("assignment_status", assignment)
+	h.broadcastAssignment(c.Request.Context(), "assignment_status", assignment)
 
 	c.JSON(http.StatusCreated, gin.H{"assignment": assignment})
 }
@@ -390,13 +390,91 @@ func (h *AssignmentHandler) Start(c *gin.Context) {
 	}
 
 	// Update vehicle status
-	_, _ = h.vehicles.DB().ExecContext(c.Request.Context(), `
-		UPDATE vehicles SET status = 'en_route', pos_updated_at = now() WHERE id = $1`, assignment.VehicleID)
+	if _, err := h.vehicles.DB().ExecContext(c.Request.Context(), `
+		UPDATE vehicles SET status = 'en_route', pos_updated_at = now() WHERE id = $1`, assignment.VehicleID); err != nil {
+		log.Printf("assignments: start update vehicle: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status kendaraan.")
+		return
+	}
 	// Update incident status
-	_, _ = h.incidents.DB().ExecContext(c.Request.Context(), `
-		UPDATE incidents SET status = 'en_route' WHERE id = $1`, assignment.IncidentID)
+	if _, err := h.incidents.DB().ExecContext(c.Request.Context(), `
+		UPDATE incidents SET status = 'en_route' WHERE id = $1`, assignment.IncidentID); err != nil {
+		log.Printf("assignments: start update incident: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status insiden.")
+		return
+	}
 
-	h.broadcastAssignment("assignment_status", updated)
+	h.broadcastAssignment(c.Request.Context(), "assignment_status", updated)
+
+	c.JSON(http.StatusOK, gin.H{"assignment": updated})
+}
+
+// Arrive - POST /assignments/:id/arrive (driver only)
+// Manual arrive for drivers to mark they've reached the incident location
+func (h *AssignmentHandler) Arrive(c *gin.Context) {
+	id, ok := parseAssignmentID(c)
+	if !ok {
+		return
+	}
+
+	assignment, err := h.assignments.GetByID(c.Request.Context(), id)
+	if errors.Is(err, repository.ErrNotFound) {
+		httpx.Error(c, http.StatusNotFound, "not_found", "Assignment tidak ditemukan.")
+		return
+	}
+	if err != nil {
+		log.Printf("assignments: arrive get: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal mengambil assignment.")
+		return
+	}
+
+	// Only driver who owns the vehicle can arrive
+	userIDValue, _ := c.Get(middleware.ContextUserID)
+	userID, _ := userIDValue.(int64)
+	roleValue, _ := c.Get(middleware.ContextRole)
+	role, _ := roleValue.(string)
+
+	if role != "driver" {
+		httpx.Error(c, http.StatusForbidden, "forbidden", "Hanya driver yang boleh menandai tiba di lokasi.")
+		return
+	}
+
+	vehicle, err := h.vehicles.GetByID(c.Request.Context(), assignment.VehicleID)
+	if err != nil || vehicle.DriverID == nil || *vehicle.DriverID != userID {
+		httpx.Error(c, http.StatusForbidden, "forbidden", "Driver hanya bisa menandai tiba untuk assignment kendaraannya sendiri.")
+		return
+	}
+
+	if assignment.Status != "en_route" {
+		httpx.Error(c, http.StatusConflict, "assignment_not_arrivable", "Assignment hanya bisa ditandai tiba dari status en_route.")
+		return
+	}
+
+	now := time.Now()
+	updated, err := h.assignments.UpdateStatusAndTimes(c.Request.Context(), id, "arrived", nil, &now, nil)
+	if err != nil {
+		log.Printf("assignments: arrive update: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal menandai tiba di lokasi.")
+		return
+	}
+
+	// Update vehicle status to on_scene
+	if _, err := h.vehicles.DB().ExecContext(c.Request.Context(), `
+		UPDATE vehicles SET status = 'on_scene', pos_updated_at = now() WHERE id = $1`, assignment.VehicleID); err != nil {
+		log.Printf("assignments: arrive update vehicle: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status kendaraan.")
+		return
+	}
+	// Update incident status to on_scene
+	if _, err := h.incidents.DB().ExecContext(c.Request.Context(), `
+		UPDATE incidents SET status = 'on_scene' WHERE id = $1`, assignment.IncidentID); err != nil {
+		log.Printf("assignments: arrive update incident: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status insiden.")
+		return
+	}
+
+	h.broadcastAssignment(c.Request.Context(), "assignment_status", updated)
+	h.broadcastIncidentStatus(assignment.IncidentID)
 
 	c.JSON(http.StatusOK, gin.H{"assignment": updated})
 }
@@ -454,18 +532,27 @@ func (h *AssignmentHandler) Complete(c *gin.Context) {
 	}
 
 	// Update vehicle: available, pos_geom = incident location (keep operating_city)
-	_, _ = h.vehicles.DB().ExecContext(c.Request.Context(), `
+	if _, err := h.vehicles.DB().ExecContext(c.Request.Context(), `
 		UPDATE vehicles
 		SET status = 'available',
 		    pos_geom = (SELECT geom FROM incidents WHERE id = $1),
 		    pos_updated_at = now()
-		WHERE id = $2`, assignment.IncidentID, assignment.VehicleID)
+		WHERE id = $2`, assignment.IncidentID, assignment.VehicleID); err != nil {
+		log.Printf("assignments: complete update vehicle: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status kendaraan.")
+		return
+	}
 
 	// Update incident: resolved
-	_, _ = h.incidents.DB().ExecContext(c.Request.Context(), `
-		UPDATE incidents SET status = 'resolved', resolved_at = $1 WHERE id = $2`, now, assignment.IncidentID)
+	if _, err := h.incidents.DB().ExecContext(c.Request.Context(), `
+		UPDATE incidents SET status = 'resolved', resolved_at = $1 WHERE id = $2`, now, assignment.IncidentID); err != nil {
+		log.Printf("assignments: complete update incident: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status insiden.")
+		return
+	}
 
-	h.broadcastAssignment("assignment_status", updated)
+	h.broadcastAssignment(c.Request.Context(), "assignment_status", updated)
+	h.broadcastIncidentStatus(assignment.IncidentID)
 
 	c.JSON(http.StatusOK, gin.H{"assignment": updated})
 }
@@ -490,17 +577,17 @@ func (h *AssignmentHandler) ListMineHistory(c *gin.Context) {
 }
 
 // broadcastAssignment mengirim status assignment terbaru beserta relasinya.
-func (h *AssignmentHandler) broadcastAssignment(eventType string, assignment model.Assignment) {
+func (h *AssignmentHandler) broadcastAssignment(ctx context.Context, eventType string, assignment model.Assignment) {
 	if h.broadcast == nil {
 		return
 	}
 
-	incident, err := h.incidents.GetByID(context.Background(), assignment.IncidentID)
+	incident, err := h.incidents.GetByID(ctx, assignment.IncidentID)
 	if err != nil {
 		log.Printf("assignments: broadcast incident: %v", err)
 		return
 	}
-	vehicle, err := h.vehicles.GetByID(context.Background(), assignment.VehicleID)
+	vehicle, err := h.vehicles.GetByID(ctx, assignment.VehicleID)
 	if err != nil {
 		log.Printf("assignments: broadcast vehicle: %v", err)
 		return
@@ -511,6 +598,22 @@ func (h *AssignmentHandler) broadcastAssignment(eventType string, assignment mod
 		Incident:   incident,
 		Vehicle:    vehicle,
 	})
+}
+
+// broadcastIncidentStatus menyiarkan status insiden terbaru (mis. on_scene saat
+// driver tiba, resolved saat tugas selesai) agar panel dispatcher ikut berubah.
+func (h *AssignmentHandler) broadcastIncidentStatus(incidentID int64) {
+	if h.broadcast == nil {
+		return
+	}
+
+	incident, err := h.incidents.GetByID(context.Background(), incidentID)
+	if err != nil {
+		log.Printf("assignments: broadcast incident status: %v", err)
+		return
+	}
+
+	h.broadcast("incident_status", ws.IncidentStatusEvent{Incident: incident})
 }
 
 func parseAssignmentID(c *gin.Context) (int64, bool) {
