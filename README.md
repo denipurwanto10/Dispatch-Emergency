@@ -1,6 +1,6 @@
 # Dispatch — Emergency Response Command Center
 
-MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1–4 sudah selesai: auth/role, seed nasional, insiden + pencarian kandidat, assignment + rute + simulasi, WebSocket real-time, layar driver, dan panel admin.
+MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1–4 sudah selesai: auth/role, seed nasional, insiden + pencarian kandidat, assignment + rute + simulasi, WebSocket real-time, layar driver, dan panel admin. Antarmuka memakai desain flat, tema terang/gelap di semua halaman, dan layout responsif hingga ponsel.
 
 > **Tanpa Docker.** Semua layanan berjalan langsung di mesin lokal. Tidak ada `docker-compose.yml`, `Dockerfile`, atau instruksi berbasis container di proyek ini.
 
@@ -13,7 +13,11 @@ MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1
 - **Assignment** — dispatcher meng-assign kandidat; server mengambil rute OSRM, menyimpan polyline, jarak, ETA, dan `assigned_by` dari identitas JWT. Assignment berjalan dalam transaksi dan menghormati constraint satu assignment aktif per kendaraan.
 - **Simulasi & real-time** — simulator menggerakkan kendaraan di sepanjang rute dan mengirim event WebSocket `vehicle_position` serta `assignment_status`.
 - **Layar driver `/driver`** — kartu tugas muncul tanpa refresh, peta mini Leaflet dengan marker kendaraan/insiden dan polyline rute, ETA dari `eta_remaining_seconds`, tombol mulai/selesai, riwayat 20 tugas terakhir, dan reconnect WebSocket otomatis. **Tidak ada polling tugas aktif.**
-- **Panel admin `/admin`** — tab Users dan Kendaraan, tabel, form create/edit, konfirmasi hapus, dan pesan error backend yang terbaca.
+- **Panel admin `/admin`** — tab Users dan Kendaraan, tabel, form create/edit, konfirmasi hapus, tombol tampilkan password, dan pesan error backend yang terbaca.
+- **Tema terang/gelap** — tombol tema di header semua halaman. Bawaan: gelap untuk dispatcher, terang untuk driver/admin. Pilihan pengguna disimpan di `localStorage` (`tanggap.theme`) dan menang atas bawaan peran.
+- **UI flat & responsif** — tanpa bayangan atau efek angkat; kedalaman hanya dari garis tepi. Di layar kecil, panel laporan berubah menjadi bottom sheet yang bisa dilipat, dan target sentuh minimal 40 px.
+- **Komponen aksesibel** — Select kustom dengan navigasi keyboard, atribut ARIA, dan portal agar tidak terpotong panel; tombol tampilkan password di login dan form admin; dukungan `prefers-reduced-motion`.
+- **Basemap** — tile Google Maps publik (tidak resmi, tanpa API key). Jika tile gagal dimuat berulang kali, peta otomatis pindah ke OpenStreetMap. Hanya ada satu basemap jalan (tanpa layer satelit/hybrid).
 - **Keamanan assignment** — `assigned_by` fail-closed: request tanpa identitas JWT yang valid ditolak `401`, tidak pernah mengambil user dari body.
 - **Tanpa Docker** — PostgreSQL/PostGIS, Go, dan Vite berjalan langsung di mesin.
 
@@ -41,8 +45,9 @@ MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1
 | Database | PostgreSQL + PostGIS lokal |
 | Routing | OSRM publik (`https://router.project-osrm.org`) untuk `/table` dan `/route` |
 | Real-time | Gorilla WebSocket |
-| Frontend | React + Vite + TypeScript + Leaflet (OpenStreetMap) |
-| Tema | CSS variables — light untuk driver/admin, dark untuk dispatcher |
+| Frontend | React 19 + Vite + TypeScript + Leaflet |
+| Basemap | Tile Google Maps publik (tanpa API key), fallback otomatis ke OpenStreetMap |
+| Tema | CSS variables + toggle terang/gelap, tersimpan di `localStorage` |
 
 ## Prasyarat lokal
 
@@ -219,11 +224,14 @@ npm run dev
 Buka `http://localhost:5173`.
 
 - Login menyimpan JWT di `localStorage` (`dispatch.session.v1`).
-- Dispatcher diarahkan ke `/map` (tema gelap, peta Indonesia dengan 36 kendaraan).
-- Driver diarahkan ke `/driver` (tema terang, layar tugas real-time).
-- Admin diarahkan ke `/admin` (tema terang, panel pengelolaan).
-- Peta dispatcher memakai tile OpenStreetMap, marker kendaraan, marker insiden berwarna prioritas, form insiden dari klik peta, daftar insiden `open`, detail, pencarian kandidat, tombol assign, dan detail assignment.
+- Setiap halaman punya header seragam: nama halaman, info akun, tombol tema, dan tombol keluar.
+- Dispatcher diarahkan ke `/map` (bawaan tema gelap, peta Indonesia dengan 36 kendaraan).
+- Driver diarahkan ke `/driver` (bawaan tema terang, layar tugas real-time).
+- Admin diarahkan ke `/admin` (bawaan tema terang, panel pengelolaan).
+- Peta dispatcher memakai basemap Google (fallback OSM), marker kendaraan, marker insiden berwarna prioritas, filter kota, form insiden dari klik peta, daftar insiden `open`, detail, pencarian kandidat, tombol assign, dan detail assignment.
+- Di layar sempit, panel laporan di `/map` menjadi bottom sheet yang bisa dibuka/ditutup; peta tetap bisa digeser.
 - Setelah assign, polyline rute dan posisi kendaraan ikut diperbarui lewat WebSocket.
+- Preferensi tema disimpan per browser; menghapus `localStorage` mengembalikan tema bawaan peran.
 
 Build produksi frontend:
 
@@ -369,7 +377,8 @@ Rescue/
 ├── cmd/
 │   ├── server/        # entrypoint HTTP + simulator + WebSocket hub
 │   ├── migrate/       # runner migrasi SQL
-│   └── seed/          # seed 6 kota (user + kendaraan, bcrypt)
+│   ├── seed/          # seed 6 kota (user + kendaraan, bcrypt)
+│   └── resetdemo/     # reset data demo ke baseline seed
 ├── internal/
 │   ├── auth/          # JWT manager
 │   ├── config/        # env + .env
@@ -389,11 +398,13 @@ Rescue/
 │   └── src/
 │       ├── api/       # client API
 │       ├── auth/      # session localStorage
-│       ├── lib/       # utilitas (vehicleMarker.ts)
+│       ├── components/ # AppHeader, Brand, Select, CitySelect, ThemeToggle, ikon
+│       ├── context/   # ThemeContext (tema terang/gelap)
+│       ├── lib/       # basemap, googleStyle, vehicleMarker
+│       ├── optional-vector/ # eksperimen basemap vektor (tidak dipakai build)
 │       ├── pages/     # Login, Map, Driver, Admin
 │       └── cities.ts  # pusat 6 kota + bounds Indonesia
-├── .playwright-cli/   # Playwright test artifacts (auto-generated)
-├── docs/screenshots/  # Screenshot demo (Playwright output)
+├── .playwright-cli/   # artefak inspeksi browser (auto-generated)
 ├── .env.example
 ├── AGENT.md
 └── README.md
@@ -430,9 +441,9 @@ Get-ChildItem -Recurse -Force -Include Dockerfile,docker-compose.yml,docker-comp
 - Multi-dispatcher per kota, penjadwalan shift, dan audit log penuh.
 - Filter/export laporan lanjutan dan dashboard analitik.
 
-## Screenshot Portfolio
+## Tangkapan Layar
 
-Screenshot demo tersedia di folder `docs/screenshots/`. Jalankan `npm run test:e2e` (Playwright) untuk menghasilkan screenshot terbaru dari skenario demo Bandung.
+Repo tidak menyimpan file screenshot agar tetap ringan. Untuk portofolio, jalankan aplikasi lalu tangkap sendiri layar `/map`, `/driver`, dan `/admin` (light dan dark), kemudian simpan di `docs/screenshots/` bila ingin menyertakannya.
 
 ## Demo dalam 5 Menit
 
@@ -484,7 +495,7 @@ Screenshot demo tersedia di folder `docs/screenshots/`. Jalankan `npm run test:e
 
 ### Skenario Demo Bandung (Deterministik)
 
-1. **Login sebagai dispatcher** → buka `/map` (tema gelap, peta Indonesia 36 marker)
+1. **Login sebagai dispatcher** → buka `/map` (bawaan tema gelap, peta Indonesia 36 marker). Tombol tema di header bisa dipakai untuk mencoba mode terang.
 2. **Filter kota "Bandung"** di panel armada
 3. **Klik peta di sekitar Alun-alun Bandung** (koordinat ~`-6.9218, 107.6071`) → buat insiden:
    - Judul: `Kebakaran Pasar Baru`
@@ -541,7 +552,7 @@ flowchart LR
 
     subgraph Ext["External"]
         OSRM_SVC[OSRM Public<br/>router.project-osrm.org]
-        OSM[OpenStreetMap Tiles]
+        TILE[Google Tiles<br/>fallback OSM]
     end
 
     D <-->|REST + WS| REST
@@ -553,8 +564,8 @@ flowchart LR
     SIM -->|vehicle_position<br/>assignment_status| WS
     SIM -->|route/position update| V
     OSRM -->|HTTP /table, /route| OSRM_SVC
-    D -.->|Leaflet Tiles| OSM
-    R -.->|Leaflet Tiles| OSM
+    D -.->|Leaflet Tiles| TILE
+    R -.->|Leaflet Tiles| TILE
 ```
 
 **Komunikasi:**
@@ -562,7 +573,7 @@ flowchart LR
 - **WebSocket** (`/ws?token=`): real-time `vehicle_position` (tick simulasi) dan `assignment_status` (assign/start/arrived/complete)
 - **Simulator**: berjalan di proses backend, menggerakkan kendaraan per detik, mengirim event ke WebSocket hub
 - **OSRM Publik**: dipakai untuk `/table` (nearest) dan `/route` (assignment), timeout 5 detik, **tanpa fallback jarak garis lurus**
-- **Tile Peta**: OpenStreetMap langsung dari browser (Leaflet)
+- **Tile Peta**: tile Google Maps publik langsung dari browser (Leaflet), fallback otomatis ke OpenStreetMap bila tile gagal
 
 ## Keputusan Desain yang Disengaja
 
@@ -575,10 +586,14 @@ flowchart LR
 | **`type_match` penanda, bukan filter** | Semua tipe kendaraan `available` di kota yang sama ikut diurutkan durasi OSRM. `type_match` hanya badge informasi. Fleksibel untuk skenario lintas tipe (mis. ambulans ke kebakaran kecil). |
 | **Tiba terdeteksi otomatis oleh backend (simulator)** | Driver tidak menekan "Tiba". Simulator mengubah `en_route→arrived` saat progress ≥ jarak rute. Menghindari manipulasi/kehilangan klik. |
 | **Kendaraan bebas di lokasi insiden setelah selesai** | Setelah `complete`, kendaraan `available` di `pos_geom = lokasi insiden` (bukan kembali ke `home_geom`). Realistis untuk operasi nyata; dispatcher bisa lihat posisi aktual. |
+| **UI flat tanpa bayangan** | Kedalaman hanya dari garis tepi dan kontras; marker, rute, dan status tetap jadi fokus utama. Efek angkat saat hover dihapus agar tampilan tidak goyah. |
+| **Tema per peran, bisa ditimpa** | Dispatcher sering bekerja di ruang redup (bawaan gelap), driver dan admin di lapangan/siang (bawaan terang). Pilihan manual disimpan agar tidak berubah saat berpindah halaman. |
+| **Satu basemap jalan, tanpa satelit/hybrid** | Layer satelit/hybrid dihapus agar warna marker, lightbar, dan polyline rute tetap terbaca di semua kondisi. Basemap jalan Google dipakai tanpa API key dengan fallback OSM. |
+| **Panel laporan jadi bottom sheet di ponsel** | Di layar kecil, peta tetap terlihat saat dispatcher membaca daftar insiden; sheet bisa dilipat dan tinggi peta tidak hilang. |
 | **OSRM publik untuk MVP** | `https://router.project-osrm.org` gratis, tanpa self-host. Timeout 5 detik, error → `502`. Cocok untuk demo/portfolio. |
 | **Tanpa Docker, semua lokal** | PostgreSQL, Go, Vite berjalan langsung di mesin developer. Mudah dijalankan, debug, dan dipahami tanpa lapisan container. |
 | **Proyek portofolio yang berjalan lokal** | Bukan sistem produksi. Tidak ada: push notification, GPS asli, registrasi publik, refresh token, multi-dispatcher per kota, shift scheduling, audit log penuh, dashboard analitik. |
 
 ---
 
-**Catatan:** Proyek ini adalah MVP portfolio yang dirancang untuk dijalankan **100% lokal** di mesin developer. Semua dependensi eksternal hanya OSRM publik dan tile OpenStreetMap. Tidak ada infrastruktur cloud, Docker, atau layanan tertutup yang diperlukan.
+**Catatan:** Proyek ini adalah MVP portfolio yang dirancang untuk dijalankan **100% lokal** di mesin developer. Dependensi eksternal hanya OSRM publik dan tile peta (Google dengan fallback OpenStreetMap). Tidak ada infrastruktur cloud, Docker, atau layanan tertutup yang diperlukan.
