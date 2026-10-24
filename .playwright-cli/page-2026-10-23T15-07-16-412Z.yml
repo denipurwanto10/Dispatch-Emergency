@@ -1,0 +1,38 @@
+- main [ref=e3]:
+  - region [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: Dispatch
+        - paragraph [ref=e12]: Emergency Response Command Center
+      - generic [ref=e13]:
+        - paragraph [ref=e14]: Masuk ke command center
+        - heading "Siap menerima laporan?" [level=1] [ref=e16]
+        - paragraph [ref=e17]: Gunakan akun yang terdaftar untuk mengakses peta kendaraan dan panel sesuai role.
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]: Email
+          - textbox "Email" [ref=e26]:
+            - /placeholder: nama@dispatch.local
+        - generic [ref=e27]:
+          - generic [ref=e28]: Password
+          - generic [ref=e29]:
+            - textbox "Password" [ref=e34]:
+              - /placeholder: Masukkan password
+            - button "Tampilkan password" [ref=e35] [cursor=pointer]
+        - button "Masuk" [ref=e39] [cursor=pointer]
+      - paragraph [ref=e42]: Akses terbatas untuk petugas Dispatch. Semua aktivitas tercatat.
+  - complementary [aria-hidden] [ref=e44]:
+    - generic [ref=e63]:
+      - paragraph [ref=e64]: Fase 1 · Foundation
+      - heading [level=2] [ref=e65]: Koordinasi respons dimulai dari satu layar.
+      - list [ref=e66]:
+        - listitem [ref=e67]: Auth dengan role dispatcher, driver, dan admin
+        - listitem [ref=e70]: Posisi kendaraan langsung dari PostGIS
+        - listitem [ref=e73]: Peta Google Maps untuk 6 kota operasi
+      - generic [ref=e76]:
+        - generic [ref=e77]: Realtime
+        - generic [ref=e79]: 6 kota
+        - generic [ref=e80]: Ambulans
+        - generic [ref=e82]: Damkar
+        - generic [ref=e84]: Patroli
+      - paragraph [ref=e87]: Dispatcher · Driver · Administrator

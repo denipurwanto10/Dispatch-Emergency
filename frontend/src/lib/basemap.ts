@@ -1,35 +1,50 @@
 import L from 'leaflet'
 
 /**
- * Basemap OpenStreetMap — tanpa API key, tanpa billing.
- * Hanya layer standar OSM (roadmap), tanpa satelit/hybrid.
- * Pakai tile OSM publik dengan User-Agent yang jelas.
+ * Basemap tampilan Google Maps, tanpa API key (tile publik, tidak resmi).
+ * Ganti USE_GOOGLE_TILES ke false untuk kembali ke OpenStreetMap.
+ * Bila tile Google gagal dimuat berulang kali, otomatis pindah ke OSM.
  */
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+const USE_GOOGLE_TILES = true
 
-function osmLayer(className: string): L.TileLayer {
-  return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    subdomains: 'abc',
-    maxZoom: 19,
-    attribution: ATTRIBUTION,
-    className,
-  })
-}
+const GOOGLE_URL = 'https://mt{s}.google.com/vt/lyrs=m&hl=id&gl=ID&x={x}&y={y}&z={z}'
+const OSM_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 
 export interface BasemapOptions {
-  /** Jika true, tidak ada layer switcher (default: false) */
   simple?: boolean
 }
 
-export function addBasemap(map: L.Map, options: BasemapOptions = {}): void {
-  const { simple = false } = options
+function osmLayer(): L.TileLayer {
+  return L.tileLayer(OSM_URL, {
+    subdomains: 'abc',
+    maxZoom: 19,
+    className: 'tiles-osm',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  })
+}
 
-  const roadmap = osmLayer('tiles-roadmap')
-  roadmap.addTo(map)
+export function addBasemap(map: L.Map, _options: BasemapOptions = {}): void {
+  map.attributionControl.setPrefix(false)
 
-  if (!simple) {
-    // No layer switcher - only single OSM layer
+  if (!USE_GOOGLE_TILES) {
+    osmLayer().addTo(map)
+    return
   }
 
-  map.attributionControl.setPrefix(false)
+  const google = L.tileLayer(GOOGLE_URL, {
+    subdomains: '0123',
+    maxZoom: 20,
+    className: 'tiles-google',
+    keepBuffer: 4,
+    attribution: 'Map data &copy; Google',
+  }).addTo(map)
+
+  let errors = 0
+  google.on('tileerror', () => {
+    errors += 1
+    if (errors === 6) {
+      map.removeLayer(google)
+      osmLayer().addTo(map)
+    }
+  })
 }

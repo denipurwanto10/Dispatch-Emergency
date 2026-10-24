@@ -3,19 +3,25 @@ import { useNavigate } from 'react-router-dom'
 
 import { ApiError, login } from '../api/client'
 import { homeForRole, readSession, saveSession } from '../auth/session'
+import { Brand } from '../components/Brand'
+import { CITY_OPTIONS } from '../cities'
+import { IconArrow } from '../components/icons'
 import { ThemeToggle } from '../components/ThemeToggle'
 
-const FEATURES = [
-  'Auth dengan role dispatcher, driver, dan admin',
-  'Posisi kendaraan langsung dari PostGIS',
-  'Peta Google Maps untuk 6 kota operasi',
+const STEPS = [
+  {
+    title: 'Tandai lokasi kejadian',
+    text: 'Klik titik di peta, isi jenis dan prioritas. Laporan langsung masuk ke antrean.',
+  },
+  {
+    title: 'Pilih unit terdekat',
+    text: 'Jarak dan waktu tiba dihitung lewat jalan sebenarnya, bukan garis lurus.',
+  },
+  {
+    title: 'Pantau sampai tuntas',
+    text: 'Posisi unit dan status tugas bergerak di layar dispatcher dan driver secara bersamaan.',
+  },
 ]
-
-const FLEET = [
-  { label: 'Ambulans', tone: 'ambulance' },
-  { label: 'Damkar', tone: 'fire' },
-  { label: 'Patroli', tone: 'police' },
-] as const
 
 function IconMail() {
   return (
@@ -87,7 +93,7 @@ export function LoginPage() {
       if (err instanceof ApiError) {
         setError(err.message)
       } else {
-        setError('Tidak bisa menghubungi server. Pastikan backend sedang berjalan.')
+        setError('Server tidak merespons. Periksa koneksi Anda atau hubungi admin sistem.')
       }
     } finally {
       setSubmitting(false)
@@ -97,33 +103,20 @@ export function LoginPage() {
   return (
     <main className="lg-shell">
       <section className="lg-pane" aria-labelledby="login-title">
-        <div className="lg-pane-inner">
-          <div className="lg-theme-toggle-wrapper">
-            <ThemeToggle />
-          </div>
-          <header className="brand lg-brand">
-            <span className="brand-mark" aria-hidden="true">
-              <span />
-              <span />
-            </span>
-            <div>
-              <p className="brand-name">Dispatch</p>
-              <p className="brand-sub">Emergency Response Command Center</p>
-            </div>
-          </header>
+        <div className="lg-top">
+          <Brand sub="Koordinasi unit darurat" size="md" />
+          <ThemeToggle />
+        </div>
 
+        <div className="lg-center">
           <div className="lg-heading">
-            <p className="lg-kicker">
-              <span className="lg-kicker-dot" aria-hidden="true" />
-              Masuk ke command center
-            </p>
-            <h1 id="login-title">Siap menerima laporan?</h1>
+            <h1 id="login-title">Masuk ke Tanggap</h1>
             <p className="lg-lead">
-              Gunakan akun yang terdaftar untuk mengakses peta kendaraan dan panel sesuai role.
+              Gunakan akun dari instansi Anda. Halaman yang terbuka mengikuti peran akun: dispatcher, driver, atau admin.
             </p>
           </div>
 
-          <form className="lg-form" onSubmit={handleSubmit} noValidate={false}>
+          <form className="lg-form" onSubmit={handleSubmit}>
             <div className="lg-field">
               <label htmlFor="login-email">Email</label>
               <div className="lg-control">
@@ -138,7 +131,7 @@ export function LoginPage() {
                   inputMode="email"
                   autoCapitalize="none"
                   spellCheck={false}
-                  placeholder="nama@dispatch.local"
+                  placeholder="nama@instansi.id"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
@@ -158,7 +151,7 @@ export function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   autoComplete="current-password"
-                  placeholder="Masukkan password"
+                  placeholder="Password akun"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   onKeyUp={detectCaps}
@@ -176,7 +169,7 @@ export function LoginPage() {
                   <IconEye off={showPassword} />
                 </button>
               </div>
-              {capsLock ? <p className="lg-hint">Caps Lock sedang aktif.</p> : null}
+              {capsLock ? <p className="lg-hint">Caps Lock menyala.</p> : null}
             </div>
 
             {error ? (
@@ -190,74 +183,84 @@ export function LoginPage() {
               {submitting ? (
                 <>
                   <span className="lg-spinner" aria-hidden="true" />
-                  Memeriksa kredensial…
+                  Memeriksa…
                 </>
               ) : (
                 <>
                   Masuk
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
+                  <IconArrow />
                 </>
               )}
             </button>
           </form>
-
-          <p className="lg-foot">
-            <span className="lg-foot-dot" aria-hidden="true" />
-            Akses terbatas untuk petugas Dispatch. Semua aktivitas tercatat.
-          </p>
         </div>
+
+        <p className="lg-foot">Khusus petugas berwenang. Aktivitas akun tercatat.</p>
       </section>
 
       <aside className="lg-stage" aria-hidden="true">
-        <div className="lg-grid" />
-
-        <svg className="lg-radar" viewBox="0 0 400 400" focusable="false">
-          <circle cx="200" cy="200" r="196" className="lg-ring" />
-          <circle cx="200" cy="200" r="130" className="lg-ring" />
-          <circle cx="200" cy="200" r="64" className="lg-ring" />
-          <path d="M200 4v392M4 200h392" className="lg-axis" />
-          <g className="lg-sweep">
-            <path d="M200 200 L200 4 A196 196 0 0 1 338.6 61.4 Z" className="lg-wedge" />
-            <path d="M200 200 L200 4" className="lg-sweep-line" />
+        <svg className="lg-map" viewBox="0 60 760 320" preserveAspectRatio="xMidYMid slice" focusable="false">
+          <path className="lg-water" d="M-20 300 C 90 270 150 330 260 310 S 430 250 520 290 S 700 350 790 320 V 470 H -20 Z" />
+          <rect className="lg-park" x="540" y="-10" width="140" height="96" rx="14" />
+          <g className="lg-blocks">
+            <rect x="-20" y="-20" width="150" height="104" rx="8" />
+            <rect x="160" y="-20" width="170" height="104" rx="8" />
+            <rect x="360" y="-20" width="140" height="104" rx="8" />
+            <rect x="700" y="-20" width="90" height="104" rx="8" />
+            <rect x="-20" y="114" width="150" height="110" rx="8" />
+            <rect x="160" y="114" width="170" height="110" rx="8" />
+            <rect x="360" y="114" width="140" height="110" rx="8" />
+            <rect x="530" y="114" width="110" height="110" rx="8" />
+            <rect x="670" y="114" width="120" height="110" rx="8" />
           </g>
-          <circle cx="200" cy="200" r="4" className="lg-core" />
-          <g className="lg-blip lg-blip--ambulance"><circle cx="268" cy="104" r="6" /><circle cx="268" cy="104" r="6" className="lg-pulse" /></g>
-          <g className="lg-blip lg-blip--fire"><circle cx="128" cy="244" r="6" /><circle cx="128" cy="244" r="6" className="lg-pulse" /></g>
-          <g className="lg-blip lg-blip--police"><circle cx="276" cy="288" r="6" /><circle cx="276" cy="288" r="6" className="lg-pulse" /></g>
+          <g>
+            <path className="lg-street" d="M-20 99 H790 M-20 239 H790" />
+            <path className="lg-street" d="M145 -20 V240 M345 -20 V240 M515 -20 V240 M655 -20 V240" />
+            <path className="lg-street lg-street--minor" d="M-20 169 H790 M245 -20 V240 M425 -20 V240 M590 114 V240" />
+          </g>
+          <path className="lg-route-casing" d="M145 338 V239 H345 V99 H575" />
+          <path className="lg-route" d="M145 338 V239 H345 V99 H575" />
+          <g className="lg-pin lg-pin--unit" transform="translate(145 338)">
+            <circle r="10" />
+            <circle r="4" className="lg-pin-core" />
+          </g>
+          <g transform="translate(575 99)">
+            <circle className="lg-pulse" r="14" />
+          </g>
+          <g className="lg-pin lg-pin--incident" transform="translate(575 99)">
+            <rect x="-9" y="-9" width="18" height="18" rx="4" transform="rotate(45)" />
+          </g>
         </svg>
 
         <div className="lg-stage-body">
-          <p className="lg-stage-kicker">Fase 1 · Foundation</p>
-          <h2>Koordinasi respons dimulai dari satu layar.</h2>
+          <h2>Dari laporan masuk sampai unit tiba, semuanya terlihat di satu peta.</h2>
 
-          <ul className="lg-features">
-            {FEATURES.map((item) => (
-              <li key={item}>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="m5 12.5 4.5 4.5L19 7.5" />
-                </svg>
-                {item}
+          <ol className="lg-steps">
+            {STEPS.map((step, index) => (
+              <li key={step.title}>
+                <span className="lg-step-no">{index + 1}</span>
+                <div>
+                  <p className="lg-step-title">{step.title}</p>
+                  <p className="lg-step-text">{step.text}</p>
+                </div>
               </li>
             ))}
-          </ul>
+          </ol>
 
-          <div className="lg-fleet">
-            <span className="lg-live">
-              <i />
-              Realtime
-            </span>
-            <span className="lg-tag">6 kota</span>
-            {FLEET.map((item) => (
-              <span key={item.label} className={`lg-tag lg-tag--${item.tone}`}>
-                <i />
-                {item.label}
-              </span>
-            ))}
-          </div>
-
-          <p className="lg-stage-note">Dispatcher · Driver · Administrator</p>
+          <dl className="lg-facts">
+            <div>
+              <dt>Kota terlayani</dt>
+              <dd>{CITY_OPTIONS.length}</dd>
+            </div>
+            <div>
+              <dt>Jenis unit</dt>
+              <dd>3</dd>
+            </div>
+            <div>
+              <dt>Peran akun</dt>
+              <dd>3</dd>
+            </div>
+          </dl>
         </div>
       </aside>
     </main>

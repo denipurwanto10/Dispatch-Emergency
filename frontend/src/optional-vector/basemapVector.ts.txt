@@ -1,0 +1,63 @@
+import L from 'leaflet'
+import '@maplibre/maplibre-gl-leaflet'
+
+import { buildGoogleStyle, type MapMode } from './googleStyle'
+
+/**
+ * Basemap bergaya Google Maps.
+ * Data : OpenFreeMap (tile vektor dari OpenStreetMap), gratis tanpa API key.
+ * Gaya : style kustom di googleStyle.ts (terang & gelap mengikuti tema).
+ * Cadangan: tile raster OpenStreetMap bila WebGL tidak tersedia.
+ */
+const ATTRIBUTION =
+  '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> ' +
+  '&copy; <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> ' +
+  'Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+
+function currentMode(): MapMode {
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
+}
+
+function hasWebGL(): boolean {
+  try {
+    const canvas = document.createElement('canvas')
+    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
+
+export interface BasemapOptions {
+  simple?: boolean
+}
+
+export function addBasemap(map: L.Map, _options: BasemapOptions = {}): void {
+  map.attributionControl.setPrefix(false)
+
+  if (!hasWebGL()) {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      subdomains: 'abc',
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map)
+    return
+  }
+
+  let mode = currentMode()
+  const gl = (L as any).maplibreGL({
+    style: buildGoogleStyle(mode),
+    attribution: ATTRIBUTION,
+    interactive: false,
+  })
+  gl.addTo(map)
+
+  // Ganti style saat tema berubah (terang <-> gelap).
+  const observer = new MutationObserver(() => {
+    const next = currentMode()
+    if (next === mode) return
+    mode = next
+    gl.getMaplibreMap?.()?.setStyle(buildGoogleStyle(next))
+  })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  map.on('unload', () => observer.disconnect())
+}

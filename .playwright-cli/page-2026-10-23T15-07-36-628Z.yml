@@ -1,0 +1,141 @@
+- generic [ref=e88]:
+  - banner [ref=e89]:
+    - generic [ref=e94]:
+      - paragraph [ref=e95]: Dispatch
+      - paragraph [ref=e96]: Peta operasi · Indonesia
+    - generic [ref=e97]:
+      - generic [ref=e98]: Terhubung ke API
+      - generic [ref=e100]:
+        - generic [aria-hidden] [ref=e101]: D
+        - generic [ref=e102]:
+          - generic [ref=e103]: Dewi Lestari
+          - generic [ref=e104]: dispatcher
+      - button "Keluar" [ref=e105] [cursor=pointer]
+  - main [ref=e106]:
+    - complementary "Ringkasan armada" [ref=e107]:
+      - paragraph [ref=e108]: Armada nasional
+      - generic [ref=e109]:
+        - generic [ref=e110]: Kota operasi
+        - combobox "Filter kota operasi" [ref=e111] [cursor=pointer]:
+          - option "Semua Kota" [selected]
+          - option "Medan"
+          - option "Jakarta"
+          - option "Bandung"
+          - option "Semarang"
+          - option "Surabaya"
+          - option "Makassar"
+      - paragraph [ref=e112]:
+        - strong [ref=e113]: "36"
+        - text: kendaraan
+      - paragraph [ref=e114]: Nasional · semua kota
+      - paragraph [ref=e115]:
+        - text: Posisi terakhir dari tabel
+        - code [ref=e116]: vehicles
+        - text: . Klik peta untuk membuat insiden, atau klik marker untuk detail unit.
+      - list [ref=e121]:
+        - listitem [ref=e122]:
+          - text: Ambulans
+          - strong [ref=e124]: "12"
+        - listitem [ref=e125]:
+          - text: Damkar
+          - strong [ref=e127]: "12"
+        - listitem [ref=e128]:
+          - text: Patroli
+          - strong [ref=e130]: "12"
+      - generic [ref=e131]:
+        - generic [ref=e132]: Snapshot REST
+        - generic [ref=e133]: 22.07.35
+      - button "Muat ulang" [ref=e134] [cursor=pointer]
+    - generic [ref=e135]:
+      - generic "Peta kendaraan seluruh Indonesia" [ref=e136]:
+        - generic:
+          - generic:
+            - button [ref=e137] [cursor=pointer]:
+              - generic "Ambulans Medan 01 · Ambulans" [ref=e138]: BK 9101 AM
+            - button [ref=e169] [cursor=pointer]:
+              - generic "Ambulans Medan 02 · Ambulans" [ref=e170]: BK 9102 AM
+            - button [ref=e201] [cursor=pointer]:
+              - generic "Damkar Medan 01 · Damkar" [ref=e202]: BK 9103 PM
+            - button [ref=e239] [cursor=pointer]:
+              - generic "Damkar Medan 02 · Damkar" [ref=e240]: BK 9104 PM
+            - button [ref=e277] [cursor=pointer]:
+              - generic "Patroli Medan 01 · Patroli" [ref=e278]: BK 9105 PL
+            - button [ref=e307] [cursor=pointer]:
+              - generic "Patroli Medan 02 · Patroli" [ref=e308]: BK 9106 PL
+            - button [ref=e337] [cursor=pointer]:
+              - generic "Ambulans Jakarta 01 · Ambulans" [ref=e338]: B 9107 AM
+            - button [ref=e369] [cursor=pointer]:
+              - generic "Ambulans Jakarta 02 · Ambulans" [ref=e370]: B 9108 AM
+            - button [ref=e401] [cursor=pointer]:
+              - generic "Damkar Jakarta 01 · Damkar" [ref=e402]: B 9109 PM
+            - button [ref=e439] [cursor=pointer]:
+              - generic "Damkar Jakarta 02 · Damkar" [ref=e440]: B 9110 PM
+            - button [ref=e477] [cursor=pointer]:
+              - generic "Patroli Jakarta 01 · Patroli" [ref=e478]: B 9111 PL
+            - button [ref=e507] [cursor=pointer]:
+              - generic "Patroli Jakarta 02 · Patroli" [ref=e508]: B 9112 PL
+            - button [ref=e537] [cursor=pointer]:
+              - generic "Ambulans Bandung 01 · Ambulans" [ref=e538]: D 9113 AM
+            - button [ref=e569] [cursor=pointer]:
+              - generic "Ambulans Bandung 02 · Ambulans" [ref=e570]: D 9114 AM
+            - button [ref=e601] [cursor=pointer]:
+              - generic "Damkar Bandung 01 · Damkar" [ref=e602]: D 9115 PM
+            - button [ref=e639] [cursor=pointer]:
+              - generic "Damkar Bandung 02 · Damkar" [ref=e640]: D 9116 PM
+            - button [ref=e677] [cursor=pointer]:
+              - generic "Patroli Bandung 01 · Patroli" [ref=e678]: D 9117 PL
+            - button [ref=e707] [cursor=pointer]:
+              - generic "Patroli Bandung 02 · Patroli" [ref=e708]: D 9118 PL
+            - button [ref=e737] [cursor=pointer]:
+              - generic "Ambulans Semarang 01 · Ambulans" [ref=e738]: H 9119 AM
+            - button [ref=e769] [cursor=pointer]:
+              - generic "Ambulans Semarang 02 · Ambulans" [ref=e770]: H 9120 AM
+            - button [ref=e801] [cursor=pointer]:
+              - generic "Damkar Semarang 01 · Damkar" [ref=e802]: H 9121 PM
+            - button [ref=e839] [cursor=pointer]:
+              - generic "Damkar Semarang 02 · Damkar" [ref=e840]: H 9122 PM
+            - button [ref=e877] [cursor=pointer]:
+              - generic "Patroli Semarang 01 · Patroli" [ref=e878]: H 9123 PL
+            - button [ref=e907] [cursor=pointer]:
+              - generic "Patroli Semarang 02 · Patroli" [ref=e908]: H 9124 PL
+            - button [ref=e937] [cursor=pointer]:
+              - generic "Ambulans Surabaya 01 · Ambulans" [ref=e938]: L 9125 AM
+            - button [ref=e969] [cursor=pointer]:
+              - generic "Ambulans Surabaya 02 · Ambulans" [ref=e970]: L 9126 AM
+            - button [ref=e1001] [cursor=pointer]:
+              - generic "Damkar Surabaya 01 · Damkar" [ref=e1002]: L 9127 PM
+            - button [ref=e1039] [cursor=pointer]:
+              - generic "Damkar Surabaya 02 · Damkar" [ref=e1040]: L 9128 PM
+            - button [ref=e1077] [cursor=pointer]:
+              - generic "Patroli Surabaya 01 · Patroli" [ref=e1078]: L 9129 PL
+            - button [ref=e1107] [cursor=pointer]:
+              - generic "Patroli Surabaya 02 · Patroli" [ref=e1108]: L 9130 PL
+            - button [ref=e1137] [cursor=pointer]:
+              - generic "Ambulans Makassar 01 · Ambulans" [ref=e1138]: DD 9131 AM
+            - button [ref=e1169] [cursor=pointer]:
+              - generic "Ambulans Makassar 02 · Ambulans" [ref=e1170]: DD 9132 AM
+            - button [ref=e1201] [cursor=pointer]:
+              - generic "Damkar Makassar 01 · Damkar" [ref=e1202]: DD 9133 PM
+            - button [ref=e1239] [cursor=pointer]:
+              - generic "Damkar Makassar 02 · Damkar" [ref=e1240]: DD 9134 PM
+            - button [ref=e1277] [cursor=pointer]:
+              - generic "Patroli Makassar 01 · Patroli" [ref=e1278]: DD 9135 PL
+            - button [ref=e1307] [cursor=pointer]:
+              - generic "Patroli Makassar 02 · Patroli" [ref=e1308]: DD 9136 PL
+            - button "!" [ref=e1337] [cursor=pointer]
+        - generic:
+          - generic [ref=e1340]:
+            - button "Zoom in" [ref=e1341] [cursor=pointer]: +
+            - button "Zoom out" [ref=e1342] [cursor=pointer]: −
+          - button "Layers" [ref=e1344] [cursor=pointer]
+          - generic: © Google
+      - complementary "Insiden" [ref=e1346]:
+        - generic [ref=e1347]:
+          - generic [ref=e1348]:
+            - paragraph [ref=e1349]: Insiden
+            - heading "Daftar insiden" [level=2] [ref=e1350]
+          - button "Muat ulang" [ref=e1351] [cursor=pointer]
+        - generic [ref=e1352]:
+          - paragraph [ref=e1353]: Klik peta untuk membuat insiden baru.
+          - paragraph [ref=e1354]: Belum ada insiden open.
+          - list

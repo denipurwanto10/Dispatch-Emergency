@@ -23,7 +23,9 @@ import type {
   User,
   VehicleType,
 } from '../types'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { AppHeader } from '../components/AppHeader'
+import { IconMap, IconPlus } from '../components/icons'
+import { Select } from '../components/Select'
 
 type Tab = 'users' | 'vehicles'
 
@@ -136,10 +138,10 @@ export function AdminPage() {
         return
       }
       if (err instanceof ApiError && err.status === 403) {
-        setLoadError('Halaman ini khusus admin.')
+        setLoadError('Halaman ini hanya bisa dibuka oleh admin.')
         return
       }
-      setLoadError(errorText(err, 'Gagal memuat data admin.'))
+      setLoadError(errorText(err, 'Data belum bisa dimuat. Segarkan halaman atau coba beberapa saat lagi.'))
     } finally {
       setLoading(false)
     }
@@ -257,10 +259,10 @@ export function AdminPage() {
     try {
       if (userForm.id == null) {
         await createAdminUser(session.token, input)
-        setNotice('User baru berhasil dibuat.')
+        setNotice('Akun baru sudah dibuat.')
       } else {
         await updateAdminUser(session.token, userForm.id, input)
-        setNotice('User berhasil diperbarui.')
+        setNotice('Perubahan akun tersimpan.')
       }
       setUserForm(null)
       await loadAll()
@@ -269,7 +271,7 @@ export function AdminPage() {
         handleUnauthorized()
         return
       }
-      setFormError(errorText(err, 'Gagal menyimpan user.'))
+      setFormError(errorText(err, 'Akun belum tersimpan. Periksa isian lalu coba lagi.'))
     } finally {
       setSaving(false)
     }
@@ -300,10 +302,10 @@ export function AdminPage() {
     try {
       if (vehicleForm.id == null) {
         await createAdminVehicle(session.token, input)
-        setNotice('Kendaraan baru berhasil dibuat.')
+        setNotice('Kendaraan baru sudah ditambahkan.')
       } else {
         await updateAdminVehicle(session.token, vehicleForm.id, input)
-        setNotice('Kendaraan berhasil diperbarui.')
+        setNotice('Perubahan kendaraan tersimpan.')
       }
       setVehicleForm(null)
       await loadAll()
@@ -312,7 +314,7 @@ export function AdminPage() {
         handleUnauthorized()
         return
       }
-      setFormError(errorText(err, 'Gagal menyimpan kendaraan.'))
+      setFormError(errorText(err, 'Kendaraan belum tersimpan. Periksa isian lalu coba lagi.'))
     } finally {
       setSaving(false)
     }
@@ -320,22 +322,22 @@ export function AdminPage() {
 
   async function removeUser(user: User) {
     if (!session) return
-    if (!window.confirm(`Hapus user ${user.name} (${user.email})?`)) return
+    if (!window.confirm(`Hapus akun ${user.name} (${user.email})? Akun ini tidak bisa dipulihkan.`)) return
     setFormError(null)
     setNotice(null)
     try {
       await deleteAdminUser(session.token, user.id)
-      setNotice(`User ${user.name} dihapus.`)
+      setNotice(`Akun ${user.name} dihapus.`)
       if (userForm?.id === user.id) setUserForm(null)
       await loadAll()
     } catch (err) {
-      setFormError(errorText(err, 'Gagal menghapus user.'))
+      setFormError(errorText(err, 'Akun belum bisa dihapus.'))
     }
   }
 
   async function removeVehicle(vehicle: AdminVehicle) {
     if (!session) return
-    if (!window.confirm(`Hapus kendaraan ${vehicle.name} (${vehicle.plate})?`)) return
+    if (!window.confirm(`Hapus kendaraan ${vehicle.name} (${vehicle.plate})? Riwayat tugasnya tetap tersimpan.`)) return
     setFormError(null)
     setNotice(null)
     try {
@@ -344,7 +346,7 @@ export function AdminPage() {
       if (vehicleForm?.id === vehicle.id) setVehicleForm(null)
       await loadAll()
     } catch (err) {
-      setFormError(errorText(err, 'Gagal menghapus kendaraan.'))
+      setFormError(errorText(err, 'Kendaraan belum bisa dihapus. Mungkin sedang menjalani tugas.'))
     }
   }
 
@@ -352,84 +354,39 @@ export function AdminPage() {
 
   return (
     <div className="admin-shell">
-      <header className="topbar topbar--light">
-        <div className="topbar-brand">
-          <span className="brand-mark brand-mark--small" aria-hidden="true">
-            <span />
-            <span />
-          </span>
-          <div>
-            <p className="brand-name">Dispatch</p>
-            <p className="topbar-sub">Panel Admin · MVP</p>
-          </div>
-        </div>
-        <div className="topbar-right">
-          <Link className="button button-ghost" to="/map">
-            Peta operasi
-          </Link>
-          <div className="user-chip">
-            <span className="avatar" aria-hidden="true">
-              {session.user.name.charAt(0).toUpperCase()}
-            </span>
-            <div className="user-chip-text">
-              <span className="user-chip-name">{session.user.name}</span>
-              <span className="user-chip-role">{session.user.role}</span>
-            </div>
-          </div>
-          <ThemeToggle />
-          <button className="button button-ghost" type="button" onClick={handleLogout}>
-            Keluar
-          </button>
-        </div>
-      </header>
+      <AppHeader subtitle="Panel admin" session={session} onLogout={handleLogout}>
+        <Link className="button button-ghost" to="/map">
+          <IconMap size={16} />
+          Buka peta
+        </Link>
+      </AppHeader>
 
       <main className="admin-main">
         <div className="admin-heading">
-          <div>
-            <p className="eyebrow">Pengelolaan operasi</p>
-            <h1>Panel Admin</h1>
-            <p className="muted">Kelola akun user dan armada yang dipakai dispatcher di seluruh kota.</p>
-          </div>
-          <div className="admin-tabs" role="tablist" aria-label="Bagian admin">
-            <button
-              className={`admin-tab ${tab === 'users' ? 'admin-tab--active' : ''}`}
-              type="button"
-              role="tab"
-              aria-selected={tab === 'users'}
-              onClick={() => setTab('users')}
-            >
-              Users <span>{users.length}</span>
-            </button>
-            <button
-              className={`admin-tab ${tab === 'vehicles' ? 'admin-tab--active' : ''}`}
-              type="button"
-              role="tab"
-              aria-selected={tab === 'vehicles'}
-              onClick={() => setTab('vehicles')}
-            >
-              Kendaraan <span>{vehicles.length}</span>
-            </button>
-          </div>
+          <h1>Akun dan armada</h1>
+          <p className="muted">
+            Tambah petugas, tetapkan driver ke kendaraan, dan atur kota tugas. Perubahan langsung terbaca di peta dispatcher.
+          </p>
         </div>
 
-        <div className="admin-stats" aria-label="Ringkasan">
+        <dl className="admin-stats" aria-label="Ringkasan data">
           <div className="admin-stat">
-            <span>Total user</span>
-            <strong>{users.length}</strong>
+            <dt>Akun terdaftar</dt>
+            <dd>{users.length}</dd>
           </div>
           <div className="admin-stat">
-            <span>Driver</span>
-            <strong>{users.filter((item) => item.role === 'driver').length}</strong>
+            <dt>Driver</dt>
+            <dd>{users.filter((item) => item.role === 'driver').length}</dd>
           </div>
-          <div className="admin-stat admin-stat--accent">
-            <span>Kendaraan</span>
-            <strong>{vehicles.length}</strong>
+          <div className="admin-stat">
+            <dt>Kendaraan</dt>
+            <dd>{vehicles.length}</dd>
           </div>
           <div className="admin-stat admin-stat--success">
-            <span>Tersedia</span>
-            <strong>{vehicles.filter((item) => item.status === 'available').length}</strong>
+            <dt>Siap bertugas</dt>
+            <dd>{vehicles.filter((item) => item.status === 'available').length}</dd>
           </div>
-        </div>
+        </dl>
 
         {loadError ? (
           <div className="admin-alert admin-alert--error" role="alert">
@@ -450,35 +407,47 @@ export function AdminPage() {
         <div className={`admin-layout ${userForm || vehicleForm ? 'admin-layout--form' : ''}`}>
           <section className="admin-card">
             <div className="admin-card-head">
-              <div>
-                <h2>{tab === 'users' ? 'Daftar User' : 'Daftar Kendaraan'}</h2>
-                <p className="muted">
-                  {tab === 'users'
-                    ? 'Admin, dispatcher, dan driver. Password tidak pernah ditampilkan.'
-                    : 'Perubahan langsung dipakai dispatcher pada peta dan pencarian kandidat.'}
-                </p>
+              <div className="admin-tabs" role="tablist" aria-label="Pilih data">
+                <button
+                  className={`admin-tab ${tab === 'users' ? 'admin-tab--active' : ''}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === 'users'}
+                  onClick={() => setTab('users')}
+                >
+                  Akun <span>{users.length}</span>
+                </button>
+                <button
+                  className={`admin-tab ${tab === 'vehicles' ? 'admin-tab--active' : ''}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === 'vehicles'}
+                  onClick={() => setTab('vehicles')}
+                >
+                  Kendaraan <span>{vehicles.length}</span>
+                </button>
               </div>
+
               {tab === 'users' ? (
                 <button className="button button-primary" type="button" onClick={openCreateUser}>
-                  + User
+                  <IconPlus size={16} />
+                  Tambah akun
                 </button>
               ) : (
                 <div className="admin-card-actions">
-                  <select
-                    className="admin-inline-select"
+                  <Select
+                    variant="filter"
+                    ariaLabel="Filter kota kendaraan"
                     value={cityFilter}
-                    onChange={(event) => setCityFilter(event.target.value)}
-                    aria-label="Filter kota kendaraan"
-                  >
-                    <option value="">Semua kota</option>
-                    {CITY_OPTIONS.map((city) => (
-                      <option key={city.name} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setCityFilter}
+                    options={[
+                      { value: '', label: 'Semua kota' },
+                      ...CITY_OPTIONS.map((city) => ({ value: city.name, label: city.name })),
+                    ]}
+                  />
                   <button className="button button-primary" type="button" onClick={openCreateVehicle}>
-                    + Kendaraan
+                    <IconPlus size={16} />
+                    Tambah kendaraan
                   </button>
                 </div>
               )}
@@ -489,6 +458,12 @@ export function AdminPage() {
                 <span className="spinner" aria-hidden="true" />
                 Memuat data…
               </div>
+            ) : tab === 'users' && users.length === 0 ? (
+              <p className="admin-empty">Belum ada akun. Tambahkan akun pertama dengan tombol di atas.</p>
+            ) : tab === 'vehicles' && vehicles.length === 0 ? (
+              <p className="admin-empty">
+                {cityFilter ? `Belum ada kendaraan di ${cityFilter}.` : 'Belum ada kendaraan terdaftar.'}
+              </p>
             ) : tab === 'users' ? (
               <div className="admin-table-wrap">
                 <table className="admin-table">
@@ -496,7 +471,7 @@ export function AdminPage() {
                     <tr>
                       <th>Nama</th>
                       <th>Email</th>
-                      <th>Role</th>
+                      <th>Peran</th>
                       <th>Kota</th>
                       <th className="admin-col-actions">Aksi</th>
                     </tr>
@@ -504,14 +479,21 @@ export function AdminPage() {
                   <tbody>
                     {users.map((user) => (
                       <tr key={user.id}>
-                        <td data-label="Nama">{user.name}</td>
+                        <td data-label="Nama">
+                          <span className="cell-user">
+                            <span className="avatar avatar--sm" aria-hidden="true">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                            {user.name}
+                          </span>
+                        </td>
                         <td data-label="Email" className="admin-mono">{user.email}</td>
-                        <td data-label="Role">
+                        <td data-label="Peran">
                           <span className={`admin-badge admin-badge--${user.role}`}>
                             {ROLE_LABEL[user.role]}
                           </span>
                         </td>
-                        <td data-label="Kota">{user.operating_city ?? 'Nasional'}</td>
+                        <td data-label="Kota">{user.operating_city ?? 'Semua kota'}</td>
                         <td className="admin-col-actions">
                           <button className="admin-link" type="button" onClick={() => openEditUser(user)}>
                             Edit
@@ -535,8 +517,8 @@ export function AdminPage() {
                   <thead>
                     <tr>
                       <th>Nama</th>
-                      <th>Plat</th>
-                      <th>Tipe</th>
+                      <th>Nomor polisi</th>
+                      <th>Jenis</th>
                       <th>Kota</th>
                       <th>Status</th>
                       <th>Driver</th>
@@ -547,15 +529,15 @@ export function AdminPage() {
                     {vehicles.map((vehicle) => (
                       <tr key={vehicle.id}>
                         <td data-label="Nama">{vehicle.name}</td>
-                        <td data-label="Plat" className="admin-mono">{vehicle.plate}</td>
-                        <td data-label="Tipe">{TYPE_LABEL[vehicle.type]}</td>
+                        <td data-label="No. polisi" className="admin-mono">{vehicle.plate}</td>
+                        <td data-label="Jenis">{TYPE_LABEL[vehicle.type]}</td>
                         <td data-label="Kota">{vehicle.operating_city ?? '—'}</td>
                         <td data-label="Status">
                           <span className={`admin-badge admin-badge--status-${vehicle.status}`}>
                             {STATUS_LABEL[vehicle.status] ?? vehicle.status}
                           </span>
                         </td>
-                        <td data-label="Driver">{vehicle.driver_name ?? 'Tanpa driver'}</td>
+                        <td data-label="Driver">{vehicle.driver_name ?? 'Belum ada driver'}</td>
                         <td className="admin-col-actions">
                           <button
                             className="admin-link"
@@ -593,11 +575,11 @@ export function AdminPage() {
           ) : null}
 
           {userForm ? (
-            <aside className="admin-form-card" aria-label="Form user">
+            <aside className="admin-form-card" aria-label="Form akun">
               <div className="admin-form-head">
                 <div>
-                  <p className="eyebrow">{userForm.id == null ? 'User baru' : 'Edit user'}</p>
-                  <h2>{userForm.id == null ? 'Buat User' : userForm.name || 'Ubah User'}</h2>
+                  <h2>{userForm.id == null ? 'Akun baru' : 'Ubah akun'}</h2>
+                  {userForm.id != null ? <p className="panel-sub">{userForm.name}</p> : null}
                 </div>
                 <button
                   className="button button-ghost admin-close"
@@ -629,47 +611,44 @@ export function AdminPage() {
                     disabled={userForm.id != null}
                     required
                   />
-                  {userForm.id != null ? <span className="field-hint">Email tidak bisa diubah.</span> : null}
+                  {userForm.id != null ? <span className="field-hint">Email dipakai untuk masuk, jadi tidak bisa diganti.</span> : null}
                 </label>
                 <label className="field">
-                  {userForm.id == null ? 'Password' : 'Password baru (opsional)'}
+                  {userForm.id == null ? 'Password' : 'Password baru'}
                   <input
                     type="password"
                     value={userForm.password}
                     onChange={(event) => updateUserField('password', event.target.value)}
-                    placeholder={userForm.id == null ? 'Minimal 6 karakter' : 'Kosongkan bila tidak diubah'}
+                    placeholder={userForm.id == null ? 'Minimal 6 karakter' : 'Kosongkan jika tidak diganti'}
                     required={userForm.id == null}
                   />
                 </label>
                 <div className="form-grid">
                   <label className="field">
-                    Role
-                    <select
+                    Peran
+                    <Select
                       value={userForm.role}
-                      onChange={(event) => updateUserField('role', event.target.value as Role)}
-                    >
-                      <option value="dispatcher">Dispatcher</option>
-                      <option value="driver">Driver</option>
-                      <option value="admin">Admin</option>
-                    </select>
+                      onChange={(value) => updateUserField('role', value as Role)}
+                      options={[
+                        { value: 'dispatcher', label: 'Dispatcher' },
+                        { value: 'driver', label: 'Driver' },
+                        { value: 'admin', label: 'Admin' },
+                      ]}
+                    />
                   </label>
                   <label className="field">
                     Kota operasi
-                    <select
+                    <Select
                       value={userForm.operating_city}
-                      onChange={(event) => updateUserField('operating_city', event.target.value)}
+                      onChange={(value) => updateUserField('operating_city', value)}
                       disabled={userForm.role === 'admin'}
-                      required={userForm.role === 'driver'}
-                    >
-                      {userForm.role !== 'driver' ? <option value="">Nasional (NULL)</option> : null}
-                      {CITY_OPTIONS.map((city) => (
-                        <option key={city.name} value={city.name}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
+                      options={[
+                        ...(userForm.role !== 'driver' ? [{ value: '', label: 'Semua kota' }] : []),
+                        ...CITY_OPTIONS.map((city) => ({ value: city.name, label: city.name })),
+                      ]}
+                    />
                     {userForm.role === 'admin' ? (
-                      <span className="field-hint">Admin selalu nasional (NULL).</span>
+                      <span className="field-hint">Admin bisa mengakses semua kota.</span>
                     ) : null}
                   </label>
                 </div>
@@ -682,7 +661,7 @@ export function AdminPage() {
 
                 <div className="form-actions">
                   <button className="button button-primary" type="submit" disabled={saving}>
-                    {saving ? 'Menyimpan…' : 'Simpan User'}
+                    {saving ? 'Menyimpan…' : 'Simpan akun'}
                   </button>
                 </div>
               </form>
@@ -693,8 +672,8 @@ export function AdminPage() {
             <aside className="admin-form-card" aria-label="Form kendaraan">
               <div className="admin-form-head">
                 <div>
-                  <p className="eyebrow">{vehicleForm.id == null ? 'Kendaraan baru' : 'Edit kendaraan'}</p>
-                  <h2>{vehicleForm.id == null ? 'Buat Kendaraan' : vehicleForm.name || 'Ubah Kendaraan'}</h2>
+                  <h2>{vehicleForm.id == null ? 'Kendaraan baru' : 'Ubah kendaraan'}</h2>
+                  {vehicleForm.id != null ? <p className="panel-sub">{vehicleForm.name}</p> : null}
                 </div>
                 <button
                   className="button button-ghost admin-close"
@@ -719,7 +698,7 @@ export function AdminPage() {
                 </label>
                 <div className="form-grid">
                   <label className="field">
-                    Plat
+                    Nomor polisi
                     <input
                       value={vehicleForm.plate}
                       onChange={(event) => updateVehicleField('plate', event.target.value)}
@@ -727,49 +706,42 @@ export function AdminPage() {
                     />
                   </label>
                   <label className="field">
-                    Tipe
-                    <select
+                    Jenis
+                    <Select
                       value={vehicleForm.type}
-                      onChange={(event) => updateVehicleField('type', event.target.value as VehicleType)}
-                    >
-                      <option value="ambulance">Ambulans</option>
-                      <option value="fire">Damkar</option>
-                      <option value="police">Patroli</option>
-                    </select>
+                      onChange={(value) => updateVehicleField('type', value as VehicleType)}
+                      options={[
+                        { value: 'ambulance', label: 'Ambulans' },
+                        { value: 'fire', label: 'Damkar' },
+                        { value: 'police', label: 'Patroli' },
+                      ]}
+                    />
                   </label>
                 </div>
                 <div className="form-grid">
                   <label className="field">
                     Kota operasi
-                    <select
+                    <Select
                       value={vehicleForm.operating_city}
-                      onChange={(event) => updateVehicleField('operating_city', event.target.value)}
-                    >
-                      {CITY_OPTIONS.map((city) => (
-                        <option key={city.name} value={city.name}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => updateVehicleField('operating_city', value)}
+                      options={CITY_OPTIONS.map((city) => ({ value: city.name, label: city.name }))}
+                    />
                   </label>
                   <label className="field">
                     Driver
-                    <select
+                    <Select
                       value={vehicleForm.driver_id}
-                      onChange={(event) => updateVehicleField('driver_id', event.target.value)}
-                    >
-                      <option value="">Tanpa driver</option>
-                      {cityDrivers.map((driver) => (
-                        <option key={driver.id} value={driver.id}>
-                          {driver.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => updateVehicleField('driver_id', value)}
+                      options={[
+                        { value: '', label: 'Tanpa driver' },
+                        ...cityDrivers.map((driver) => ({ value: String(driver.id), label: driver.name })),
+                      ]}
+                    />
                   </label>
                 </div>
                 <div className="form-grid">
                   <label className="field">
-                    Home latitude
+                    Lintang pangkalan
                     <input
                       type="number"
                       step="0.000001"
@@ -779,7 +751,7 @@ export function AdminPage() {
                     />
                   </label>
                   <label className="field">
-                    Home longitude
+                    Bujur pangkalan
                     <input
                       type="number"
                       step="0.000001"
@@ -791,20 +763,19 @@ export function AdminPage() {
                 </div>
                 {vehicleForm.id != null ? (
                   <label className="field">
-                    Status manual
-                    <select
+                    Kesiapan unit
+                    <Select
                       value={vehicleForm.status}
-                      onChange={(event) =>
-                        updateVehicleField('status', event.target.value as 'available' | 'offline')
-                      }
+                      onChange={(value) => updateVehicleField('status', value as 'available' | 'offline')}
                       disabled={
                         vehicles.find((item) => item.id === vehicleForm.id)?.status !== 'available' &&
                         vehicles.find((item) => item.id === vehicleForm.id)?.status !== 'offline'
                       }
-                    >
-                      <option value="available">Tersedia</option>
-                      <option value="offline">Offline</option>
-                    </select>
+                      options={[
+                        { value: 'available', label: 'Tersedia' },
+                        { value: 'offline', label: 'Offline' },
+                      ]}
+                    />
                   </label>
                 ) : null}
 
@@ -816,7 +787,7 @@ export function AdminPage() {
 
                 <div className="form-actions">
                   <button className="button button-primary" type="submit" disabled={saving}>
-                    {saving ? 'Menyimpan…' : 'Simpan Kendaraan'}
+                    {saving ? 'Menyimpan…' : 'Simpan kendaraan'}
                   </button>
                 </div>
               </form>

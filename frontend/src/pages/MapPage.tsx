@@ -3,7 +3,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type ChangeEvent,
   type FormEvent,
 } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -30,7 +29,9 @@ import {
   INDONESIA_ZOOM,
   findCity,
 } from '../cities'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { AppHeader } from '../components/AppHeader'
+import { CitySelect } from '../components/CitySelect'
+import { IconBack } from '../components/icons'
 import type {
   Incident,
   IncidentPriority,
@@ -59,7 +60,7 @@ const STATUS_LABEL: Record<Vehicle['status'], string> = {
 }
 
 const INCIDENT_STATUS_LABEL: Record<Incident['status'], string> = {
-  open: 'Open',
+  open: 'Menunggu unit',
   assigned: 'Ditugaskan',
   en_route: 'Menuju lokasi',
   on_scene: 'Di lokasi',
@@ -68,10 +69,10 @@ const INCIDENT_STATUS_LABEL: Record<Incident['status'], string> = {
 }
 
 const PRIORITY_LABEL: Record<IncidentPriority, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  critical: 'Critical',
+  low: 'Rendah',
+  medium: 'Sedang',
+  high: 'Tinggi',
+  critical: 'Kritis',
 }
 
 const INCIDENT_TYPES: IncidentType[] = ['ambulance', 'fire', 'police']
@@ -122,14 +123,14 @@ function buildVehiclePopup(vehicle: Vehicle): HTMLElement {
   wrapper.append(plate)
 
   const detail = document.createElement('p')
-  detail.textContent = `${meta.label} · ${STATUS_LABEL[vehicle.status] ?? vehicle.status} · ${
-    vehicle.operating_city ?? 'Tanpa kota'
+  detail.textContent = `${meta.label}, ${(STATUS_LABEL[vehicle.status] ?? vehicle.status).toLowerCase()}, ${
+    vehicle.operating_city ?? 'kota belum diatur'
   }`
   wrapper.append(detail)
 
   const driver = document.createElement('p')
   driver.className = 'vehicle-popup-driver'
-  driver.textContent = vehicle.driver_name ? `Driver: ${vehicle.driver_name}` : 'Belum ada driver'
+  driver.textContent = vehicle.driver_name ? `Driver: ${vehicle.driver_name}` : 'Belum ada driver bertugas'
   wrapper.append(driver)
 
   return wrapper
@@ -144,15 +145,15 @@ function buildIncidentPopup(incident: Incident): HTMLElement {
   wrapper.append(title)
 
   const detail = document.createElement('p')
-  detail.textContent = `${TYPE_META[incident.type]?.label ?? incident.type} · ${
+  detail.textContent = `${TYPE_META[incident.type]?.label ?? incident.type}, prioritas ${(
     PRIORITY_LABEL[incident.priority] ?? incident.priority
-  }`
+  ).toLowerCase()}`
   wrapper.append(detail)
 
   const status = document.createElement('p')
   status.className = 'incident-popup-status'
-  status.textContent = `${INCIDENT_STATUS_LABEL[incident.status] ?? incident.status} · ${
-    incident.operating_city ?? 'Tanpa kota'
+  status.textContent = `${INCIDENT_STATUS_LABEL[incident.status] ?? incident.status}, ${
+    incident.operating_city ?? 'kota belum diatur'
   }`
   wrapper.append(status)
 
@@ -177,11 +178,11 @@ function formatIncidentTime(value: string): string {
 function nearestReasonText(reason: string | undefined): string {
   switch (reason) {
     case 'no_available_vehicle_within_radius':
-      return 'Tidak ada kendaraan available dalam radius pencarian.'
+      return 'Tidak ada unit yang tersedia dalam radius pencarian.'
     case 'no_reachable_vehicle':
-      return 'Tidak ada kendaraan yang terjangkau lewat jalan.'
+      return 'Ada unit di sekitar, tetapi tidak ada yang bisa dijangkau lewat jalan.'
     default:
-      return 'Tidak ada kandidat kendaraan.'
+      return 'Belum ada unit yang bisa disarankan.'
   }
 }
 
@@ -213,6 +214,7 @@ export function MapPage() {
   // Bottom sheet (mobile) otomatis terbuka saat mode panel berubah.
   useEffect(() => {
     setSheetCollapsed(false)
+    document.querySelector('.incident-panel')?.scrollTo({ top: 0 })
   }, [panelMode])
 
   // Assignment & WebSocket state
@@ -250,7 +252,7 @@ export function MapPage() {
       setError(
         err instanceof ApiError
           ? err.message
-          : 'Tidak bisa menghubungi server. Pastikan backend sedang berjalan.',
+          : 'Server tidak merespons. Periksa koneksi lalu coba lagi.',
       )
     } finally {
       if (requestID === requestIDRef.current) setLoading(false)
@@ -274,7 +276,7 @@ export function MapPage() {
       setIncidentError(
         err instanceof ApiError
           ? err.message
-          : 'Tidak bisa memuat insiden. Pastikan backend sedang berjalan.',
+          : 'Daftar laporan gagal dimuat. Periksa koneksi lalu coba lagi.',
       )
     } finally {
       if (requestID === incidentRequestIDRef.current) setIncidentLoading(false)
@@ -298,8 +300,14 @@ export function MapPage() {
       center: INDONESIA_CENTER,
       zoom: INDONESIA_ZOOM,
       minZoom: 3,
-      zoomControl: true,
+      zoomControl: false,
+      zoomSnap: 0.5,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 90,
+      wheelDebounceTime: 30,
     })
+
+    L.control.zoom({ position: 'bottomleft' }).addTo(map)
 
     addBasemap(map, { simple: true })
 
@@ -376,7 +384,7 @@ export function MapPage() {
             const geojson = JSON.parse(assignment.route_geojson)
             if (geojson.type === 'LineString' && geojson.coordinates.length >= 2) {
               const latlngs = geojson.coordinates.map((c: number[]) => [c[1], c[0]] as [number, number])
-              const polyline = L.polyline(latlngs, { color: '#0e7490', weight: 4, opacity: 0.8, dashArray: '8, 4' }).addTo(mapRef.current!)
+              const polyline = L.polyline(latlngs, { color: '#0b8f86', weight: 5, opacity: 0.9 }).addTo(mapRef.current!)
               setRoutePolyline(polyline)
             }
           }
@@ -476,8 +484,7 @@ export function MapPage() {
     void loadIncidents()
   }
 
-  function handleCityChange(event: ChangeEvent<HTMLSelectElement>) {
-    const nextCity = event.target.value
+  function handleCityChange(nextCity: string) {
     if (nextCity === city) return
     setCity(nextCity)
     setLoading(true)
@@ -513,12 +520,12 @@ export function MapPage() {
   async function submitIncident(event: FormEvent) {
     event.preventDefault()
     if (!session || !draft) {
-      setFormError('Klik peta terlebih dahulu untuk memilih titik insiden.')
+      setFormError('Pilih lokasi kejadian dengan mengklik peta.')
       return
     }
     const title = form.title.trim()
     if (!title) {
-      setFormError('Judul insiden wajib diisi.')
+      setFormError('Isi judul laporan.')
       return
     }
 
@@ -547,7 +554,7 @@ export function MapPage() {
         handleUnauthorized()
         return
       }
-      setFormError(errorText(err, 'Gagal membuat insiden. Coba lagi.'))
+      setFormError(errorText(err, 'Laporan belum tersimpan. Coba lagi.'))
     } finally {
       setSubmitting(false)
     }
@@ -569,7 +576,7 @@ export function MapPage() {
         handleUnauthorized()
         return
       }
-      setNearestError(errorText(err, 'Gagal mencari kendaraan terdekat.'))
+      setNearestError(errorText(err, 'Pencarian unit gagal. Coba lagi.'))
     } finally {
       if (requestID === nearestRequestIDRef.current) setNearestLoading(false)
     }
@@ -586,7 +593,7 @@ export function MapPage() {
         if (routePolyline) {
           mapRef.current?.removeLayer(routePolyline)
         }
-        const polyline = L.polyline(latlngs, { color: '#0e7490', weight: 4, opacity: 0.8, dashArray: '8, 4' }).addTo(mapRef.current!)
+        const polyline = L.polyline(latlngs, { color: '#0b8f86', weight: 5, opacity: 0.9 }).addTo(mapRef.current!)
         setRoutePolyline(polyline)
       }
       // Refresh incidents and vehicles
@@ -602,7 +609,7 @@ export function MapPage() {
         handleUnauthorized()
         return
       }
-      setNearestError(errorText(err, 'Gagal assign kendaraan.'))
+      setNearestError(errorText(err, 'Unit belum bisa ditugaskan. Coba lagi.'))
     }
   }
 
@@ -623,7 +630,7 @@ export function MapPage() {
         handleUnauthorized()
         return
       }
-      setCancelError(errorText(err, 'Gagal membatalkan insiden.'))
+      setCancelError(errorText(err, 'Laporan belum bisa dibatalkan. Coba lagi.'))
     } finally {
       setCancelling(false)
     }
@@ -637,132 +644,144 @@ export function MapPage() {
     { ambulance: 0, fire: 0, police: 0 },
   )
 
+  const statusCounts = vehicles.reduce(
+    (acc, vehicle) => {
+      if (vehicle.status === 'available') acc.available += 1
+      else if (vehicle.status === 'offline') acc.offline += 1
+      else acc.busy += 1
+      return acc
+    },
+    { available: 0, busy: 0, offline: 0 },
+  )
+
   const openIncidents = incidents.filter((incident) => incident.status === 'open')
   const connectionError = error || incidentError
 
   return (
     <div className="map-shell">
-      <header className="topbar">
-        <div className="topbar-brand">
-          <span className="brand-mark brand-mark--small" aria-hidden="true">
-            <span />
-            <span />
-          </span>
-          <div>
-            <p className="brand-name">Dispatch</p>
-            <p className="topbar-sub">Peta operasi · Indonesia</p>
-          </div>
-        </div>
-
-        <div className="topbar-right">
-          <span className={`connection ${connectionError ? 'connection--off' : ''}`}>
-            <span className="connection-dot" aria-hidden="true" />
-            {connectionError ? 'Gagal memuat' : 'Terhubung ke API'}
-          </span>
-          {session && session.user.role !== 'dispatcher' ? (
-            <Link className="button button-ghost" to={homeForRole(session.user.role)}>
-              ← {session.user.role === 'admin' ? 'Panel Admin' : 'Layar Driver'}
-            </Link>
-          ) : null}
-          {session ? (
-            <div className="user-chip">
-              <span className="avatar" aria-hidden="true">
-                {session.user.name.charAt(0).toUpperCase()}
-              </span>
-              <div className="user-chip-text">
-                <span className="user-chip-name">{session.user.name}</span>
-                <span className="user-chip-role">
-                  {session.user.role}
-                  {session.user.operating_city ? ` · ${session.user.operating_city}` : ''}
-                </span>
-              </div>
-            </div>
-          ) : null}
-          <ThemeToggle />
-          <button className="button button-ghost" type="button" onClick={handleLogout}>
-            Keluar
-          </button>
-        </div>
-      </header>
+      <AppHeader subtitle="Peta operasi" session={session} onLogout={handleLogout}>
+        <span className={`connection ${connectionError ? 'connection--off' : ''}`}>
+          <span className="connection-dot" aria-hidden="true" />
+          {connectionError ? 'Koneksi bermasalah' : 'Tersambung'}
+        </span>
+        {session && session.user.role !== 'dispatcher' ? (
+          <Link className="button button-ghost" to={homeForRole(session.user.role)}>
+            <IconBack />
+            {session.user.role === 'admin' ? 'Panel admin' : 'Layar driver'}
+          </Link>
+        ) : null}
+      </AppHeader>
 
       <main className="map-main">
-        <aside className="fleet-panel" aria-label="Ringkasan armada">
-          <p className="eyebrow">Armada nasional</p>
+        <aside className="fleet-panel" aria-label="Ringkasan unit">
+          <CitySelect
+            value={city}
+            options={CITY_OPTIONS.map((option) => option.name)}
+            allLabel="Semua kota"
+            onChange={(next) => handleCityChange(next)}
+          />
 
-          <label className="city-filter">
-            <span>Kota operasi</span>
-            <select value={city} onChange={handleCityChange} aria-label="Filter kota operasi">
-              <option value="">Semua Kota</option>
-              {CITY_OPTIONS.map((option) => (
-                <option key={option.name} value={option.name}>
-                  {option.name}
-                </option>
+          <div className="fleet-summary">
+            <p className="fleet-total">
+              <strong>{vehicles.length}</strong>
+              <span>unit terpantau</span>
+            </p>
+            <div className="fleet-bar" aria-hidden="true">
+              {(['ambulance', 'fire', 'police'] as const).map((type) => (
+                <span
+                  key={type}
+                  className={`legend-dot--${type}`}
+                  style={{ width: `${vehicles.length ? (counts[type] / vehicles.length) * 100 : 0}%` }}
+                />
               ))}
-            </select>
-          </label>
-
-          <p className="fleet-total">
-            <strong>{vehicles.length}</strong> kendaraan
-          </p>
-          <p className="fleet-scope">{city ? `Kota ${city}` : 'Nasional · semua kota'}</p>
-          <p className="muted fleet-desc">
-            Posisi terakhir dari tabel <code>vehicles</code>. Klik peta untuk membuat insiden, atau
-            klik marker untuk detail unit.
-          </p>
-
-          <div className="fleet-bar" aria-hidden="true">
-            {(['ambulance', 'fire', 'police'] as const).map((type) => (
-              <span
-                key={type}
-                className={`legend-dot--${type}`}
-                style={{ width: `${vehicles.length ? (counts[type] / vehicles.length) * 100 : 0}%` }}
-              />
-            ))}
+            </div>
           </div>
 
-          <ul className="fleet-legend">
+          <ul className="fleet-types" aria-label="Unit menurut jenis">
             <li>
               <span className="legend-dot legend-dot--ambulance" aria-hidden="true" />
-              Ambulans <strong>{counts.ambulance}</strong>
+              <strong>{counts.ambulance}</strong>
+              <span>Ambulans</span>
             </li>
             <li>
               <span className="legend-dot legend-dot--fire" aria-hidden="true" />
-              Damkar <strong>{counts.fire}</strong>
+              <strong>{counts.fire}</strong>
+              <span>Damkar</span>
             </li>
             <li>
               <span className="legend-dot legend-dot--police" aria-hidden="true" />
-              Patroli <strong>{counts.police}</strong>
+              <strong>{counts.police}</strong>
+              <span>Patroli</span>
             </li>
           </ul>
 
-          <div className="fleet-meta">
-            <span>Snapshot REST</span>
-            <span>{lastLoaded ? lastLoaded.toLocaleTimeString('id-ID') : '—'}</span>
-          </div>
+          <ul className="fleet-status" aria-label="Unit menurut kesiapan">
+            <li>
+              <span className="status-dot status-dot--available" aria-hidden="true" />
+              {statusCounts.available} siap
+            </li>
+            <li>
+              <span className="status-dot status-dot--busy" aria-hidden="true" />
+              {statusCounts.busy} bertugas
+            </li>
+            <li>
+              <span className="status-dot status-dot--offline" aria-hidden="true" />
+              {statusCounts.offline} offline
+            </li>
+          </ul>
 
-          <button className="button button-subtle" type="button" onClick={reload} disabled={loading}>
-            {loading ? 'Memuat…' : 'Muat ulang'}
-          </button>
+          <div className="fleet-foot">
+            <span className="fleet-meta">
+              {lastLoaded
+                ? `Data pukul ${lastLoaded.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+                : 'Belum dimuat'}
+            </span>
+            <button className="button button-ghost button-sm" type="button" onClick={reload} disabled={loading}>
+              {loading ? 'Memuat…' : 'Segarkan'}
+            </button>
+          </div>
         </aside>
 
         <section className="map-stage">
-          <div ref={mapContainerRef} className="map-canvas" aria-label="Peta kendaraan seluruh Indonesia" />
+          <div className="map-view">
+            <div ref={mapContainerRef} className="map-canvas" aria-label="Peta posisi unit dan laporan" />
+
+            <p className="map-hint">Klik titik di peta untuk membuat laporan</p>
+
+            {loading && vehicles.length === 0 ? (
+              <div className="map-overlay">
+                <span className="spinner" aria-hidden="true" />
+                Memuat posisi unit…
+              </div>
+            ) : null}
+
+            {error ? (
+              <div className="map-overlay map-overlay--error" role="alert">
+                <p>{error}</p>
+                <button className="button button-primary" type="button" onClick={reload}>
+                  Coba lagi
+                </button>
+              </div>
+            ) : null}
+          </div>
 
           <aside
             className={`incident-panel ${sheetCollapsed ? 'incident-panel--collapsed' : ''}`}
-            aria-label="Insiden"
+            aria-label="Laporan kejadian"
           >
             <button
               className="sheet-handle"
               type="button"
-              aria-label={sheetCollapsed ? 'Buka panel insiden' : 'Tutup panel insiden'}
+              aria-label={sheetCollapsed ? 'Buka panel laporan' : 'Tutup panel laporan'}
               aria-expanded={!sheetCollapsed}
               onClick={() => setSheetCollapsed((value) => !value)}
             />
             <div className="incident-panel-head">
               <div>
-                <p className="eyebrow">Insiden</p>
-                <h2>{panelMode === 'create' ? 'Insiden baru' : panelMode === 'detail' ? 'Detail insiden' : 'Daftar insiden'}</h2>
+                <h2>{panelMode === 'create' ? 'Laporan baru' : panelMode === 'detail' ? 'Detail laporan' : 'Laporan masuk'}</h2>
+                {panelMode === 'list' ? (
+                  <p className="panel-sub">{openIncidents.length === 0 ? 'Antrean kosong' : `${openIncidents.length} belum ditangani`}</p>
+                ) : null}
               </div>
               <button
                 className="button button-ghost incident-refresh"
@@ -770,7 +789,7 @@ export function MapPage() {
                 onClick={reloadIncidents}
                 disabled={incidentLoading}
               >
-                {incidentLoading ? 'Memuat…' : 'Muat ulang'}
+                {incidentLoading ? 'Memuat…' : 'Segarkan'}
               </button>
             </div>
 
@@ -782,24 +801,33 @@ export function MapPage() {
 
             {panelMode === 'list' ? (
               <div className="incident-panel-body">
-                <p className="panel-hint">Klik peta untuk membuat insiden baru.</p>
-                {incidentLoading ? <p className="muted">Memuat insiden…</p> : null}
+                {incidentLoading ? <p className="muted">Memuat laporan…</p> : null}
                 {!incidentLoading && openIncidents.length === 0 ? (
-                  <p className="muted">Belum ada insiden open.</p>
+                  <div className="panel-empty">
+                    <p>Tidak ada laporan yang menunggu.</p>
+                    <p className="muted">Laporan baru dibuat dengan mengklik lokasi di peta.</p>
+                  </div>
                 ) : null}
                 <ul className="incident-list">
                   {openIncidents.map((incident) => (
                     <li key={incident.id}>
                       <button
-                        className="incident-list-item"
+                        className={`incident-list-item incident-list-item--${incident.priority}`}
                         type="button"
                         onClick={() => openIncidentDetail(incident)}
                       >
-                        <span className="incident-list-title">{incident.title}</span>
+                        <span className={`type-chip type-chip--${incident.type}`} aria-hidden="true">
+                          {TYPE_META[incident.type]?.short ?? '?'}
+                        </span>
+                        <span className="incident-list-top">
+                          <span className="incident-list-title">{incident.title}</span>
+                          <span className={`priority-tag priority-tag--${incident.priority}`}>
+                            {PRIORITY_LABEL[incident.priority] ?? incident.priority}
+                          </span>
+                        </span>
                         <span className="incident-list-meta">
-                          {TYPE_META[incident.type]?.label ?? incident.type} ·{' '}
-                          {PRIORITY_LABEL[incident.priority] ?? incident.priority} ·{' '}
-                          {incident.operating_city ?? 'Tanpa kota'}
+                          {TYPE_META[incident.type]?.label ?? incident.type} di{' '}
+                          {incident.operating_city ?? 'kota belum diatur'}
                         </span>
                         <span className="incident-list-time">{formatIncidentTime(incident.created_at)}</span>
                       </button>
@@ -820,59 +848,69 @@ export function MapPage() {
                     setFormError(null)
                   }}
                 >
-                  ← Kembali ke daftar
+                  <IconBack size={16} />
+                  Kembali ke daftar
                 </button>
                 <p className="incident-coords">
-                  Titik terpilih:{' '}
-                  {draft ? `${draft.lat.toFixed(5)}, ${draft.lng.toFixed(5)}` : 'klik peta'}
+                  <span>Lokasi</span>
+                  {draft ? `${draft.lat.toFixed(5)}, ${draft.lng.toFixed(5)}` : 'klik peta untuk memilih'}
                 </p>
                 <form className="incident-form" onSubmit={submitIncident}>
                   <label className="field">
-                    Judul
+                    Judul laporan
                     <input
                       value={form.title}
                       onChange={(event) => handleFormChange('title', event.target.value)}
-                      placeholder="Contoh: Kebakaran gudang"
+                      placeholder="Mis. kebakaran gudang di Jl. Industri"
                       autoFocus
                     />
                   </label>
                   <label className="field">
-                    Deskripsi (opsional)
+                    Keterangan (boleh dikosongkan)
                     <textarea
                       value={form.description}
                       onChange={(event) => handleFormChange('description', event.target.value)}
                       rows={3}
-                      placeholder="Informasi tambahan untuk dispatcher"
+                      placeholder="Jumlah korban, akses jalan, nomor pelapor"
                     />
                   </label>
-                  <div className="form-grid">
-                    <label className="field">
-                      Jenis
-                      <select
-                        value={form.type}
-                        onChange={(event) => handleFormChange('type', event.target.value)}
-                      >
-                        {INCIDENT_TYPES.map((item) => (
-                          <option key={item} value={item}>
+                  <fieldset className="segmented">
+                    <legend>Jenis unit yang dibutuhkan</legend>
+                    <div className="segmented-row">
+                      {INCIDENT_TYPES.map((item) => (
+                        <label key={item}>
+                          <input
+                            type="radio"
+                            name="incident-type"
+                            value={item}
+                            checked={form.type === item}
+                            onChange={() => handleFormChange('type', item)}
+                          />
+                          <span>
+                            <i style={{ ['--c' as string]: `var(--type-${item})` }} />
                             {TYPE_META[item].label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="field">
-                      Prioritas
-                      <select
-                        value={form.priority}
-                        onChange={(event) => handleFormChange('priority', event.target.value)}
-                      >
-                        {PRIORITIES.map((item) => (
-                          <option key={item} value={item}>
-                            {PRIORITY_LABEL[item]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <fieldset className="segmented">
+                    <legend>Prioritas</legend>
+                    <div className="segmented-row">
+                      {PRIORITIES.map((item) => (
+                        <label key={item}>
+                          <input
+                            type="radio"
+                            name="incident-priority"
+                            value={item}
+                            checked={form.priority === item}
+                            onChange={() => handleFormChange('priority', item)}
+                          />
+                          <span>{PRIORITY_LABEL[item]}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
                   {formError ? (
                     <p className="form-error" role="alert">
                       {formError}
@@ -880,7 +918,7 @@ export function MapPage() {
                   ) : null}
                   <div className="form-actions">
                     <button className="button button-primary" type="submit" disabled={submitting}>
-                      {submitting ? 'Menyimpan…' : 'Simpan Insiden'}
+                      {submitting ? 'Menyimpan…' : 'Simpan laporan'}
                     </button>
                   </div>
                 </form>
@@ -900,25 +938,32 @@ export function MapPage() {
                     setCancelError(null)
                   }}
                 >
-                  ← Kembali ke daftar
+                  <IconBack size={16} />
+                  Kembali ke daftar
                 </button>
                 <h3 className="incident-detail-title">{selectedIncident.title}</h3>
                 <p className={`incident-status incident-status--${selectedIncident.status}`}>
                   {INCIDENT_STATUS_LABEL[selectedIncident.status] ?? selectedIncident.status}
                 </p>
                 <p className="incident-detail-meta">
-                  {TYPE_META[selectedIncident.type]?.label ?? selectedIncident.type} ·{' '}
-                  {PRIORITY_LABEL[selectedIncident.priority] ?? selectedIncident.priority} ·{' '}
-                  {selectedIncident.operating_city ?? 'Tanpa kota'}
+                  <span className={`type-chip type-chip--${selectedIncident.type}`} aria-hidden="true">
+                    {TYPE_META[selectedIncident.type]?.short ?? '?'}
+                  </span>
+                  {TYPE_META[selectedIncident.type]?.label ?? selectedIncident.type}
+                  <span className={`priority-tag priority-tag--${selectedIncident.priority}`}>
+                    {PRIORITY_LABEL[selectedIncident.priority] ?? selectedIncident.priority}
+                  </span>
+                  {selectedIncident.operating_city ?? 'Kota belum diatur'}
                 </p>
                 <p className="incident-description">
-                  {selectedIncident.description || 'Tanpa deskripsi.'}
+                  {selectedIncident.description || 'Tidak ada keterangan tambahan.'}
                 </p>
                 <p className="incident-coords">
-                  Koordinat: {selectedIncident.lat.toFixed(5)}, {selectedIncident.lng.toFixed(5)}
+                  <span>Lokasi</span>
+                  {selectedIncident.lat.toFixed(5)}, {selectedIncident.lng.toFixed(5)}
                 </p>
                 <p className="incident-created">
-                  Dibuat {formatIncidentTime(selectedIncident.created_at)}
+                  Dilaporkan {formatIncidentTime(selectedIncident.created_at)}
                 </p>
 
                 {selectedIncident.status === 'open' ? (
@@ -929,7 +974,7 @@ export function MapPage() {
                       onClick={handleNearest}
                       disabled={nearestLoading}
                     >
-                      {nearestLoading ? 'Mencari…' : 'Cari Kendaraan Terdekat'}
+                      {nearestLoading ? 'Mencari unit…' : 'Cari unit terdekat'}
                     </button>
                     <button
                       className="button button-danger"
@@ -937,7 +982,7 @@ export function MapPage() {
                       onClick={handleCancel}
                       disabled={cancelling}
                     >
-                      {cancelling ? 'Membatalkan…' : 'Batalkan Insiden'}
+                      {cancelling ? 'Membatalkan…' : 'Batalkan laporan'}
                     </button>
                   </div>
                 ) : null}
@@ -957,8 +1002,8 @@ export function MapPage() {
                   nearest.candidates.length > 0 ? (
                     <div className="nearest-results">
                       <p className="nearest-summary">
-                        {nearest.candidates.length} kandidat · radius{' '}
-                        {Math.round(nearest.radius_m / 1000)} km
+                        {nearest.candidates.length} unit dalam radius{' '}
+                        {Math.round(nearest.radius_m / 1000)} km, diurutkan dari yang tercepat
                       </p>
                       <ol className="nearest-list">
                         {nearest.candidates.map((candidate) => (
@@ -968,14 +1013,17 @@ export function MapPage() {
                               <span className="vehicle-popup-plate">{candidate.plate}</span>
                             </div>
                             <p className="nearest-candidate-meta">
-                              {TYPE_META[candidate.type]?.label ?? candidate.type} ·{' '}
-                              {candidate.driver_name ?? 'Tanpa driver'}
+                              {TYPE_META[candidate.type]?.label ?? candidate.type}, driver{' '}
+                              {candidate.driver_name ?? 'belum ditentukan'}
                             </p>
-                            <p className="nearest-candidate-stats">
-                              <span>{formatDistance(candidate.distance_m)}</span>
-                              <span>ETA {candidate.eta_minutes} menit</span>
+                            <p className="nearest-eta">
+                              <strong>
+                                {candidate.eta_minutes}
+                                <small>menit</small>
+                              </strong>
+                              <span>{formatDistance(candidate.distance_m)} lewat jalan</span>
                               {candidate.type_match ? (
-                                <span className="badge badge-match">Sesuai Tipe</span>
+                                <span className="badge badge-match">Jenis sesuai</span>
                               ) : null}
                             </p>
                             <button
@@ -984,7 +1032,7 @@ export function MapPage() {
                               onClick={() => handleAssign(nearest.incident_id, candidate.vehicle_id)}
                               disabled={nearestLoading}
                             >
-                              Assign
+                              Tugaskan unit ini
                             </button>
                           </li>
                         ))}
@@ -998,21 +1046,6 @@ export function MapPage() {
             ) : null}
           </aside>
 
-          {loading && vehicles.length === 0 ? (
-            <div className="map-overlay">
-              <span className="spinner" aria-hidden="true" />
-              Memuat posisi kendaraan…
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="map-overlay map-overlay--error" role="alert">
-              <p>{error}</p>
-              <button className="button button-primary" type="button" onClick={reload}>
-                Coba lagi
-              </button>
-            </div>
-          ) : null}
         </section>
       </main>
     </div>

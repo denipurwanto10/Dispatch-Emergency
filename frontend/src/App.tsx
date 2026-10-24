@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 
 import { homeForRole, readSession } from './auth/session'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { useTheme } from './context/ThemeContext'
 import { LoginPage } from './pages/LoginPage'
 import { MapPage } from './pages/MapPage'
 import { DriverPage } from './pages/DriverPage'
@@ -13,14 +14,15 @@ function IndexRedirect() {
   return <Navigate to={session ? homeForRole(session.user.role) : '/login'} replace />
 }
 
-/** Dispatcher memakai tema gelap; driver & admin memakai tema terang. */
+/** Dispatcher memakai tema gelap, driver dan admin tema terang, kecuali pengguna memilih sendiri. */
 function ThemeSync() {
   const location = useLocation()
+  const { applyDefault } = useTheme()
 
   useEffect(() => {
     const role = readSession()?.user.role
-    document.documentElement.dataset.theme = role === 'dispatcher' ? 'dark' : 'light'
-  }, [location.pathname])
+    applyDefault(role === 'dispatcher' ? 'dark' : 'light')
+  }, [location.pathname, applyDefault])
 
   return null
 }
@@ -29,7 +31,16 @@ export default function App() {
   return (
     <BrowserRouter>
       <ThemeSync />
-      <Routes>
+      <AnimatedRoutes />
+    </BrowserRouter>
+  )
+}
+
+function AnimatedRoutes() {
+  const location = useLocation()
+  return (
+    <div className="page-transition" key={location.pathname}>
+      <Routes location={location}>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/map" element={<MapPage />} />
@@ -39,6 +50,6 @@ export default function App() {
         <Route path="/" element={<IndexRedirect />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </div>
   )
 }

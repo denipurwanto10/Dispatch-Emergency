@@ -15,7 +15,7 @@ import { clearSession, readSession } from '../auth/session'
 import { addBasemap } from '../lib/basemap'
 import { syncVehicleMarkers } from '../lib/vehicleMarker'
 import { findCity } from '../cities'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { AppHeader } from '../components/AppHeader'
 import type {
   AssignmentHistoryItem,
   AssignmentStatusEvent,
@@ -29,7 +29,7 @@ import type {
 const STATUS_LABEL: Record<string, string> = {
   assigned: 'Ditugaskan',
   en_route: 'Menuju lokasi',
-  arrived: 'Di lokasi (ON SCENE)',
+  arrived: 'Sudah di lokasi',
   completed: 'Selesai',
   cancelled: 'Dibatalkan',
 }
@@ -41,10 +41,10 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 const PRIORITY_LABEL: Record<string, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-  critical: 'Critical',
+  low: 'Rendah',
+  medium: 'Sedang',
+  high: 'Tinggi',
+  critical: 'Kritis',
 }
 
 const VEHICLE_STATUS_LABEL: Record<string, string> = {
@@ -73,7 +73,7 @@ function formatDateTime(value: string | null): string {
 }
 
 function formatResponseTime(seconds: number | null): string {
-  if (seconds == null) return 'Belum tiba'
+  if (seconds == null) return 'Waktu tiba belum tercatat'
   if (seconds < 60) return `${seconds} detik`
   const minutes = Math.floor(seconds / 60)
   const rest = seconds % 60
@@ -130,7 +130,7 @@ export function DriverPage() {
         handleUnauthorized()
         return
       }
-      setError(err instanceof ApiError ? err.message : 'Gagal memuat tugas aktif.')
+      setError(err instanceof ApiError ? err.message : 'Tugas aktif gagal dimuat. Tarik ulang halaman ini.')
     }
   }, [session, handleUnauthorized])
 
@@ -158,7 +158,7 @@ export function DriverPage() {
         handleUnauthorized()
         return
       }
-      setError(err instanceof ApiError ? err.message : 'Gagal memuat riwayat tugas.')
+      setError(err instanceof ApiError ? err.message : 'Riwayat tugas gagal dimuat.')
     }
   }, [session, handleUnauthorized])
 
@@ -298,6 +298,9 @@ export function DriverPage() {
       center: city?.center ?? [-2.5, 118.0],
       zoom: city?.zoom ?? 5,
       zoomControl: true,
+      zoomSnap: 0.5,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 90,
     })
     addBasemap(map, { simple: true })
     mapRef.current = map
@@ -320,9 +323,9 @@ export function DriverPage() {
     if (!map || !myVehicle) return
     const store = vehicleMarkersRef.current
     syncVehicleMarkers(map, store, [myVehicle], (vehicle) =>
-      `<strong>${vehicle.name}</strong><br/>${vehicle.plate} · ${
+      `<strong>${vehicle.name}</strong><br/>${vehicle.plate}, ${(
         VEHICLE_STATUS_LABEL[vehicle.status] ?? vehicle.status
-      }`,
+      ).toLowerCase()}`,
     )
     vehicleMarkerRef.current = store.get(myVehicle.id) ?? null
   }, [myVehicle, mapNode])
@@ -361,10 +364,9 @@ export function DriverPage() {
             (coordinate) => [coordinate[1], coordinate[0]] as [number, number],
           )
           routeLineRef.current = L.polyline(latlngs, {
-            color: '#0e7490',
-            weight: 4,
-            opacity: 0.85,
-            dashArray: '8, 4',
+            color: '#0b8f86',
+            weight: 5,
+            opacity: 0.9,
           }).addTo(map)
         }
       } catch (err) {
@@ -400,7 +402,7 @@ export function DriverPage() {
         handleUnauthorized()
         return
       }
-      setError(err instanceof ApiError ? err.message : 'Gagal memulai tugas.')
+      setError(err instanceof ApiError ? err.message : 'Perjalanan belum bisa dimulai. Coba lagi.')
     } finally {
       setStarting(false)
     }
@@ -421,7 +423,7 @@ export function DriverPage() {
         handleUnauthorized()
         return
       }
-      setError(err instanceof ApiError ? err.message : 'Gagal menyelesaikan tugas.')
+      setError(err instanceof ApiError ? err.message : 'Tugas belum bisa ditutup. Coba lagi.')
     } finally {
       setCompleting(false)
     }
@@ -444,36 +446,18 @@ export function DriverPage() {
           ? `${Math.ceil(assignment.assignment.eta_seconds / 60)} menit`
           : '—'
 
+  const distanceLabel = assignment?.assignment.distance_m
+    ? `${(assignment.assignment.distance_m / 1000).toFixed(1)} km`
+    : '—'
+
   return (
     <div className="driver-shell">
-      <header className="driver-header">
-        <div className="driver-brand">
-          <span className="brand-mark brand-mark--small" aria-hidden="true">
-            <span />
-            <span />
-          </span>
-          <div>
-            <p className="brand-name">Dispatch</p>
-            <p className="driver-sub">Layar Driver · MVP</p>
-          </div>
-        </div>
-        <div className="driver-user">
-          <span className={`connection ${wsConnected ? '' : 'connection--off'}`}>
-            <span className="connection-dot" aria-hidden="true" />
-            {wsConnected ? 'Live WebSocket' : 'Menyambung ulang…'}
-          </span>
-          <span className="driver-user-name">
-            <span className="avatar" aria-hidden="true">
-              {session.user.name.charAt(0).toUpperCase()}
-            </span>
-            <span>{session.user.name}</span>
-          </span>
-          <ThemeToggle />
-          <button className="button button-ghost" type="button" onClick={handleLogout}>
-            Keluar
-          </button>
-        </div>
-      </header>
+      <AppHeader subtitle="Layar driver" session={session} onLogout={handleLogout}>
+        <span className={`connection ${wsConnected ? '' : 'connection--off'}`}>
+          <span className="connection-dot" aria-hidden="true" />
+          {wsConnected ? 'Tersambung' : 'Menyambung ulang…'}
+        </span>
+      </AppHeader>
 
       <main className="driver-main">
         {error ? (
@@ -485,142 +469,159 @@ export function DriverPage() {
         {loading ? (
           <div className="driver-loading">
             <span className="spinner" aria-hidden="true" />
-            Memuat tugas…
+            Memeriksa tugas…
           </div>
         ) : assignment ? (
           <div className="driver-content">
             <section className="driver-task-card" aria-label="Tugas aktif">
-              <div className="driver-task-header">
-                <h2>{incident?.title ?? 'Tugas'}</h2>
+              <header className="driver-task-header">
+                <div>
+                  <p className="driver-kicker">Tugas Anda saat ini</p>
+                  <h1>{incident?.title ?? 'Tugas tanpa judul'}</h1>
+                </div>
                 <span className={`driver-status driver-status--${assignment.assignment.status}`}>
                   {STATUS_LABEL[assignment.assignment.status] ?? assignment.assignment.status}
                 </span>
-              </div>
+              </header>
 
               <div className="driver-task-grid">
                 <div ref={setMapNode} className="driver-map" aria-label="Peta tugas aktif" />
 
-                <dl className="driver-task-details">
-                  <div>
-                    <dt>Jenis</dt>
-                    <dd>{TYPE_LABEL[incident?.type ?? ''] ?? incident?.type}</dd>
+                <div className="driver-task-side">
+                  <div className={`driver-eta ${assignment.assignment.status === 'arrived' ? 'driver-eta--text' : ''}`}>
+                    <span className="driver-eta-label">
+                      {assignment.assignment.status === 'arrived' ? 'Posisi' : 'Perkiraan tiba'}
+                    </span>
+                    <strong>{etaLabel}</strong>
+                    <span className="driver-eta-sub">Jarak rute {distanceLabel}</span>
                   </div>
-                  <div>
-                    <dt>Prioritas</dt>
-                    <dd>{PRIORITY_LABEL[incident?.priority ?? ''] ?? incident?.priority}</dd>
-                  </div>
-                  <div>
-                    <dt>Lokasi</dt>
-                    <dd>
-                      {incident ? `${incident.lat.toFixed(5)}, ${incident.lng.toFixed(5)}` : '—'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Kota</dt>
-                    <dd>{incident?.operating_city ?? 'Tanpa kota'}</dd>
-                  </div>
-                  <div>
-                    <dt>Kendaraan</dt>
-                    <dd>
-                      {assignment.vehicle?.name ?? '—'} ({assignment.vehicle?.plate ?? '—'})
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Jarak</dt>
-                    <dd>
-                      {assignment.assignment.distance_m
-                        ? `${(assignment.assignment.distance_m / 1000).toFixed(1)} km`
-                        : '—'}
-                    </dd>
-                  </div>
-                  <div className="driver-eta">
-                    <dt>ETA</dt>
-                    <dd>{etaLabel}</dd>
-                  </div>
-                </dl>
-              </div>
 
-              {incident?.description ? (
-                <div className="driver-task-desc">
-                  <dt>Deskripsi</dt>
-                  <dd>{incident.description}</dd>
+                  <dl className="driver-task-details">
+                    <div>
+                      <dt>Jenis kejadian</dt>
+                      <dd>{TYPE_LABEL[incident?.type ?? ''] ?? incident?.type}</dd>
+                    </div>
+                    <div>
+                      <dt>Prioritas</dt>
+                      <dd>
+                        <span className={`priority-tag priority-tag--${incident?.priority ?? 'low'}`}>
+                          {PRIORITY_LABEL[incident?.priority ?? ''] ?? incident?.priority}
+                        </span>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Kota</dt>
+                      <dd>{incident?.operating_city ?? 'Belum diatur'}</dd>
+                    </div>
+                    <div>
+                      <dt>Kendaraan</dt>
+                      <dd>{assignment.vehicle?.name ?? '—'}</dd>
+                    </div>
+                    <div className="driver-detail-wide">
+                      <dt>Nomor polisi</dt>
+                      <dd className="mono">{assignment.vehicle?.plate ?? '—'}</dd>
+                    </div>
+                    <div className="driver-detail-wide">
+                      <dt>Titik kejadian</dt>
+                      <dd className="mono">
+                        {incident ? `${incident.lat.toFixed(5)}, ${incident.lng.toFixed(5)}` : '—'}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {incident?.description ? (
+                    <div className="driver-task-desc">
+                      <p className="driver-desc-label">Keterangan dari dispatcher</p>
+                      <p>{incident.description}</p>
+                    </div>
+                  ) : null}
+
+                  <div className="driver-task-actions">
+                    {assignment.assignment.status === 'assigned' ? (
+                      <button
+                        className="button button-primary"
+                        type="button"
+                        onClick={handleStart}
+                        disabled={starting}
+                      >
+                        {starting ? 'Memulai…' : 'Berangkat sekarang'}
+                      </button>
+                    ) : null}
+                    {assignment.assignment.status === 'arrived' ? (
+                      <button
+                        className="button button-primary"
+                        type="button"
+                        onClick={handleComplete}
+                        disabled={completing}
+                      >
+                        {completing ? 'Menutup tugas…' : 'Tugas selesai'}
+                      </button>
+                    ) : null}
+                    {assignment.assignment.status === 'en_route' ? (
+                      <button className="button button-ghost" type="button" disabled>
+                        Dalam perjalanan ke lokasi
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
-              ) : null}
-
-              <div className="driver-task-actions">
-                {assignment.assignment.status === 'assigned' ? (
-                  <button
-                    className="button button-primary"
-                    type="button"
-                    onClick={handleStart}
-                    disabled={starting}
-                  >
-                    {starting ? 'Memulai…' : 'Mulai'}
-                  </button>
-                ) : null}
-                {assignment.assignment.status === 'arrived' ? (
-                  <button
-                    className="button button-primary"
-                    type="button"
-                    onClick={handleComplete}
-                    disabled={completing}
-                  >
-                    {completing ? 'Menyelesaikan…' : 'Selesai Ditangani'}
-                  </button>
-                ) : null}
-                {assignment.assignment.status === 'en_route' ? (
-                  <button className="button button-ghost" type="button" disabled>
-                    Sedang menuju lokasi…
-                  </button>
-                ) : null}
               </div>
             </section>
 
             <section className="driver-history" aria-label="Riwayat tugas">
               <div className="driver-history-head">
-                <h2>Riwayat Tugas</h2>
-                <span className="muted">Maksimal 20 tugas terakhir</span>
+                <h2>Riwayat tugas</h2>
+                <span className="muted">20 terakhir</span>
               </div>
               <HistoryList history={history} />
             </section>
           </div>
         ) : (
-          <div className="driver-content driver-content--empty">
+          <div className="driver-content">
             <section className="driver-empty" aria-label="Tidak ada tugas aktif">
-              <p>Tidak ada tugas aktif.</p>
-              <p className="muted">Menunggu assign dari dispatcher. Kartu tugas akan muncul otomatis lewat WebSocket.</p>
-              <div className="driver-vehicle-info">
-                <p className="eyebrow">Kendaraan kamu</p>
-                {myVehicle ? (
-                  <dl>
-                    <div>
-                      <dt>Nama</dt>
-                      <dd>{myVehicle.name}</dd>
-                    </div>
-                    <div>
-                      <dt>Tipe</dt>
-                      <dd>{TYPE_LABEL[myVehicle.type] ?? myVehicle.type}</dd>
-                    </div>
-                    <div>
-                      <dt>Status</dt>
-                      <dd>{VEHICLE_STATUS_LABEL[myVehicle.status] ?? myVehicle.status}</dd>
-                    </div>
-                    <div>
-                      <dt>Kota</dt>
-                      <dd>{myVehicle.operating_city ?? '—'}</dd>
-                    </div>
-                  </dl>
-                ) : (
-                  <p className="muted">Belum ada kendaraan yang terhubung ke akun driver ini.</p>
-                )}
+              <div className="driver-empty-main">
+                <span className="driver-status driver-status--standby">Siaga</span>
+                <h1>Belum ada tugas untuk Anda</h1>
+                <p className="muted">
+                  Tetap di dekat kendaraan. Saat dispatcher menugaskan unit Anda, rute dan lokasi kejadian langsung tampil di sini tanpa perlu menyegarkan halaman.
+                </p>
+
+                <div className="driver-vehicle-info">
+                  <p className="driver-desc-label">Kendaraan yang Anda bawa</p>
+                  {myVehicle ? (
+                    <dl>
+                      <div>
+                        <dt>Unit</dt>
+                        <dd>{myVehicle.name}</dd>
+                      </div>
+                      <div>
+                        <dt>Nomor polisi</dt>
+                        <dd className="mono">{myVehicle.plate}</dd>
+                      </div>
+                      <div>
+                        <dt>Jenis</dt>
+                        <dd>{TYPE_LABEL[myVehicle.type] ?? myVehicle.type}</dd>
+                      </div>
+                      <div>
+                        <dt>Kesiapan</dt>
+                        <dd>{VEHICLE_STATUS_LABEL[myVehicle.status] ?? myVehicle.status}</dd>
+                      </div>
+                      <div>
+                        <dt>Kota</dt>
+                        <dd>{myVehicle.operating_city ?? '—'}</dd>
+                      </div>
+                    </dl>
+                  ) : (
+                    <p className="muted">Akun ini belum dikaitkan dengan kendaraan. Minta admin menetapkan unit untuk Anda.</p>
+                  )}
+                </div>
               </div>
               <div ref={setMapNode} className="driver-map driver-map--empty" aria-label="Peta kendaraan" />
             </section>
 
             <section className="driver-history" aria-label="Riwayat tugas">
               <div className="driver-history-head">
-                <h2>Riwayat Tugas</h2>
-                <span className="muted">Maksimal 20 tugas terakhir</span>
+                <h2>Riwayat tugas</h2>
+                <span className="muted">20 terakhir</span>
               </div>
               <HistoryList history={history} />
             </section>
@@ -633,7 +634,7 @@ export function DriverPage() {
 
 function HistoryList({ history }: { history: AssignmentHistoryItem[] }) {
   if (history.length === 0) {
-    return <p className="driver-history-empty">Belum ada tugas yang selesai.</p>
+    return <p className="driver-history-empty">Belum ada tugas yang selesai. Setelah Anda menutup tugas, riwayatnya muncul di sini.</p>
   }
 
   return (
@@ -641,15 +642,23 @@ function HistoryList({ history }: { history: AssignmentHistoryItem[] }) {
       {history.map((item) => (
         <li key={item.id} className="driver-history-item">
           <div className="driver-history-main">
-            <strong>{item.incident_title}</strong>
+            <span className="driver-history-title">
+              <strong>{item.incident_title}</strong>
+              <span className={`priority-tag priority-tag--${item.incident_priority}`}>
+                {PRIORITY_LABEL[item.incident_priority] ?? item.incident_priority}
+              </span>
+            </span>
             <span className="muted">
-              {item.operating_city ?? 'Tanpa kota'} · {TYPE_LABEL[item.incident_type] ?? item.incident_type} ·{' '}
-              {PRIORITY_LABEL[item.incident_priority] ?? item.incident_priority}
+              {TYPE_LABEL[item.incident_type] ?? item.incident_type} di {item.operating_city ?? 'kota belum diatur'}
             </span>
           </div>
           <div className="driver-history-side">
             <span>{formatDateTime(item.completed_at)}</span>
-            <span className="driver-response">Response {formatResponseTime(item.response_seconds)}</span>
+            <span className="driver-response">
+              {item.response_seconds == null
+                ? formatResponseTime(null)
+                : `Tiba dalam ${formatResponseTime(item.response_seconds)}`}
+            </span>
           </div>
         </li>
       ))}

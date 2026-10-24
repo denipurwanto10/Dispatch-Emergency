@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { clearSession, readSession } from '../auth/session'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { AppHeader } from '../components/AppHeader'
 
 interface RoleHomePageProps {
   role: 'driver' | 'admin'
@@ -40,39 +40,11 @@ export function RoleHomePage({ role }: RoleHomePageProps) {
 
   return (
     <div className="home-shell">
-      <header className="topbar topbar--light">
-        <div className="topbar-brand">
-          <span className="brand-mark brand-mark--small" aria-hidden="true">
-            <span />
-            <span />
-          </span>
-          <div>
-            <p className="brand-name">Dispatch</p>
-            <p className="topbar-sub">Fase 1 · Foundation</p>
-          </div>
-        </div>
-        <div className="topbar-right">
-          {session ? (
-            <div className="user-chip">
-              <span className="avatar" aria-hidden="true">
-                {session.user.name.charAt(0).toUpperCase()}
-              </span>
-              <div className="user-chip-text">
-                <span className="user-chip-name">{session.user.name}</span>
-                <span className="user-chip-role">{session.user.role}</span>
-              </div>
-            </div>
-          ) : null}
-          <ThemeToggle />
-          <button className="button button-ghost" type="button" onClick={handleLogout}>
-            Keluar
-          </button>
-        </div>
-      </header>
+      <AppHeader subtitle="Fase 1 · Foundation" session={session} onLogout={handleLogout} />
 
       <main className="home-main">
         <section className="placeholder-card">
-          <p className="eyebrow">Halaman placeholder</p>
+          <p className="driver-kicker">Halaman placeholder</p>
           <h1>{copy.title}</h1>
           <p className="muted">{copy.description}</p>
 
