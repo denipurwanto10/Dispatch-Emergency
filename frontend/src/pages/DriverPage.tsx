@@ -353,7 +353,7 @@ export function DriverPage() {
       .bindPopup(`<strong>${incident.title}</strong><br/>${TYPE_LABEL[incident.type] ?? incident.type}`)
       .addTo(map)
 
-    if (assignment.assignment.route_geojson) {
+    if (assignment?.assignment?.route_geojson) {
       try {
         const geojson = JSON.parse(assignment.assignment.route_geojson) as {
           type: string
@@ -374,8 +374,9 @@ export function DriverPage() {
       }
     }
 
-    if (fittedAssignmentRef.current !== assignment.assignment.id) {
-      fittedAssignmentRef.current = assignment.assignment.id
+    const assignmentId = assignment?.assignment?.id
+    if (assignmentId && fittedAssignmentRef.current !== assignmentId) {
+      fittedAssignmentRef.current = assignmentId
       const bounds = L.latLngBounds([
         [incident.lat, incident.lng],
         myVehicle ? [myVehicle.lat, myVehicle.lng] : [incident.lat, incident.lng],
@@ -388,7 +389,7 @@ export function DriverPage() {
   }, [assignment, myVehicle, mapNode])
 
   async function handleStart() {
-    if (!session || !assignment) return
+    if (!session || !assignment?.assignment?.id) return
     setStarting(true)
     setError(null)
     try {
@@ -409,11 +410,11 @@ export function DriverPage() {
   }
 
   async function handleComplete() {
-    if (!session || !assignment) return
+    if (!session || !assignment?.assignment?.id) return
     setCompleting(true)
     setError(null)
     try {
-      await completeAssignment(session.token, assignment.assignment.id)
+      await completeAssignment(session.token, assignment?.assignment?.id ?? 0)
       assignmentRef.current = null
       setAssignment(null)
       setEtaRemaining(null)
@@ -437,16 +438,18 @@ export function DriverPage() {
   if (!session) return null
 
   const incident = assignment?.incident ?? null
+  const status = assignment?.assignment?.status ?? 'assigned'
+
   const etaLabel =
-    assignment?.assignment.status === 'arrived'
+    status === 'arrived'
       ? 'Tiba di lokasi'
-      : assignment?.assignment.status === 'en_route'
+      : status === 'en_route'
         ? formatCountdown(etaRemaining)
-        : assignment?.assignment.eta_seconds
-          ? `${Math.ceil(assignment.assignment.eta_seconds / 60)} menit`
+        : assignment?.assignment?.eta_seconds
+          ? `${Math.ceil((assignment.assignment?.eta_seconds ?? 0) / 60)} menit`
           : '—'
 
-  const distanceLabel = assignment?.assignment.distance_m
+  const distanceLabel = assignment?.assignment?.distance_m
     ? `${(assignment.assignment.distance_m / 1000).toFixed(1)} km`
     : '—'
 
@@ -479,8 +482,8 @@ export function DriverPage() {
                   <p className="driver-kicker">Tugas Anda saat ini</p>
                   <h1>{incident?.title ?? 'Tugas tanpa judul'}</h1>
                 </div>
-                <span className={`driver-status driver-status--${assignment.assignment.status}`}>
-                  {STATUS_LABEL[assignment.assignment.status] ?? assignment.assignment.status}
+                <span className={`driver-status driver-status--${assignment.assignment?.status ?? 'assigned'}`}>
+                  {STATUS_LABEL[assignment.assignment?.status ?? 'assigned'] ?? assignment.assignment?.status ?? 'Ditugaskan'}
                 </span>
               </header>
 
@@ -488,9 +491,9 @@ export function DriverPage() {
                 <div ref={setMapNode} className="driver-map" aria-label="Peta tugas aktif" />
 
                 <div className="driver-task-side">
-                  <div className={`driver-eta ${assignment.assignment.status === 'arrived' ? 'driver-eta--text' : ''}`}>
+                  <div className={`driver-eta ${status === 'arrived' ? 'driver-eta--text' : ''}`}>
                     <span className="driver-eta-label">
-                      {assignment.assignment.status === 'arrived' ? 'Posisi' : 'Perkiraan tiba'}
+                      {status === 'arrived' ? 'Posisi' : 'Perkiraan tiba'}
                     </span>
                     <strong>{etaLabel}</strong>
                     <span className="driver-eta-sub">Jarak rute {distanceLabel}</span>
@@ -537,7 +540,7 @@ export function DriverPage() {
                   ) : null}
 
                   <div className="driver-task-actions">
-                    {assignment.assignment.status === 'assigned' ? (
+                    {status === 'assigned' ? (
                       <button
                         className="button button-primary"
                         type="button"
@@ -547,7 +550,7 @@ export function DriverPage() {
                         {starting ? 'Memulai…' : 'Berangkat sekarang'}
                       </button>
                     ) : null}
-                    {assignment.assignment.status === 'arrived' ? (
+                    {status === 'arrived' ? (
                       <button
                         className="button button-primary"
                         type="button"
@@ -557,7 +560,7 @@ export function DriverPage() {
                         {completing ? 'Menutup tugas…' : 'Tugas selesai'}
                       </button>
                     ) : null}
-                    {assignment.assignment.status === 'en_route' ? (
+                    {status === 'en_route' ? (
                       <button className="button button-ghost" type="button" disabled>
                         Dalam perjalanan ke lokasi
                       </button>

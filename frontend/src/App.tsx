@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import { homeForRole, readSession } from './auth/session'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useTheme } from './context/ThemeContext'
 import { LoginPage } from './pages/LoginPage'
@@ -44,7 +45,7 @@ function AnimatedRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/map" element={<MapPage />} />
-          <Route path="/driver" element={<DriverPage />} />
+          <Route path="/driver" element={<ErrorBoundary><DriverPage /></ErrorBoundary>} />
           <Route path="/admin" element={<AdminPage />} />
         </Route>
         <Route path="/" element={<IndexRedirect />} />
