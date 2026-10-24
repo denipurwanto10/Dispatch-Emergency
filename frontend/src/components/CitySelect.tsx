@@ -1,11 +1,4 @@
-import { Select } from './Select'
-
-interface CitySelectProps {
-  value: string
-  options: string[]
-  allLabel: string
-  onChange: (value: string) => void
-}
+import { CitySearchSelect, type CitySearchSelectProps } from './CitySearchSelect'
 
 function IconPin() {
   return (
@@ -16,16 +9,30 @@ function IconPin() {
   )
 }
 
-/** Filter kota untuk bilah peta dan panel armada. */
-export function CitySelect({ value, options, allLabel, onChange }: CitySelectProps) {
+/** Filter kota untuk bilah peta dan panel armada. Menggunakan CitySearchSelect dengan dataset lengkap Indonesia. */
+export function CitySelect({ value, options, allLabel, onChange }: {
+  value: string
+  options: string[]
+  allLabel: string
+  onChange: (value: string) => void
+}) {
+  // Gunakan CitySearchSelect yang sudah memiliki data lengkap Indonesia
+  // Props `options` dijaga untuk kompatibilitas tapi tidak dipakai karena data sudah internal
+  void options
   return (
-    <Select
+    <CitySearchSelect
+      mode="province-first"
       variant="filter"
       ariaLabel="Filter kota operasi"
       icon={<IconPin />}
       value={value}
       onChange={onChange}
-      options={[{ value: '', label: allLabel }, ...options.map((name) => ({ value: name, label: name }))]}
+      showAllOption={true}
+      allLabel={allLabel}
+      searchPlaceholder="Cari kota atau provinsi…"
     />
   )
 }
+
+// Re-export types for consumers
+export type { CitySearchSelectProps }

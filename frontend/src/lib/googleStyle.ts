@@ -71,7 +71,7 @@ const ROADS: Array<{ id: string; classes: string[]; minzoom: number; stops: Stop
 
 export function buildGoogleStyle(mode: MapMode): StyleSpecification {
   const c = PALETTES[mode]
-  const road = ['==', ['geometry-type'], 'LineString']
+  const road: any = ['==', ['geometry-type'], 'LineString']
   const tunnelOpacity: any = ['case', ['==', ['get', 'brunnel'], 'tunnel'], 0.5, 1]
 
   const layers: LayerSpecification[] = [

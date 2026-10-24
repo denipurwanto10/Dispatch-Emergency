@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 
 export interface SelectOption {
@@ -74,7 +75,8 @@ export function Select({ value, options, onChange, disabled = false, ariaLabel, 
 
   useEffect(() => {
     if (!open) return
-    listRef.current?.focus()
+    listRef.current?.focus({ preventScroll: true })
+    const anchor = buttonRef.current?.getBoundingClientRect()
     const close = (event: Event) => {
       const target = event.target as Node
       if (listRef.current?.contains(target) || buttonRef.current?.contains(target)) return
@@ -82,6 +84,9 @@ export function Select({ value, options, onChange, disabled = false, ariaLabel, 
     }
     const dismissOnScroll = (event: Event) => {
       if (listRef.current?.contains(event.target as Node)) return
+      // Tutup hanya bila tombol benar-benar bergeser; scroll kecil akibat fokus tidak menutup daftar.
+      const now = buttonRef.current?.getBoundingClientRect()
+      if (anchor && now && Math.abs(now.top - anchor.top) < 2 && Math.abs(now.left - anchor.left) < 2) return
       setOpen(false)
     }
     const dismiss = () => setOpen(false)
@@ -97,7 +102,12 @@ export function Select({ value, options, onChange, disabled = false, ariaLabel, 
 
   useEffect(() => {
     if (!open) return
-    listRef.current?.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' })
+    // Gulir hanya di dalam daftar, jangan menggeser halaman atau panel induk.
+    const list = listRef.current
+    const item = list?.querySelector<HTMLElement>('.is-active')
+    if (!list || !item) return
+    if (item.offsetTop < list.scrollTop) list.scrollTop = item.offsetTop - 6
+    else if (item.offsetTop + item.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = item.offsetTop + item.offsetHeight - list.clientHeight + 6
   }, [open, active])
 
   function onListKey(event: KeyboardEvent<HTMLUListElement>) {
@@ -144,7 +154,8 @@ export function Select({ value, options, onChange, disabled = false, ariaLabel, 
         <IconChevron />
       </button>
 
-      {open ? (
+      {open
+        ? createPortal(
         <ul
           ref={listRef}
           id={listId}
@@ -169,8 +180,10 @@ export function Select({ value, options, onChange, disabled = false, ariaLabel, 
               {option.value === value ? <IconCheck /> : null}
             </li>
           ))}
-        </ul>
-      ) : null}
+        </ul>,
+        document.body,
+      )
+        : null}
     </div>
   )
 }

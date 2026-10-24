@@ -702,6 +702,177 @@ img, svg, canvas, video { max-width: 100%; }
 .select-option.is-active { background: var(--surface-hover); }
 .select-option.is-selected { color: var(--accent-strong); font-weight: 600; }
 
+/* ===== Searchable City Select ===== */
+.select--searchable .select-button {
+  min-height: 44px;
+}
+
+.select-list--searchable {
+  padding: 0;
+  max-height: 420px;
+}
+
+.select-search-wrapper {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+}
+
+.select-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-search .icon {
+  position: absolute;
+  left: 10px;
+  color: var(--muted);
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+}
+
+.select-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px 0 38px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.select-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.select-search-input::placeholder {
+  color: var(--muted);
+}
+
+.select-province-header {
+  padding: 6px 12px 4px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--surface-2);
+  border-radius: var(--r-xs);
+  user-select: none;
+}
+
+.select-province-header:first-of-type {
+  margin-top: 0;
+}
+
+.select-option--all {
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+
+.select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-xs);
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+}
+
+.select-option .icon {
+  flex-shrink: 0;
+}
+
+.select-option-province {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+/* Province-first mode: back button */
+.select-back-wrapper {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  position: sticky;
+  top: 44px; /* below search */
+  z-index: 1;
+}
+
+.select-back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.select-back-button:hover {
+  background: var(--surface-hover);
+  border-color: var(--muted);
+}
+
+.select-back-button .icon {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+/* Province item with arrow */
+.select-option .icon[stroke] {
+  color: var(--muted);
+}
+
+/* Ringkasan angka */
+
+.select-option.is-selected {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.select-option--empty {
+  justify-content: center;
+  color: var(--muted);
+  font-style: italic;
+  cursor: default;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .select-search-input {
+    background: var(--surface);
+  }
+}
+
 /* Ringkasan angka */
 
 .fleet-summary { display: grid; gap: 10px; }
@@ -801,6 +972,149 @@ img, svg, canvas, video { max-width: 100%; }
 
 .map-overlay--error { flex-direction: column; max-width: min(340px, 88%); padding: 20px; }
 .map-overlay--error p { color: var(--danger); }
+
+/* ---------- Drill-down wilayah ---------- */
+
+.map-canvas--picking,
+.map-canvas--picking .leaflet-interactive { cursor: crosshair !important; }
+
+.leaflet-interactive.region-polygon {
+  cursor: pointer;
+  transition: fill-opacity 140ms ease, stroke-width 120ms ease;
+}
+
+.leaflet-tooltip.region-tooltip {
+  padding: 5px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-2);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.leaflet-tooltip.region-tooltip::before { display: none; }
+
+.map-region-bar {
+  position: absolute;
+  z-index: 700;
+  top: 16px;
+  left: 336px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 760px);
+}
+
+.map-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 5px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: var(--shadow-1);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+}
+
+.crumb {
+  max-width: 190px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color 130ms ease, color 130ms ease;
+}
+.crumb:hover { background: var(--surface-hover); color: var(--text); }
+.crumb[aria-current='page'] { color: var(--text); font-weight: 600; }
+.crumb--current { color: var(--accent-strong) !important; }
+.crumb-sep { flex: 0 0 auto; color: var(--muted); font-size: 0.72rem; user-select: none; }
+
+.map-report-button {
+  flex: 0 0 auto;
+  gap: 6px;
+  min-height: 36px;
+  padding-inline: 13px;
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-1);
+}
+.map-report-button.button-ghost {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.region-status {
+  position: absolute;
+  z-index: 600;
+  bottom: 64px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(440px, calc(100% - 48px));
+  padding: 9px 14px;
+  transform: translateX(-50%);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  color: var(--text-2);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.region-status .spinner { width: 14px; height: 14px; flex: 0 0 auto; }
+.region-status--error {
+  flex-wrap: wrap;
+  justify-content: center;
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--border));
+  border-radius: var(--r-md);
+  color: var(--danger);
+  text-align: center;
+}
+
+.fleet-scope {
+  padding: 9px 11px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+@media (max-width: 1180px) {
+  .map-region-bar {
+    top: 12px;
+    left: 12px;
+    max-width: calc(100% - 388px);
+  }
+}
+
+@media (max-width: 820px) {
+  .map-region-bar {
+    right: 12px;
+    max-width: none;
+  }
+  .map-breadcrumbs { overflow-x: auto; scrollbar-width: none; }
+  .map-breadcrumbs::-webkit-scrollbar { display: none; }
+  .crumb { max-width: 118px; }
+  .fleet-scope { display: none; }
+}
+
 
 .incident-panel {
   position: absolute;
@@ -1043,50 +1357,20 @@ img, svg, canvas, video { max-width: 100%; }
   will-change: transform;
 }
 
-/* Sorot lampu depan: dua beam terpisah dari posisi lampu, mengikuti heading kendaraan.
-   Gradien hanya dipakai pada cahaya; seluruh surface UI tetap solid/flat. */
-.vm-body::before,
-.vm-body::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  bottom: calc(100% - 8px);
-  width: 20px;
-  height: 62px;
-  pointer-events: none;
-  transform-origin: 50% 100%;
-  clip-path: polygon(43% 100%, 0 0, 100% 0, 57% 100%);
-  background: linear-gradient(
-    to top,
-    rgba(255, 238, 157, 0.72) 0%,
-    rgba(255, 242, 190, 0.34) 28%,
-    rgba(255, 248, 220, 0.12) 66%,
-    rgba(255, 250, 235, 0.015) 100%
-  );
-  filter: blur(1.2px);
-  opacity: 0.82;
-}
-.vm-body::before { left: calc(50% - 13px); }
-.vm-body::after { left: calc(50% - 7px); }
-
-/* Kendaraan bertugas mendapat sorotan sedikit lebih jelas, tanpa lingkaran penanda. */
-.vm--assigned .vm-body::before,
-.vm--en_route .vm-body::before,
-.vm--on_scene .vm-body::before {
-  opacity: 1;
-}
-
-.vm--offline .vm-body::before {
-  opacity: 0.3;
-}
+/* Sorot lampu depan ada di dalam SVG (.vm-beam): bentuk datar transparan, tanpa gradien/blur. */
+.vm-beam { opacity: 0.2; }
+.vm--assigned .vm-beam, .vm--en_route .vm-beam, .vm--on_scene .vm-beam { opacity: 0.3; }
+.vm--offline .vm-beam, .vm--offline .vm-head { opacity: 0; }
+.vm--offline .vm-tail { fill: #7f1d1d; }
 
 .vm-svg {
   display: block;
   max-width: none;
+  overflow: visible;
 }
 
 .vm-led {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 /* halo cahaya di sekitar LED sirene; hanya terlihat saat unit bertugas */
@@ -1143,7 +1427,8 @@ img, svg, canvas, video { max-width: 100%; }
   transform: translateX(-50%);
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(15, 23, 41, 0.9);
+  background: #0f1729;
+  box-shadow: 0 0 0 1.5px #ffffff;
   color: #ffffff;
   font-family: var(--font-mono);
   font-size: 0.64rem;
@@ -1171,7 +1456,7 @@ img, svg, canvas, video { max-width: 100%; }
 }
 
 .vm:hover .vm-body {
-  filter: drop-shadow(0 1px 2px rgba(15, 23, 41, 0.45));
+  filter: drop-shadow(0 2px 3px rgba(15, 23, 41, 0.5));
 }
 
 .leaflet-marker-icon:focus-visible {
@@ -1690,7 +1975,6 @@ img, svg, canvas, video { max-width: 100%; }
   .admin-link { min-height: 40px; padding: 0 16px; background: var(--surface-hover); }
   .admin-link--danger { background: var(--danger-soft); }
 
-  .vm-body::before, .vm-body::after { width: 16px; height: 48px; }
 }
 
 @media (max-width: 520px) {
@@ -1707,7 +1991,6 @@ img, svg, canvas, video { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .lg-route { stroke-dashoffset: 0; }
-  .vm-body::before, .vm-body::after { filter: none; }
 }
 
 /* Select bawaan: panah sendiri agar seragam di semua browser */
@@ -1809,3 +2092,301 @@ img, svg, canvas, video { max-width: 100%; }
 
 /* Skeleton / loading */
 .skeleton { background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-hover) 50%, var(--surface-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: var(--r-sm); }
+
+
+/* ============================================================
+   Penyempurnaan layout — flat, rapi, responsif
+   · Tanpa elemen melayang/terangkat: kedalaman hanya dari garis tepi.
+   · Skala jarak 4/8 px, radius konsisten, target sentuh ≥ 40 px.
+   ============================================================ */
+
+:root {
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --header-h: 64px;
+  --shadow-1: none;
+  --shadow-2: 0 0 0 1px var(--border);
+  --page-gutter: clamp(16px, 3vw, 40px);
+}
+
+[data-theme='dark'] { --shadow-1: none; --shadow-2: 0 0 0 1px var(--border); }
+
+/* Tipografi */
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+body { font-size: 15px; }
+
+/* Header: bersih, sejajar dengan gutter halaman */
+.app-header { padding-inline: var(--page-gutter); border-bottom: 1px solid var(--border); background: var(--surface); }
+.app-header-right { gap: 8px; }
+.theme-toggle, .app-header .button { min-height: 40px; height: 40px; }
+.theme-toggle { width: 40px; }
+.user-chip { padding-left: 14px; margin-left: 4px; }
+
+/* Flat: matikan angkat/bayangan saat hover; gunakan perubahan tepi & latar */
+@media (hover: hover) {
+  .admin-card:hover, .admin-stat:hover, .driver-task-card:hover { transform: none; box-shadow: none; }
+  .admin-card:hover, .driver-task-card:hover { border-color: var(--border-strong); }
+  .admin-stat:hover { background: var(--surface-2); }
+  .incident-list-item:hover { transform: none; border-color: var(--border-strong); background: var(--surface-2); box-shadow: none; }
+  .button:hover { transform: none; }
+}
+.button-primary, .lg-submit { box-shadow: none; }
+.button-primary:hover { box-shadow: none; }
+.button:active, .incident-list-item:active { transform: scale(0.985); }
+
+/* Panel peta: kartu rata dengan garis tepi, jarak seragam */
+.fleet-panel, .incident-panel { box-shadow: none; border-color: var(--border-strong); }
+.fleet-panel { top: 16px; left: 16px; width: 304px; padding: 20px; gap: 20px; }
+.incident-panel { top: 16px; right: 16px; bottom: 16px; width: 392px; padding: 20px 20px 24px; }
+.map-canvas .leaflet-bottom.leaflet-right { margin-right: 408px; }
+.fleet-total strong { font-size: 2.75rem; }
+.fleet-types li { border: 1px solid var(--border); background: var(--surface); }
+.fleet-bar { height: 8px; border-radius: 4px; }
+.fleet-bar span { border-radius: 4px; }
+.map-hint { background: var(--surface); border-color: var(--border-strong); box-shadow: none; }
+.map-overlay { box-shadow: none; border-color: var(--border-strong); }
+
+/* Kontrol & popup Leaflet flat */
+.leaflet-bar, .leaflet-control-layers { border: 1px solid var(--border-strong) !important; box-shadow: none !important; border-radius: var(--r-md) !important; }
+.leaflet-popup-content-wrapper { box-shadow: none; border-color: var(--border-strong); animation: none; }
+.leaflet-bottom.leaflet-left { margin-bottom: 8px; margin-left: 4px; }
+
+/* Daftar & kartu */
+.incident-list-item { padding: 14px 16px 14px 18px; }
+.nearest-candidate, .incident-description, .driver-task-desc { border-color: var(--border); }
+.select-list { box-shadow: 0 0 0 1px var(--border-strong), 0 12px 28px -12px rgba(8, 20, 30, 0.35); }
+
+/* Admin: ritme vertikal rapi dan kartu statistik terpisah */
+.admin-main { gap: 28px; padding-top: 40px; }
+.admin-heading .muted { color: var(--muted); }
+.admin-stats { gap: 12px; border: 0; background: transparent; border-radius: 0; overflow: visible; }
+.admin-stat { border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px 22px; }
+.admin-stat dd { font-size: 2.4rem; }
+.admin-card, .admin-form-card { box-shadow: none; }
+.admin-form-card { border-color: var(--border-strong); }
+.admin-table th { text-transform: none; letter-spacing: 0; }
+.admin-table td, .admin-table th { padding-block: 14px; }
+
+/* Driver: kartu rata */
+.driver-task-card, .driver-empty, .driver-history { box-shadow: none; }
+.driver-main { padding-top: 32px; }
+.driver-eta { border-radius: var(--r-md); }
+
+/* Login: pane kiri lega, panel kanan tetap peta kerja */
+.lg-center { width: min(100%, 400px); }
+.lg-control, .lg-submit { height: 52px; }
+
+/* Layar lebar: batasi lebar isi supaya baris tidak terlalu panjang */
+@media (min-width: 1600px) {
+  .admin-main { width: min(100%, 1440px); }
+  .driver-content { width: min(100%, 1360px); }
+}
+
+/* Tablet landscape / laptop kecil */
+@media (max-width: 1180px) {
+  .fleet-panel { top: auto; left: auto; width: auto; padding: 10px var(--page-gutter); gap: 14px; border-color: var(--border); }
+  .fleet-total strong { font-size: 1.75rem; }
+  .incident-panel { top: 12px; right: 12px; bottom: 12px; width: 352px; }
+  .map-canvas .leaflet-bottom.leaflet-right { margin-right: 368px; }
+}
+
+@media (max-width: 860px) {
+  .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Tablet portrait & ponsel: panel laporan = bottom sheet rata */
+@media (max-width: 820px) {
+  .incident-panel {
+    max-height: 58%;
+    padding: 4px 16px calc(20px + var(--safe-bottom));
+    border-color: var(--border-strong);
+    box-shadow: none;
+  }
+  .incident-panel--collapsed { max-height: calc(88px + var(--safe-bottom)); }
+  .sheet-handle { height: 28px; }
+  .sheet-handle::before { width: 36px; height: 4px; }
+  .map-canvas .leaflet-bottom.leaflet-right { margin-right: 0; }
+}
+
+/* Ponsel */
+@media (max-width: 640px) {
+  :root { --header-h: 56px; --page-gutter: 16px; }
+  .brand-mark { width: 32px; height: 32px; }
+  .brand-name { font-size: 1.1rem; }
+
+  .fleet-panel { padding: 8px 16px; gap: 10px; }
+  .select--filter { width: 168px; }
+  .fleet-types li { padding: 5px 10px; }
+
+  .admin-main { padding-top: 24px; gap: 20px; }
+  .admin-stats { gap: 8px; }
+  .admin-stat { padding: 14px 16px; }
+  .admin-stat dd { font-size: 1.9rem; }
+  .admin-card { border-radius: var(--r-md); }
+  .admin-table tbody { padding: 10px; gap: 8px; }
+  .admin-table tr { border-radius: var(--r-sm); }
+
+  .driver-task-card, .driver-empty, .driver-history { border-radius: var(--r-md); }
+  .driver-task-actions { margin-inline: -16px; }
+
+  .incident-actions .button, .form-actions .button { min-height: 48px; }
+  .leaflet-popup-content { margin: 12px 14px; }
+}
+
+/* Ponsel kecil */
+@media (max-width: 380px) {
+  .admin-stats { grid-template-columns: minmax(0, 1fr); }
+  .segmented-row { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .select--filter { width: 148px; }
+}
+
+/* Layar pendek (ponsel landscape): sheet tidak menutup seluruh peta */
+@media (max-height: 480px) and (max-width: 900px) {
+  .incident-panel { max-height: 70%; }
+  .incident-panel--collapsed { max-height: 64px; }
+  .driver-map { min-height: 220px; height: 220px; }
+}
+
+/* Kolom password dengan tombol tampilkan/sembunyikan */
+.field-password { position: relative; display: block; }
+.field-password input { padding-right: 48px; }
+.field-password-toggle {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  display: grid; place-items: center; width: 44px;
+  border: 0; border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.field-password-toggle:hover { background: var(--surface-hover); color: var(--text); }
+.field-password-toggle:focus-visible { outline-offset: -3px; }
+
+/* ============================================================
+   Dialog konfirmasi & toast
+   ============================================================ */
+
+.button-danger-solid {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--surface);
+}
+.button-danger-solid:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 88%, #000);
+}
+[data-theme='dark'] .button-danger-solid:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 88%, #fff);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--scrim);
+  backdrop-filter: blur(2px);
+  animation: fade-in 140ms ease both;
+}
+
+.modal {
+  display: grid;
+  gap: 22px;
+  width: min(100%, 440px);
+  padding: 24px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-3);
+  animation: modal-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.modal-body { display: flex; align-items: flex-start; gap: 14px; }
+
+.modal-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.modal--danger .modal-icon { background: var(--danger-soft); color: var(--danger); }
+
+.modal-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.modal-desc {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.modal-actions .button { min-height: 42px; padding-inline: 18px; }
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Sonner: permukaan, garis, dan warna mengikuti token tema Tanggap. */
+body .app-toaster { --border-radius: var(--r-md); font-family: var(--font-sans); }
+
+body .app-toaster[data-sonner-theme='light'],
+body .app-toaster[data-sonner-theme='dark'] {
+  --normal-bg: var(--surface);
+  --normal-border: var(--border-strong);
+  --normal-text: var(--text);
+  --normal-bg-hover: var(--surface-hover);
+  --normal-border-hover: var(--border-strong);
+
+  --success-bg: var(--success-soft);
+  --success-border: color-mix(in srgb, var(--success) 35%, transparent);
+  --success-text: var(--success);
+  --info-bg: var(--info-soft);
+  --info-border: color-mix(in srgb, var(--info) 35%, transparent);
+  --info-text: var(--info);
+  --warning-bg: var(--warning-soft);
+  --warning-border: color-mix(in srgb, var(--warning) 35%, transparent);
+  --warning-text: var(--warning);
+  --error-bg: var(--danger-soft);
+  --error-border: color-mix(in srgb, var(--danger) 35%, transparent);
+  --error-text: var(--danger);
+}
+
+body .app-toaster [data-sonner-toast].app-toast {
+  padding: 14px 16px;
+  box-shadow: var(--shadow-2);
+}
+
+body .app-toaster .app-toast .app-toast-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+body .app-toaster .app-toast .app-toast-desc {
+  font-size: 0.82rem;
+  opacity: 0.88;
+}
+
+@media (max-width: 520px) {
+  .modal { padding: 20px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop, .modal { animation: none; }
+}

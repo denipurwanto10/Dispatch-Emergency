@@ -14,6 +14,7 @@ MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1
 - **Simulasi & real-time** — simulator menggerakkan kendaraan di sepanjang rute dan mengirim event WebSocket `vehicle_position` serta `assignment_status`.
 - **Layar driver `/driver`** — kartu tugas muncul tanpa refresh, peta mini Leaflet dengan marker kendaraan/insiden dan polyline rute, ETA dari `eta_remaining_seconds`, tombol mulai/selesai, riwayat 20 tugas terakhir, dan reconnect WebSocket otomatis. **Tidak ada polling tugas aktif.**
 - **Panel admin `/admin`** — tab Users dan Kendaraan, tabel, form create/edit, konfirmasi hapus, tombol tampilkan password, dan pesan error backend yang terbaca.
+- **Peta drill-down interaktif** — hierarki Indonesia → Provinsi → Kota/Kabupaten → Kecamatan; klik provinsi/kota pada peta atau dropdown untuk zoom; kendaraan hanya muncul di level kota/kecamatan; breadcrumb navigasi; pencarian nama kota/provinsi di dropdown; data batas wilayah dari GADM 4.1 (502 kota/kabupaten, 34 provinsi).
 - **Tema terang/gelap** — tombol tema di header semua halaman. Bawaan: gelap untuk dispatcher, terang untuk driver/admin. Pilihan pengguna disimpan di `localStorage` (`tanggap.theme`) dan menang atas bawaan peran.
 - **UI flat & responsif** — tanpa bayangan atau efek angkat; kedalaman hanya dari garis tepi. Di layar kecil, panel laporan berubah menjadi bottom sheet yang bisa dilipat, dan target sentuh minimal 40 px.
 - **Komponen aksesibel** — Select kustom dengan navigasi keyboard, atribut ARIA, dan portal agar tidak terpotong panel; tombol tampilkan password di login dan form admin; dukungan `prefers-reduced-motion`.
@@ -23,6 +24,7 @@ MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1
 
 ## Cakupan kota dan seed
 
+### 6 Kota operasi Fase 1.5 (seed backend)
 | Kota operasi | Pusat operasi | Kendaraan |
 | --- | --- | --- |
 | Medan | sekitar 3.5952, 98.6722 | 6 |
@@ -37,6 +39,15 @@ MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1
 - Nilai kota kanonik hanya: **Medan, Jakarta, Bandung, Semarang, Surabaya, Makassar**. Nilai lain ditolak `400`.
 - Validasi kota dan batas kasar wilayah kota ada di `internal/geo/cities.go` (radius 60 km dari pusat kota).
 
+### Peta drill-down (frontend) — Seluruh Indonesia
+- **34 provinsi**, **502 kota/kabupaten**, **~6.500 kecamatan** (data GADM 4.1).
+- Dropdown "Filter kota operasi" mendukung mode **provinsi-dulu**: pilih provinsi → daftar kota/kabupaten → kecamatan.
+- Klik provinsi/kota pada peta atau dropdown → `flyTo` ke wilayah tersebut.
+- Breadcrumb navigasi: `Indonesia / Jawa Barat / Kota Bandung` — bisa diklik untuk kembali.
+- Kendaraan hanya dirender di level **kota/kecamatan** (tersembunyi di level Indonesia).
+- Pencarian real-time: ketik nama kota ATAU provinsi.
+- Data batas wilayah disimpan di `frontend/public/geo/` (di-generate dari GADM 4.1 via `scripts/generate-cities-json.mjs`).
+
 ## Stack
 
 | Bagian | Teknologi |
@@ -48,6 +59,7 @@ MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1
 | Frontend | React 19 + Vite + TypeScript + Leaflet |
 | Basemap | Tile Google Maps publik (tanpa API key), fallback otomatis ke OpenStreetMap |
 | Tema | CSS variables + toggle terang/gelap, tersimpan di `localStorage` |
+| Data wilayah | GADM 4.1 (UC Davis) → disederhanakan mapshaper → GeoJSON statis di `public/geo/` |
 
 ## Prasyarat lokal
 
@@ -398,12 +410,15 @@ Rescue/
 │   └── src/
 │       ├── api/       # client API
 │       ├── auth/      # session localStorage
-│       ├── components/ # AppHeader, Brand, Select, CitySelect, ThemeToggle, ikon
+│       ├── components/ # AppHeader, Brand, Select, CitySearchSelect, ThemeToggle, ikon
 │       ├── context/   # ThemeContext (tema terang/gelap)
-│       ├── lib/       # basemap, googleStyle, vehicleMarker
+│       ├── data/      # indonesia-cities.json (502 kota/kabupaten, 34 provinsi)
+│       ├── lib/       # basemap, googleStyle, vehicleMarker, regions (geo utils)
 │       ├── optional-vector/ # eksperimen basemap vektor (tidak dipakai build)
 │       ├── pages/     # Login, Map, Driver, Admin
-│       └── cities.ts  # pusat 6 kota + bounds Indonesia
+│       └── cities.ts  # 6 kota operasi + bounds Indonesia
+│   ├── public/geo/    # adm1.geojson, adm2.geojson, adm3-*.geojson (GADM 4.1 disederhanakan)
+│   └── scripts/       # generate-cities-json.mjs (generate dataset dari GADM)
 ├── .playwright-cli/   # artefak inspeksi browser (auto-generated)
 ├── .env.example
 ├── AGENT.md
@@ -426,6 +441,13 @@ Frontend:
 cd frontend
 npm run build
 npm run lint
+```
+
+Regenerasi data batas wilayah (jika perlu update GADM):
+
+```powershell
+cd frontend
+node scripts/generate-cities-json.mjs
 ```
 
 Tidak boleh ada file Docker:

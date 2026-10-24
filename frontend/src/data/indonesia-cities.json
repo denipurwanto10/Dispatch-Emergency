@@ -1,0 +1,3218 @@
+[
+  {
+    "province": "Aceh",
+    "provinceKey": "Aceh",
+    "cities": [
+      {
+        "name": "Kabupaten Aceh Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.1.2_1",
+        "search": "Kabupaten Aceh Barat Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Barat Daya",
+        "type": "Kabupaten",
+        "gid": "IDN.1.1_1",
+        "search": "Kabupaten Aceh Barat Daya Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Besar",
+        "type": "Kabupaten",
+        "gid": "IDN.1.3_1",
+        "search": "Kabupaten Aceh Besar Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Jaya",
+        "type": "Kabupaten",
+        "gid": "IDN.1.4_1",
+        "search": "Kabupaten Aceh Jaya Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.1.5_1",
+        "search": "Kabupaten Aceh Selatan Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Singkil",
+        "type": "Kabupaten",
+        "gid": "IDN.1.6_1",
+        "search": "Kabupaten Aceh Singkil Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Tamiang",
+        "type": "Kabupaten",
+        "gid": "IDN.1.7_1",
+        "search": "Kabupaten Aceh Tamiang Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.1.8_1",
+        "search": "Kabupaten Aceh Tengah Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Tenggara",
+        "type": "Kabupaten",
+        "gid": "IDN.1.9_1",
+        "search": "Kabupaten Aceh Tenggara Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.1.10_1",
+        "search": "Kabupaten Aceh Timur Aceh"
+      },
+      {
+        "name": "Kabupaten Aceh Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.1.11_1",
+        "search": "Kabupaten Aceh Utara Aceh"
+      },
+      {
+        "name": "Kabupaten Bener Meriah",
+        "type": "Kabupaten",
+        "gid": "IDN.1.13_1",
+        "search": "Kabupaten Bener Meriah Aceh"
+      },
+      {
+        "name": "Kabupaten Bireuen",
+        "type": "Kabupaten",
+        "gid": "IDN.1.14_1",
+        "search": "Kabupaten Bireuen Aceh"
+      },
+      {
+        "name": "Kabupaten Gayo Lues",
+        "type": "Kabupaten",
+        "gid": "IDN.1.15_1",
+        "search": "Kabupaten Gayo Lues Aceh"
+      },
+      {
+        "name": "Kabupaten Nagan Raya",
+        "type": "Kabupaten",
+        "gid": "IDN.1.18_1",
+        "search": "Kabupaten Nagan Raya Aceh"
+      },
+      {
+        "name": "Kabupaten Pidie",
+        "type": "Kabupaten",
+        "gid": "IDN.1.20_1",
+        "search": "Kabupaten Pidie Aceh"
+      },
+      {
+        "name": "Kabupaten Pidie Jaya",
+        "type": "Kabupaten",
+        "gid": "IDN.1.19_1",
+        "search": "Kabupaten Pidie Jaya Aceh"
+      },
+      {
+        "name": "Kabupaten Simeulue",
+        "type": "Kabupaten",
+        "gid": "IDN.1.22_1",
+        "search": "Kabupaten Simeulue Aceh"
+      },
+      {
+        "name": "Kota Banda Aceh",
+        "type": "Kota",
+        "gid": "IDN.1.12_1",
+        "search": "Kota Banda Aceh Aceh"
+      },
+      {
+        "name": "Kota Langsa",
+        "type": "Kota",
+        "gid": "IDN.1.16_1",
+        "search": "Kota Langsa Aceh"
+      },
+      {
+        "name": "Kota Lhokseumawe",
+        "type": "Kota",
+        "gid": "IDN.1.17_1",
+        "search": "Kota Lhokseumawe Aceh"
+      },
+      {
+        "name": "Kota Sabang",
+        "type": "Kota",
+        "gid": "IDN.1.21_1",
+        "search": "Kota Sabang Aceh"
+      },
+      {
+        "name": "Kota Subulussalam",
+        "type": "Kota",
+        "gid": "IDN.1.23_1",
+        "search": "Kota Subulussalam Aceh"
+      }
+    ]
+  },
+  {
+    "province": "Sumatera Utara",
+    "provinceKey": "SumateraUtara",
+    "cities": [
+      {
+        "name": "Kabupaten Asahan",
+        "type": "Kabupaten",
+        "gid": "IDN.32.1_1",
+        "search": "Kabupaten Asahan Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Batu Bara",
+        "type": "Kabupaten",
+        "gid": "IDN.32.2_1",
+        "search": "Kabupaten Batu Bara Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Dairi",
+        "type": "Kabupaten",
+        "gid": "IDN.32.3_1",
+        "search": "Kabupaten Dairi Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Deli Serdang",
+        "type": "Kabupaten",
+        "gid": "IDN.32.4_1",
+        "search": "Kabupaten Deli Serdang Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Humbang Hasundutan",
+        "type": "Kabupaten",
+        "gid": "IDN.32.6_1",
+        "search": "Kabupaten Humbang Hasundutan Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Karo",
+        "type": "Kabupaten",
+        "gid": "IDN.32.7_1",
+        "search": "Kabupaten Karo Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Labuhanbatu",
+        "type": "Kabupaten",
+        "gid": "IDN.32.13_1",
+        "search": "Kabupaten Labuhanbatu Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Labuhanbatu Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.32.11_1",
+        "search": "Kabupaten Labuhanbatu Selatan Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Labuhanbatu Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.32.12_1",
+        "search": "Kabupaten Labuhanbatu Utara Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Langkat",
+        "type": "Kabupaten",
+        "gid": "IDN.32.15_1",
+        "search": "Kabupaten Langkat Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Mandailing Natal",
+        "type": "Kabupaten",
+        "gid": "IDN.32.16_1",
+        "search": "Kabupaten Mandailing Natal Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Nias",
+        "type": "Kabupaten",
+        "gid": "IDN.32.20_1",
+        "search": "Kabupaten Nias Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Nias Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.32.17_1",
+        "search": "Kabupaten Nias Barat Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Nias Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.32.18_1",
+        "search": "Kabupaten Nias Selatan Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Nias Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.32.19_1",
+        "search": "Kabupaten Nias Utara Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Padang Lawas",
+        "type": "Kabupaten",
+        "gid": "IDN.32.22_1",
+        "search": "Kabupaten Padang Lawas Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Padang Lawas Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.32.21_1",
+        "search": "Kabupaten Padang Lawas Utara Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Pakpak Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.32.24_1",
+        "search": "Kabupaten Pakpak Barat Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Samosir",
+        "type": "Kabupaten",
+        "gid": "IDN.32.26_1",
+        "search": "Kabupaten Samosir Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Serdang Bedagai",
+        "type": "Kabupaten",
+        "gid": "IDN.32.27_1",
+        "search": "Kabupaten Serdang Bedagai Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Simalungun",
+        "type": "Kabupaten",
+        "gid": "IDN.32.29_1",
+        "search": "Kabupaten Simalungun Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Tapanuli Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.32.30_1",
+        "search": "Kabupaten Tapanuli Selatan Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Tapanuli Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.32.31_1",
+        "search": "Kabupaten Tapanuli Tengah Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Tapanuli Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.32.32_1",
+        "search": "Kabupaten Tapanuli Utara Sumatera Utara"
+      },
+      {
+        "name": "Kabupaten Toba Samosir",
+        "type": "Kabupaten",
+        "gid": "IDN.32.34_1",
+        "search": "Kabupaten Toba Samosir Sumatera Utara"
+      },
+      {
+        "name": "Kota Binjai",
+        "type": "Kota",
+        "gid": "IDN.32.8_1",
+        "search": "Kota Binjai Sumatera Utara"
+      },
+      {
+        "name": "Kota Gunungsitoli",
+        "type": "Kota",
+        "gid": "IDN.32.5_1",
+        "search": "Kota Gunungsitoli Sumatera Utara"
+      },
+      {
+        "name": "Kota Medan",
+        "type": "Kota",
+        "gid": "IDN.32.9_1",
+        "search": "Kota Medan Sumatera Utara"
+      },
+      {
+        "name": "Kota Padangsidimpuan",
+        "type": "Kota",
+        "gid": "IDN.32.23_1",
+        "search": "Kota Padangsidimpuan Sumatera Utara"
+      },
+      {
+        "name": "Kota Pematangsiantar",
+        "type": "Kota",
+        "gid": "IDN.32.25_1",
+        "search": "Kota Pematangsiantar Sumatera Utara"
+      },
+      {
+        "name": "Kota Sibolga",
+        "type": "Kota",
+        "gid": "IDN.32.28_1",
+        "search": "Kota Sibolga Sumatera Utara"
+      },
+      {
+        "name": "Kota Tanjungbalai",
+        "type": "Kota",
+        "gid": "IDN.32.10_1",
+        "search": "Kota Tanjungbalai Sumatera Utara"
+      },
+      {
+        "name": "Kota Tebingtinggi",
+        "type": "Kota",
+        "gid": "IDN.32.33_1",
+        "search": "Kota Tebingtinggi Sumatera Utara"
+      },
+      {
+        "name": "Lake Toba",
+        "type": "WaterBody",
+        "gid": "IDN.32.14_1",
+        "search": "Lake Toba Sumatera Utara"
+      }
+    ]
+  },
+  {
+    "province": "Sumatera Barat",
+    "provinceKey": "SumateraBarat",
+    "cities": [
+      {
+        "name": "Danau",
+        "type": "WaterBody",
+        "gid": "IDN.30.3_1",
+        "search": "Danau Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Agam",
+        "type": "Kabupaten",
+        "gid": "IDN.30.1_1",
+        "search": "Kabupaten Agam Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Dharmasraya",
+        "type": "Kabupaten",
+        "gid": "IDN.30.4_1",
+        "search": "Kabupaten Dharmasraya Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Kepulauan Mentawai",
+        "type": "Kabupaten",
+        "gid": "IDN.30.5_1",
+        "search": "Kabupaten Kepulauan Mentawai Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Lima Puluh Kota",
+        "type": "Kabupaten",
+        "gid": "IDN.30.7_1",
+        "search": "Kabupaten Lima Puluh Kota Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Padang Pariaman",
+        "type": "Kabupaten",
+        "gid": "IDN.30.9_1",
+        "search": "Kabupaten Padang Pariaman Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Pasaman",
+        "type": "Kabupaten",
+        "gid": "IDN.30.13_1",
+        "search": "Kabupaten Pasaman Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Pasaman Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.30.12_1",
+        "search": "Kabupaten Pasaman Barat Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Pesisir Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.30.15_1",
+        "search": "Kabupaten Pesisir Selatan Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Sijunjung",
+        "type": "Kabupaten",
+        "gid": "IDN.30.17_1",
+        "search": "Kabupaten Sijunjung Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Solok",
+        "type": "Kabupaten",
+        "gid": "IDN.30.19_1",
+        "search": "Kabupaten Solok Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Solok Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.30.18_1",
+        "search": "Kabupaten Solok Selatan Sumatera Barat"
+      },
+      {
+        "name": "Kabupaten Tanah Datar",
+        "type": "Kabupaten",
+        "gid": "IDN.30.20_1",
+        "search": "Kabupaten Tanah Datar Sumatera Barat"
+      },
+      {
+        "name": "Kota Bukittinggi",
+        "type": "Kota",
+        "gid": "IDN.30.2_1",
+        "search": "Kota Bukittinggi Sumatera Barat"
+      },
+      {
+        "name": "Kota Padang",
+        "type": "Kota",
+        "gid": "IDN.30.10_1",
+        "search": "Kota Padang Sumatera Barat"
+      },
+      {
+        "name": "Kota Padang Panjang",
+        "type": "Kota",
+        "gid": "IDN.30.8_1",
+        "search": "Kota Padang Panjang Sumatera Barat"
+      },
+      {
+        "name": "Kota Pariaman",
+        "type": "Kota",
+        "gid": "IDN.30.11_1",
+        "search": "Kota Pariaman Sumatera Barat"
+      },
+      {
+        "name": "Kota Payakumbuh",
+        "type": "Kota",
+        "gid": "IDN.30.14_1",
+        "search": "Kota Payakumbuh Sumatera Barat"
+      },
+      {
+        "name": "Kota Sawahlunto",
+        "type": "Kota",
+        "gid": "IDN.30.16_1",
+        "search": "Kota Sawahlunto Sumatera Barat"
+      },
+      {
+        "name": "Kota Solok",
+        "type": "Kota",
+        "gid": "IDN.30.6_1",
+        "search": "Kota Solok Sumatera Barat"
+      }
+    ]
+  },
+  {
+    "province": "Riau",
+    "provinceKey": "Riau",
+    "cities": [
+      {
+        "name": "Kabupaten Bengkalis",
+        "type": "Kabupaten",
+        "gid": "IDN.24.1_1",
+        "search": "Kabupaten Bengkalis Riau"
+      },
+      {
+        "name": "Kabupaten Indragiri Hilir",
+        "type": "Kabupaten",
+        "gid": "IDN.24.3_1",
+        "search": "Kabupaten Indragiri Hilir Riau"
+      },
+      {
+        "name": "Kabupaten Indragiri Hulu",
+        "type": "Kabupaten",
+        "gid": "IDN.24.4_1",
+        "search": "Kabupaten Indragiri Hulu Riau"
+      },
+      {
+        "name": "Kabupaten Kampar",
+        "type": "Kabupaten",
+        "gid": "IDN.24.5_1",
+        "search": "Kabupaten Kampar Riau"
+      },
+      {
+        "name": "Kabupaten Kepulauan Meranti",
+        "type": "Kabupaten",
+        "gid": "IDN.24.6_1",
+        "search": "Kabupaten Kepulauan Meranti Riau"
+      },
+      {
+        "name": "Kabupaten Kuantan Singingi",
+        "type": "Kabupaten",
+        "gid": "IDN.24.7_1",
+        "search": "Kabupaten Kuantan Singingi Riau"
+      },
+      {
+        "name": "Kabupaten Pelalawan",
+        "type": "Kabupaten",
+        "gid": "IDN.24.9_1",
+        "search": "Kabupaten Pelalawan Riau"
+      },
+      {
+        "name": "Kabupaten Rokan Hilir",
+        "type": "Kabupaten",
+        "gid": "IDN.24.10_1",
+        "search": "Kabupaten Rokan Hilir Riau"
+      },
+      {
+        "name": "Kabupaten Rokan Hulu",
+        "type": "Kabupaten",
+        "gid": "IDN.24.11_1",
+        "search": "Kabupaten Rokan Hulu Riau"
+      },
+      {
+        "name": "Kabupaten Siak",
+        "type": "Kabupaten",
+        "gid": "IDN.24.12_1",
+        "search": "Kabupaten Siak Riau"
+      },
+      {
+        "name": "Kota Dumai",
+        "type": "Kota",
+        "gid": "IDN.24.2_1",
+        "search": "Kota Dumai Riau"
+      },
+      {
+        "name": "Kota Pekanbaru",
+        "type": "Kota",
+        "gid": "IDN.24.8_1",
+        "search": "Kota Pekanbaru Riau"
+      }
+    ]
+  },
+  {
+    "province": "Jambi",
+    "provinceKey": "Jambi",
+    "cities": [
+      {
+        "name": "Kabupaten Batang Hari",
+        "type": "Kabupaten",
+        "gid": "IDN.8.1_1",
+        "search": "Kabupaten Batang Hari Jambi"
+      },
+      {
+        "name": "Kabupaten Bungo",
+        "type": "Kabupaten",
+        "gid": "IDN.8.2_1",
+        "search": "Kabupaten Bungo Jambi"
+      },
+      {
+        "name": "Kabupaten Kerinci",
+        "type": "Kabupaten",
+        "gid": "IDN.8.4_1",
+        "search": "Kabupaten Kerinci Jambi"
+      },
+      {
+        "name": "Kabupaten Merangin",
+        "type": "Kabupaten",
+        "gid": "IDN.8.5_1",
+        "search": "Kabupaten Merangin Jambi"
+      },
+      {
+        "name": "Kabupaten Muaro Jambi",
+        "type": "Kabupaten",
+        "gid": "IDN.8.6_1",
+        "search": "Kabupaten Muaro Jambi Jambi"
+      },
+      {
+        "name": "Kabupaten Sarolangun",
+        "type": "Kabupaten",
+        "gid": "IDN.8.7_1",
+        "search": "Kabupaten Sarolangun Jambi"
+      },
+      {
+        "name": "Kabupaten Tanjung Jabung B",
+        "type": "Kabupaten",
+        "gid": "IDN.8.9_1",
+        "search": "Kabupaten Tanjung Jabung B Jambi"
+      },
+      {
+        "name": "Kabupaten Tanjung Jabung T",
+        "type": "Kabupaten",
+        "gid": "IDN.8.10_1",
+        "search": "Kabupaten Tanjung Jabung T Jambi"
+      },
+      {
+        "name": "Kabupaten Tebo",
+        "type": "Kabupaten",
+        "gid": "IDN.8.11_1",
+        "search": "Kabupaten Tebo Jambi"
+      },
+      {
+        "name": "Kota Jambi",
+        "type": "Kota",
+        "gid": "IDN.8.3_1",
+        "search": "Kota Jambi Jambi"
+      },
+      {
+        "name": "Kota Sungai Penuh",
+        "type": "Kota",
+        "gid": "IDN.8.8_1",
+        "search": "Kota Sungai Penuh Jambi"
+      }
+    ]
+  },
+  {
+    "province": "Sumatera Selatan",
+    "provinceKey": "SumateraSelatan",
+    "cities": [
+      {
+        "name": "Kabupaten Banyu Asin",
+        "type": "Kabupaten",
+        "gid": "IDN.31.1_1",
+        "search": "Kabupaten Banyu Asin Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Empat Lawang",
+        "type": "Kabupaten",
+        "gid": "IDN.31.2_1",
+        "search": "Kabupaten Empat Lawang Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Lahat",
+        "type": "Kabupaten",
+        "gid": "IDN.31.3_1",
+        "search": "Kabupaten Lahat Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Muara Enim",
+        "type": "Kabupaten",
+        "gid": "IDN.31.5_1",
+        "search": "Kabupaten Muara Enim Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Musi Banyuasin",
+        "type": "Kabupaten",
+        "gid": "IDN.31.6_1",
+        "search": "Kabupaten Musi Banyuasin Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Musi Rawas",
+        "type": "Kabupaten",
+        "gid": "IDN.31.7_1",
+        "search": "Kabupaten Musi Rawas Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Ogan Ilir",
+        "type": "Kabupaten",
+        "gid": "IDN.31.8_1",
+        "search": "Kabupaten Ogan Ilir Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Ogan Komering Ilir",
+        "type": "Kabupaten",
+        "gid": "IDN.31.9_1",
+        "search": "Kabupaten Ogan Komering Ilir Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Ogan Komering Ulu",
+        "type": "Kabupaten",
+        "gid": "IDN.31.12_1",
+        "search": "Kabupaten Ogan Komering Ulu Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Ogan Komering Ulu Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.31.10_1",
+        "search": "Kabupaten Ogan Komering Ulu Selatan Sumatera Selatan"
+      },
+      {
+        "name": "Kabupaten Ogan Komering Ulu Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.31.11_1",
+        "search": "Kabupaten Ogan Komering Ulu Timur Sumatera Selatan"
+      },
+      {
+        "name": "Kota Lubuklinggau",
+        "type": "Kota",
+        "gid": "IDN.31.4_1",
+        "search": "Kota Lubuklinggau Sumatera Selatan"
+      },
+      {
+        "name": "Kota Pagar Alam",
+        "type": "Kota",
+        "gid": "IDN.31.13_1",
+        "search": "Kota Pagar Alam Sumatera Selatan"
+      },
+      {
+        "name": "Kota Palembang",
+        "type": "Kota",
+        "gid": "IDN.31.14_1",
+        "search": "Kota Palembang Sumatera Selatan"
+      },
+      {
+        "name": "Kota Prabumulih",
+        "type": "Kota",
+        "gid": "IDN.31.15_1",
+        "search": "Kota Prabumulih Sumatera Selatan"
+      }
+    ]
+  },
+  {
+    "province": "Bengkulu",
+    "provinceKey": "Bengkulu",
+    "cities": [
+      {
+        "name": "Kabupaten Bengkulu Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.5.1_1",
+        "search": "Kabupaten Bengkulu Selatan Bengkulu"
+      },
+      {
+        "name": "Kabupaten Bengkulu Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.5.2_1",
+        "search": "Kabupaten Bengkulu Tengah Bengkulu"
+      },
+      {
+        "name": "Kabupaten Bengkulu Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.5.3_1",
+        "search": "Kabupaten Bengkulu Utara Bengkulu"
+      },
+      {
+        "name": "Kabupaten Kaur",
+        "type": "Kabupaten",
+        "gid": "IDN.5.5_1",
+        "search": "Kabupaten Kaur Bengkulu"
+      },
+      {
+        "name": "Kabupaten Kepahiang",
+        "type": "Kabupaten",
+        "gid": "IDN.5.6_1",
+        "search": "Kabupaten Kepahiang Bengkulu"
+      },
+      {
+        "name": "Kabupaten Lebong",
+        "type": "Kabupaten",
+        "gid": "IDN.5.7_1",
+        "search": "Kabupaten Lebong Bengkulu"
+      },
+      {
+        "name": "Kabupaten Mukomuko",
+        "type": "Kabupaten",
+        "gid": "IDN.5.8_1",
+        "search": "Kabupaten Mukomuko Bengkulu"
+      },
+      {
+        "name": "Kabupaten Rejang Lebong",
+        "type": "Kabupaten",
+        "gid": "IDN.5.9_1",
+        "search": "Kabupaten Rejang Lebong Bengkulu"
+      },
+      {
+        "name": "Kabupaten Seluma",
+        "type": "Kabupaten",
+        "gid": "IDN.5.10_1",
+        "search": "Kabupaten Seluma Bengkulu"
+      },
+      {
+        "name": "Kota Bengkulu",
+        "type": "Kota",
+        "gid": "IDN.5.4_1",
+        "search": "Kota Bengkulu Bengkulu"
+      }
+    ]
+  },
+  {
+    "province": "Lampung",
+    "provinceKey": "Lampung",
+    "cities": [
+      {
+        "name": "Kabupaten Lampung Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.17.2_1",
+        "search": "Kabupaten Lampung Barat Lampung"
+      },
+      {
+        "name": "Kabupaten Lampung Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.17.3_1",
+        "search": "Kabupaten Lampung Selatan Lampung"
+      },
+      {
+        "name": "Kabupaten Lampung Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.17.4_1",
+        "search": "Kabupaten Lampung Tengah Lampung"
+      },
+      {
+        "name": "Kabupaten Lampung Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.17.5_1",
+        "search": "Kabupaten Lampung Timur Lampung"
+      },
+      {
+        "name": "Kabupaten Lampung Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.17.6_1",
+        "search": "Kabupaten Lampung Utara Lampung"
+      },
+      {
+        "name": "Kabupaten Mesuji",
+        "type": "Kabupaten",
+        "gid": "IDN.17.7_1",
+        "search": "Kabupaten Mesuji Lampung"
+      },
+      {
+        "name": "Kabupaten Pesawaran",
+        "type": "Kabupaten",
+        "gid": "IDN.17.9_1",
+        "search": "Kabupaten Pesawaran Lampung"
+      },
+      {
+        "name": "Kabupaten Pringsewu",
+        "type": "Kabupaten",
+        "gid": "IDN.17.10_1",
+        "search": "Kabupaten Pringsewu Lampung"
+      },
+      {
+        "name": "Kabupaten Tanggamus",
+        "type": "Kabupaten",
+        "gid": "IDN.17.11_1",
+        "search": "Kabupaten Tanggamus Lampung"
+      },
+      {
+        "name": "Kabupaten Tulang Bawang Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.17.12_1",
+        "search": "Kabupaten Tulang Bawang Barat Lampung"
+      },
+      {
+        "name": "Kabupaten Tulangbawang",
+        "type": "Kabupaten",
+        "gid": "IDN.17.13_1",
+        "search": "Kabupaten Tulangbawang Lampung"
+      },
+      {
+        "name": "Kabupaten Way Kanan",
+        "type": "Kabupaten",
+        "gid": "IDN.17.14_1",
+        "search": "Kabupaten Way Kanan Lampung"
+      },
+      {
+        "name": "Kota Bandar Lampung",
+        "type": "Kota",
+        "gid": "IDN.17.1_1",
+        "search": "Kota Bandar Lampung Lampung"
+      },
+      {
+        "name": "Kota Metro",
+        "type": "Kota",
+        "gid": "IDN.17.8_1",
+        "search": "Kota Metro Lampung"
+      }
+    ]
+  },
+  {
+    "province": "Kepulauan Bangka Belitung",
+    "provinceKey": "BangkaBelitung",
+    "cities": [
+      {
+        "name": "Kabupaten Bangka",
+        "type": "Kabupaten",
+        "gid": "IDN.3.4_1",
+        "search": "Kabupaten Bangka Kepulauan Bangka Belitung"
+      },
+      {
+        "name": "Kabupaten Bangka Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.3.1_1",
+        "search": "Kabupaten Bangka Barat Kepulauan Bangka Belitung"
+      },
+      {
+        "name": "Kabupaten Bangka Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.3.2_1",
+        "search": "Kabupaten Bangka Selatan Kepulauan Bangka Belitung"
+      },
+      {
+        "name": "Kabupaten Bangka Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.3.3_1",
+        "search": "Kabupaten Bangka Tengah Kepulauan Bangka Belitung"
+      },
+      {
+        "name": "Kabupaten Belitung",
+        "type": "Kabupaten",
+        "gid": "IDN.3.6_1",
+        "search": "Kabupaten Belitung Kepulauan Bangka Belitung"
+      },
+      {
+        "name": "Kabupaten Belitung Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.3.5_1",
+        "search": "Kabupaten Belitung Timur Kepulauan Bangka Belitung"
+      },
+      {
+        "name": "Kota Pangkalpinang",
+        "type": "Kota",
+        "gid": "IDN.3.7_1",
+        "search": "Kota Pangkalpinang Kepulauan Bangka Belitung"
+      }
+    ]
+  },
+  {
+    "province": "Kepulauan Riau",
+    "provinceKey": "KepulauanRiau",
+    "cities": [
+      {
+        "name": "Kabupaten Bintan",
+        "type": "Kabupaten",
+        "gid": "IDN.16.2_1",
+        "search": "Kabupaten Bintan Kepulauan Riau"
+      },
+      {
+        "name": "Kabupaten Karimun",
+        "type": "Kabupaten",
+        "gid": "IDN.16.3_1",
+        "search": "Kabupaten Karimun Kepulauan Riau"
+      },
+      {
+        "name": "Kabupaten Kepulauan Anambas",
+        "type": "Kabupaten",
+        "gid": "IDN.16.4_1",
+        "search": "Kabupaten Kepulauan Anambas Kepulauan Riau"
+      },
+      {
+        "name": "Kabupaten Lingga",
+        "type": "Kabupaten",
+        "gid": "IDN.16.5_1",
+        "search": "Kabupaten Lingga Kepulauan Riau"
+      },
+      {
+        "name": "Kabupaten Natuna",
+        "type": "Kabupaten",
+        "gid": "IDN.16.6_1",
+        "search": "Kabupaten Natuna Kepulauan Riau"
+      },
+      {
+        "name": "Kota Batam",
+        "type": "Kota",
+        "gid": "IDN.16.1_1",
+        "search": "Kota Batam Kepulauan Riau"
+      },
+      {
+        "name": "Kota Tanjungpinang",
+        "type": "Kota",
+        "gid": "IDN.16.7_1",
+        "search": "Kota Tanjungpinang Kepulauan Riau"
+      }
+    ]
+  },
+  {
+    "province": "DKI Jakarta",
+    "provinceKey": "JakartaRaya",
+    "cities": [
+      {
+        "name": "Kabupaten Kepulauan Seribu",
+        "type": "Kabupaten",
+        "gid": "IDN.7.6_1",
+        "search": "Kabupaten Kepulauan Seribu DKI Jakarta"
+      },
+      {
+        "name": "Kota Jakarta Barat",
+        "type": "Kota",
+        "gid": "IDN.7.1_1",
+        "search": "Kota Jakarta Barat DKI Jakarta"
+      },
+      {
+        "name": "Kota Jakarta Pusat",
+        "type": "Kota",
+        "gid": "IDN.7.2_1",
+        "search": "Kota Jakarta Pusat DKI Jakarta"
+      },
+      {
+        "name": "Kota Jakarta Selatan",
+        "type": "Kota",
+        "gid": "IDN.7.3_1",
+        "search": "Kota Jakarta Selatan DKI Jakarta"
+      },
+      {
+        "name": "Kota Jakarta Timur",
+        "type": "Kota",
+        "gid": "IDN.7.4_1",
+        "search": "Kota Jakarta Timur DKI Jakarta"
+      },
+      {
+        "name": "Kota Jakarta Utara",
+        "type": "Kota",
+        "gid": "IDN.7.5_1",
+        "search": "Kota Jakarta Utara DKI Jakarta"
+      }
+    ]
+  },
+  {
+    "province": "Jawa Barat",
+    "provinceKey": "JawaBarat",
+    "cities": [
+      {
+        "name": "Kabupaten Bandung",
+        "type": "Kabupaten",
+        "gid": "IDN.9.2_1",
+        "search": "Kabupaten Bandung Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Bandung Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.9.1_1",
+        "search": "Kabupaten Bandung Barat Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Bekasi",
+        "type": "Kabupaten",
+        "gid": "IDN.9.4_1",
+        "search": "Kabupaten Bekasi Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Bogor",
+        "type": "Kabupaten",
+        "gid": "IDN.9.5_1",
+        "search": "Kabupaten Bogor Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Ciamis",
+        "type": "Kabupaten",
+        "gid": "IDN.9.6_1",
+        "search": "Kabupaten Ciamis Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Cianjur",
+        "type": "Kabupaten",
+        "gid": "IDN.9.7_1",
+        "search": "Kabupaten Cianjur Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Cirebon",
+        "type": "Kabupaten",
+        "gid": "IDN.9.9_1",
+        "search": "Kabupaten Cirebon Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Garut",
+        "type": "Kabupaten",
+        "gid": "IDN.9.11_1",
+        "search": "Kabupaten Garut Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Indramayu",
+        "type": "Kabupaten",
+        "gid": "IDN.9.12_1",
+        "search": "Kabupaten Indramayu Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Karawang",
+        "type": "Kabupaten",
+        "gid": "IDN.9.13_1",
+        "search": "Kabupaten Karawang Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Kuningan",
+        "type": "Kabupaten",
+        "gid": "IDN.9.20_1",
+        "search": "Kabupaten Kuningan Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Majalengka",
+        "type": "Kabupaten",
+        "gid": "IDN.9.21_1",
+        "search": "Kabupaten Majalengka Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Purwakarta",
+        "type": "Kabupaten",
+        "gid": "IDN.9.22_1",
+        "search": "Kabupaten Purwakarta Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Subang",
+        "type": "Kabupaten",
+        "gid": "IDN.9.23_1",
+        "search": "Kabupaten Subang Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Sukabumi",
+        "type": "Kabupaten",
+        "gid": "IDN.9.24_1",
+        "search": "Kabupaten Sukabumi Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Sumedang",
+        "type": "Kabupaten",
+        "gid": "IDN.9.25_1",
+        "search": "Kabupaten Sumedang Jawa Barat"
+      },
+      {
+        "name": "Kabupaten Tasikmalaya",
+        "type": "Kabupaten",
+        "gid": "IDN.9.26_1",
+        "search": "Kabupaten Tasikmalaya Jawa Barat"
+      },
+      {
+        "name": "Kota Bandung",
+        "type": "Kota",
+        "gid": "IDN.9.14_1",
+        "search": "Kota Bandung Jawa Barat"
+      },
+      {
+        "name": "Kota Banjar",
+        "type": "Kota",
+        "gid": "IDN.9.3_1",
+        "search": "Kota Banjar Jawa Barat"
+      },
+      {
+        "name": "Kota Bekasi",
+        "type": "Kota",
+        "gid": "IDN.9.15_1",
+        "search": "Kota Bekasi Jawa Barat"
+      },
+      {
+        "name": "Kota Bogor",
+        "type": "Kota",
+        "gid": "IDN.9.16_1",
+        "search": "Kota Bogor Jawa Barat"
+      },
+      {
+        "name": "Kota Cimahi",
+        "type": "Kota",
+        "gid": "IDN.9.8_1",
+        "search": "Kota Cimahi Jawa Barat"
+      },
+      {
+        "name": "Kota Cirebon",
+        "type": "Kota",
+        "gid": "IDN.9.17_1",
+        "search": "Kota Cirebon Jawa Barat"
+      },
+      {
+        "name": "Kota Depok",
+        "type": "Kota",
+        "gid": "IDN.9.10_1",
+        "search": "Kota Depok Jawa Barat"
+      },
+      {
+        "name": "Kota Sukabumi",
+        "type": "Kota",
+        "gid": "IDN.9.18_1",
+        "search": "Kota Sukabumi Jawa Barat"
+      },
+      {
+        "name": "Kota Tasikmalaya",
+        "type": "Kota",
+        "gid": "IDN.9.19_1",
+        "search": "Kota Tasikmalaya Jawa Barat"
+      },
+      {
+        "name": "Waduk Cirata",
+        "type": "WaterBody",
+        "gid": "IDN.9.27_1",
+        "search": "Waduk Cirata Jawa Barat"
+      }
+    ]
+  },
+  {
+    "province": "Jawa Tengah",
+    "provinceKey": "JawaTengah",
+    "cities": [
+      {
+        "name": "Kabupaten Banjarnegara",
+        "type": "Kabupaten",
+        "gid": "IDN.10.1_1",
+        "search": "Kabupaten Banjarnegara Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Banyumas",
+        "type": "Kabupaten",
+        "gid": "IDN.10.2_1",
+        "search": "Kabupaten Banyumas Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Batang",
+        "type": "Kabupaten",
+        "gid": "IDN.10.3_1",
+        "search": "Kabupaten Batang Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Blora",
+        "type": "Kabupaten",
+        "gid": "IDN.10.4_1",
+        "search": "Kabupaten Blora Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Boyolali",
+        "type": "Kabupaten",
+        "gid": "IDN.10.5_1",
+        "search": "Kabupaten Boyolali Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Brebes",
+        "type": "Kabupaten",
+        "gid": "IDN.10.6_1",
+        "search": "Kabupaten Brebes Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Cilacap",
+        "type": "Kabupaten",
+        "gid": "IDN.10.7_1",
+        "search": "Kabupaten Cilacap Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Demak",
+        "type": "Kabupaten",
+        "gid": "IDN.10.8_1",
+        "search": "Kabupaten Demak Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Grobogan",
+        "type": "Kabupaten",
+        "gid": "IDN.10.9_1",
+        "search": "Kabupaten Grobogan Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Jepara",
+        "type": "Kabupaten",
+        "gid": "IDN.10.10_1",
+        "search": "Kabupaten Jepara Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Karanganyar",
+        "type": "Kabupaten",
+        "gid": "IDN.10.11_1",
+        "search": "Kabupaten Karanganyar Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Kebumen",
+        "type": "Kabupaten",
+        "gid": "IDN.10.12_1",
+        "search": "Kabupaten Kebumen Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Kendal",
+        "type": "Kabupaten",
+        "gid": "IDN.10.13_1",
+        "search": "Kabupaten Kendal Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Klaten",
+        "type": "Kabupaten",
+        "gid": "IDN.10.14_1",
+        "search": "Kabupaten Klaten Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Kudus",
+        "type": "Kabupaten",
+        "gid": "IDN.10.19_1",
+        "search": "Kabupaten Kudus Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Magelang",
+        "type": "Kabupaten",
+        "gid": "IDN.10.20_1",
+        "search": "Kabupaten Magelang Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Pati",
+        "type": "Kabupaten",
+        "gid": "IDN.10.21_1",
+        "search": "Kabupaten Pati Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Pekalongan",
+        "type": "Kabupaten",
+        "gid": "IDN.10.22_1",
+        "search": "Kabupaten Pekalongan Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Pemalang",
+        "type": "Kabupaten",
+        "gid": "IDN.10.23_1",
+        "search": "Kabupaten Pemalang Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Purbalingga",
+        "type": "Kabupaten",
+        "gid": "IDN.10.24_1",
+        "search": "Kabupaten Purbalingga Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Purworejo",
+        "type": "Kabupaten",
+        "gid": "IDN.10.25_1",
+        "search": "Kabupaten Purworejo Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Rembang",
+        "type": "Kabupaten",
+        "gid": "IDN.10.26_1",
+        "search": "Kabupaten Rembang Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Semarang",
+        "type": "Kabupaten",
+        "gid": "IDN.10.28_1",
+        "search": "Kabupaten Semarang Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Sragen",
+        "type": "Kabupaten",
+        "gid": "IDN.10.29_1",
+        "search": "Kabupaten Sragen Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Sukoharjo",
+        "type": "Kabupaten",
+        "gid": "IDN.10.30_1",
+        "search": "Kabupaten Sukoharjo Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Tegal",
+        "type": "Kabupaten",
+        "gid": "IDN.10.32_1",
+        "search": "Kabupaten Tegal Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Temanggung",
+        "type": "Kabupaten",
+        "gid": "IDN.10.33_1",
+        "search": "Kabupaten Temanggung Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Wonogiri",
+        "type": "Kabupaten",
+        "gid": "IDN.10.35_1",
+        "search": "Kabupaten Wonogiri Jawa Tengah"
+      },
+      {
+        "name": "Kabupaten Wonosobo",
+        "type": "Kabupaten",
+        "gid": "IDN.10.36_1",
+        "search": "Kabupaten Wonosobo Jawa Tengah"
+      },
+      {
+        "name": "Kota Magelang",
+        "type": "Kota",
+        "gid": "IDN.10.15_1",
+        "search": "Kota Magelang Jawa Tengah"
+      },
+      {
+        "name": "Kota Pekalongan",
+        "type": "Kota",
+        "gid": "IDN.10.16_1",
+        "search": "Kota Pekalongan Jawa Tengah"
+      },
+      {
+        "name": "Kota Salatiga",
+        "type": "Kota",
+        "gid": "IDN.10.27_1",
+        "search": "Kota Salatiga Jawa Tengah"
+      },
+      {
+        "name": "Kota Semarang",
+        "type": "Kota",
+        "gid": "IDN.10.17_1",
+        "search": "Kota Semarang Jawa Tengah"
+      },
+      {
+        "name": "Kota Surakarta",
+        "type": "Kota",
+        "gid": "IDN.10.31_1",
+        "search": "Kota Surakarta Jawa Tengah"
+      },
+      {
+        "name": "Kota Tegal",
+        "type": "Kota",
+        "gid": "IDN.10.18_1",
+        "search": "Kota Tegal Jawa Tengah"
+      },
+      {
+        "name": "Waduk Kedungombo",
+        "type": "WaterBody",
+        "gid": "IDN.10.34_1",
+        "search": "Waduk Kedungombo Jawa Tengah"
+      }
+    ]
+  },
+  {
+    "province": "DI Yogyakarta",
+    "provinceKey": "Yogyakarta",
+    "cities": [
+      {
+        "name": "Kabupaten Bantul",
+        "type": "Kabupaten",
+        "gid": "IDN.33.1_1",
+        "search": "Kabupaten Bantul DI Yogyakarta"
+      },
+      {
+        "name": "Kabupaten Gunung Kidul",
+        "type": "Kabupaten",
+        "gid": "IDN.33.2_1",
+        "search": "Kabupaten Gunung Kidul DI Yogyakarta"
+      },
+      {
+        "name": "Kabupaten Kulon Progo",
+        "type": "Kabupaten",
+        "gid": "IDN.33.4_1",
+        "search": "Kabupaten Kulon Progo DI Yogyakarta"
+      },
+      {
+        "name": "Kabupaten Sleman",
+        "type": "Kabupaten",
+        "gid": "IDN.33.5_1",
+        "search": "Kabupaten Sleman DI Yogyakarta"
+      },
+      {
+        "name": "Kota Yogyakarta",
+        "type": "Kota",
+        "gid": "IDN.33.3_1",
+        "search": "Kota Yogyakarta DI Yogyakarta"
+      }
+    ]
+  },
+  {
+    "province": "Jawa Timur",
+    "provinceKey": "JawaTimur",
+    "cities": [
+      {
+        "name": "Kabupaten Bangkalan",
+        "type": "Kabupaten",
+        "gid": "IDN.11.1_1",
+        "search": "Kabupaten Bangkalan Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Banyuwangi",
+        "type": "Kabupaten",
+        "gid": "IDN.11.2_1",
+        "search": "Kabupaten Banyuwangi Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Blitar",
+        "type": "Kabupaten",
+        "gid": "IDN.11.4_1",
+        "search": "Kabupaten Blitar Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Bojonegoro",
+        "type": "Kabupaten",
+        "gid": "IDN.11.5_1",
+        "search": "Kabupaten Bojonegoro Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Bondowoso",
+        "type": "Kabupaten",
+        "gid": "IDN.11.6_1",
+        "search": "Kabupaten Bondowoso Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Gresik",
+        "type": "Kabupaten",
+        "gid": "IDN.11.7_1",
+        "search": "Kabupaten Gresik Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Jember",
+        "type": "Kabupaten",
+        "gid": "IDN.11.8_1",
+        "search": "Kabupaten Jember Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Jombang",
+        "type": "Kabupaten",
+        "gid": "IDN.11.9_1",
+        "search": "Kabupaten Jombang Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Kediri",
+        "type": "Kabupaten",
+        "gid": "IDN.11.10_1",
+        "search": "Kabupaten Kediri Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Lamongan",
+        "type": "Kabupaten",
+        "gid": "IDN.11.18_1",
+        "search": "Kabupaten Lamongan Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Lumajang",
+        "type": "Kabupaten",
+        "gid": "IDN.11.19_1",
+        "search": "Kabupaten Lumajang Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Madiun",
+        "type": "Kabupaten",
+        "gid": "IDN.11.20_1",
+        "search": "Kabupaten Madiun Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Magetan",
+        "type": "Kabupaten",
+        "gid": "IDN.11.21_1",
+        "search": "Kabupaten Magetan Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Malang",
+        "type": "Kabupaten",
+        "gid": "IDN.11.22_1",
+        "search": "Kabupaten Malang Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Mojokerto",
+        "type": "Kabupaten",
+        "gid": "IDN.11.23_1",
+        "search": "Kabupaten Mojokerto Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Nganjuk",
+        "type": "Kabupaten",
+        "gid": "IDN.11.24_1",
+        "search": "Kabupaten Nganjuk Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Ngawi",
+        "type": "Kabupaten",
+        "gid": "IDN.11.25_1",
+        "search": "Kabupaten Ngawi Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Pacitan",
+        "type": "Kabupaten",
+        "gid": "IDN.11.26_1",
+        "search": "Kabupaten Pacitan Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Pamekasan",
+        "type": "Kabupaten",
+        "gid": "IDN.11.27_1",
+        "search": "Kabupaten Pamekasan Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Pasuruan",
+        "type": "Kabupaten",
+        "gid": "IDN.11.28_1",
+        "search": "Kabupaten Pasuruan Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Ponorogo",
+        "type": "Kabupaten",
+        "gid": "IDN.11.29_1",
+        "search": "Kabupaten Ponorogo Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Probolinggo",
+        "type": "Kabupaten",
+        "gid": "IDN.11.30_1",
+        "search": "Kabupaten Probolinggo Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Sampang",
+        "type": "Kabupaten",
+        "gid": "IDN.11.31_1",
+        "search": "Kabupaten Sampang Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Sidoarjo",
+        "type": "Kabupaten",
+        "gid": "IDN.11.32_1",
+        "search": "Kabupaten Sidoarjo Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Situbondo",
+        "type": "Kabupaten",
+        "gid": "IDN.11.33_1",
+        "search": "Kabupaten Situbondo Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Sumenep",
+        "type": "Kabupaten",
+        "gid": "IDN.11.34_1",
+        "search": "Kabupaten Sumenep Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Trenggalek",
+        "type": "Kabupaten",
+        "gid": "IDN.11.36_1",
+        "search": "Kabupaten Trenggalek Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Tuban",
+        "type": "Kabupaten",
+        "gid": "IDN.11.37_1",
+        "search": "Kabupaten Tuban Jawa Timur"
+      },
+      {
+        "name": "Kabupaten Tulungagung",
+        "type": "Kabupaten",
+        "gid": "IDN.11.38_1",
+        "search": "Kabupaten Tulungagung Jawa Timur"
+      },
+      {
+        "name": "Kota Batu",
+        "type": "Kota",
+        "gid": "IDN.11.3_1",
+        "search": "Kota Batu Jawa Timur"
+      },
+      {
+        "name": "Kota Blitar",
+        "type": "Kota",
+        "gid": "IDN.11.11_1",
+        "search": "Kota Blitar Jawa Timur"
+      },
+      {
+        "name": "Kota Kediri",
+        "type": "Kota",
+        "gid": "IDN.11.12_1",
+        "search": "Kota Kediri Jawa Timur"
+      },
+      {
+        "name": "Kota Madiun",
+        "type": "Kota",
+        "gid": "IDN.11.13_1",
+        "search": "Kota Madiun Jawa Timur"
+      },
+      {
+        "name": "Kota Malang",
+        "type": "Kota",
+        "gid": "IDN.11.14_1",
+        "search": "Kota Malang Jawa Timur"
+      },
+      {
+        "name": "Kota Mojokerto",
+        "type": "Kota",
+        "gid": "IDN.11.15_1",
+        "search": "Kota Mojokerto Jawa Timur"
+      },
+      {
+        "name": "Kota Pasuruan",
+        "type": "Kota",
+        "gid": "IDN.11.16_1",
+        "search": "Kota Pasuruan Jawa Timur"
+      },
+      {
+        "name": "Kota Probolinggo",
+        "type": "Kota",
+        "gid": "IDN.11.17_1",
+        "search": "Kota Probolinggo Jawa Timur"
+      },
+      {
+        "name": "Kota Surabaya",
+        "type": "Kota",
+        "gid": "IDN.11.35_1",
+        "search": "Kota Surabaya Jawa Timur"
+      }
+    ]
+  },
+  {
+    "province": "Banten",
+    "provinceKey": "Banten",
+    "cities": [
+      {
+        "name": "Kabupaten Lebak",
+        "type": "Kabupaten",
+        "gid": "IDN.4.4_1",
+        "search": "Kabupaten Lebak Banten"
+      },
+      {
+        "name": "Kabupaten Pandeglang",
+        "type": "Kabupaten",
+        "gid": "IDN.4.5_1",
+        "search": "Kabupaten Pandeglang Banten"
+      },
+      {
+        "name": "Kabupaten Serang",
+        "type": "Kabupaten",
+        "gid": "IDN.4.6_1",
+        "search": "Kabupaten Serang Banten"
+      },
+      {
+        "name": "Kabupaten Tangerang",
+        "type": "Kabupaten",
+        "gid": "IDN.4.8_1",
+        "search": "Kabupaten Tangerang Banten"
+      },
+      {
+        "name": "Kota Cilegon",
+        "type": "Kota",
+        "gid": "IDN.4.1_1",
+        "search": "Kota Cilegon Banten"
+      },
+      {
+        "name": "Kota Serang",
+        "type": "Kota",
+        "gid": "IDN.4.2_1",
+        "search": "Kota Serang Banten"
+      },
+      {
+        "name": "Kota Tangerang",
+        "type": "Kota",
+        "gid": "IDN.4.3_1",
+        "search": "Kota Tangerang Banten"
+      },
+      {
+        "name": "Kota Tangerang Selatan",
+        "type": "Kota",
+        "gid": "IDN.4.7_1",
+        "search": "Kota Tangerang Selatan Banten"
+      }
+    ]
+  },
+  {
+    "province": "Bali",
+    "provinceKey": "Bali",
+    "cities": [
+      {
+        "name": "Kabupaten Badung",
+        "type": "Kabupaten",
+        "gid": "IDN.2.1_1",
+        "search": "Kabupaten Badung Bali"
+      },
+      {
+        "name": "Kabupaten Bangli",
+        "type": "Kabupaten",
+        "gid": "IDN.2.2_1",
+        "search": "Kabupaten Bangli Bali"
+      },
+      {
+        "name": "Kabupaten Buleleng",
+        "type": "Kabupaten",
+        "gid": "IDN.2.3_1",
+        "search": "Kabupaten Buleleng Bali"
+      },
+      {
+        "name": "Kabupaten Gianyar",
+        "type": "Kabupaten",
+        "gid": "IDN.2.5_1",
+        "search": "Kabupaten Gianyar Bali"
+      },
+      {
+        "name": "Kabupaten Jembrana",
+        "type": "Kabupaten",
+        "gid": "IDN.2.6_1",
+        "search": "Kabupaten Jembrana Bali"
+      },
+      {
+        "name": "Kabupaten Karangasem",
+        "type": "Kabupaten",
+        "gid": "IDN.2.7_1",
+        "search": "Kabupaten Karangasem Bali"
+      },
+      {
+        "name": "Kabupaten Klungkung",
+        "type": "Kabupaten",
+        "gid": "IDN.2.8_1",
+        "search": "Kabupaten Klungkung Bali"
+      },
+      {
+        "name": "Kabupaten Tabanan",
+        "type": "Kabupaten",
+        "gid": "IDN.2.9_1",
+        "search": "Kabupaten Tabanan Bali"
+      },
+      {
+        "name": "Kota Denpasar",
+        "type": "Kota",
+        "gid": "IDN.2.4_1",
+        "search": "Kota Denpasar Bali"
+      }
+    ]
+  },
+  {
+    "province": "Nusa Tenggara Barat",
+    "provinceKey": "NusaTenggaraBarat",
+    "cities": [
+      {
+        "name": "Kabupaten Bima",
+        "type": "Kabupaten",
+        "gid": "IDN.20.1_1",
+        "search": "Kabupaten Bima Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kabupaten Dompu",
+        "type": "Kabupaten",
+        "gid": "IDN.20.2_1",
+        "search": "Kabupaten Dompu Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kabupaten Lombok Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.20.4_1",
+        "search": "Kabupaten Lombok Barat Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kabupaten Lombok Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.20.5_1",
+        "search": "Kabupaten Lombok Tengah Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kabupaten Lombok Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.20.6_1",
+        "search": "Kabupaten Lombok Timur Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kabupaten Lombok Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.20.7_1",
+        "search": "Kabupaten Lombok Utara Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kabupaten Sumbawa",
+        "type": "Kabupaten",
+        "gid": "IDN.20.10_1",
+        "search": "Kabupaten Sumbawa Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kabupaten Sumbawa Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.20.9_1",
+        "search": "Kabupaten Sumbawa Barat Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kota Bima",
+        "type": "Kota",
+        "gid": "IDN.20.3_1",
+        "search": "Kota Bima Nusa Tenggara Barat"
+      },
+      {
+        "name": "Kota Mataram",
+        "type": "Kota",
+        "gid": "IDN.20.8_1",
+        "search": "Kota Mataram Nusa Tenggara Barat"
+      }
+    ]
+  },
+  {
+    "province": "Nusa Tenggara Timur",
+    "provinceKey": "NusaTenggaraTimur",
+    "cities": [
+      {
+        "name": "Kabupaten Alor",
+        "type": "Kabupaten",
+        "gid": "IDN.21.1_1",
+        "search": "Kabupaten Alor Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Belu",
+        "type": "Kabupaten",
+        "gid": "IDN.21.2_1",
+        "search": "Kabupaten Belu Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Ende",
+        "type": "Kabupaten",
+        "gid": "IDN.21.3_1",
+        "search": "Kabupaten Ende Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Flores Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.21.4_1",
+        "search": "Kabupaten Flores Timur Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Kupang",
+        "type": "Kabupaten",
+        "gid": "IDN.21.6_1",
+        "search": "Kabupaten Kupang Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Lembata",
+        "type": "Kabupaten",
+        "gid": "IDN.21.7_1",
+        "search": "Kabupaten Lembata Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Manggarai",
+        "type": "Kabupaten",
+        "gid": "IDN.21.10_1",
+        "search": "Kabupaten Manggarai Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Manggarai Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.21.8_1",
+        "search": "Kabupaten Manggarai Barat Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Manggarai Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.21.9_1",
+        "search": "Kabupaten Manggarai Timur Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Nagekeo",
+        "type": "Kabupaten",
+        "gid": "IDN.21.11_1",
+        "search": "Kabupaten Nagekeo Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Ngada",
+        "type": "Kabupaten",
+        "gid": "IDN.21.12_1",
+        "search": "Kabupaten Ngada Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Rote Ndao",
+        "type": "Kabupaten",
+        "gid": "IDN.21.13_1",
+        "search": "Kabupaten Rote Ndao Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Sabu Raijua",
+        "type": "Kabupaten",
+        "gid": "IDN.21.14_1",
+        "search": "Kabupaten Sabu Raijua Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Sikka",
+        "type": "Kabupaten",
+        "gid": "IDN.21.15_1",
+        "search": "Kabupaten Sikka Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Sumba Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.21.17_1",
+        "search": "Kabupaten Sumba Barat Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Sumba Barat Daya",
+        "type": "Kabupaten",
+        "gid": "IDN.21.16_1",
+        "search": "Kabupaten Sumba Barat Daya Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Sumba Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.21.18_1",
+        "search": "Kabupaten Sumba Tengah Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Sumba Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.21.19_1",
+        "search": "Kabupaten Sumba Timur Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Timor Tengah Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.21.20_1",
+        "search": "Kabupaten Timor Tengah Selatan Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kabupaten Timor Tengah Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.21.21_1",
+        "search": "Kabupaten Timor Tengah Utara Nusa Tenggara Timur"
+      },
+      {
+        "name": "Kota Kupang",
+        "type": "Kota",
+        "gid": "IDN.21.5_1",
+        "search": "Kota Kupang Nusa Tenggara Timur"
+      }
+    ]
+  },
+  {
+    "province": "Kalimantan Barat",
+    "provinceKey": "KalimantanBarat",
+    "cities": [
+      {
+        "name": "Kabupaten Bengkayang",
+        "type": "Kabupaten",
+        "gid": "IDN.12.1_1",
+        "search": "Kabupaten Bengkayang Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Kapuas Hulu",
+        "type": "Kabupaten",
+        "gid": "IDN.12.2_1",
+        "search": "Kabupaten Kapuas Hulu Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Kayong Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.12.3_1",
+        "search": "Kabupaten Kayong Utara Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Ketapang",
+        "type": "Kabupaten",
+        "gid": "IDN.12.4_1",
+        "search": "Kabupaten Ketapang Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Kubu Raya",
+        "type": "Kabupaten",
+        "gid": "IDN.12.6_1",
+        "search": "Kabupaten Kubu Raya Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Landak",
+        "type": "Kabupaten",
+        "gid": "IDN.12.7_1",
+        "search": "Kabupaten Landak Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Melawi",
+        "type": "Kabupaten",
+        "gid": "IDN.12.8_1",
+        "search": "Kabupaten Melawi Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Pontianak",
+        "type": "Kabupaten",
+        "gid": "IDN.12.9_1",
+        "search": "Kabupaten Pontianak Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Sambas",
+        "type": "Kabupaten",
+        "gid": "IDN.12.10_1",
+        "search": "Kabupaten Sambas Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Sanggau",
+        "type": "Kabupaten",
+        "gid": "IDN.12.11_1",
+        "search": "Kabupaten Sanggau Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Sekadau",
+        "type": "Kabupaten",
+        "gid": "IDN.12.12_1",
+        "search": "Kabupaten Sekadau Kalimantan Barat"
+      },
+      {
+        "name": "Kabupaten Sintang",
+        "type": "Kabupaten",
+        "gid": "IDN.12.14_1",
+        "search": "Kabupaten Sintang Kalimantan Barat"
+      },
+      {
+        "name": "Kota Pontianak",
+        "type": "Kota",
+        "gid": "IDN.12.5_1",
+        "search": "Kota Pontianak Kalimantan Barat"
+      },
+      {
+        "name": "Kota Singkawang",
+        "type": "Kota",
+        "gid": "IDN.12.13_1",
+        "search": "Kota Singkawang Kalimantan Barat"
+      }
+    ]
+  },
+  {
+    "province": "Kalimantan Tengah",
+    "provinceKey": "KalimantanTengah",
+    "cities": [
+      {
+        "name": "Kabupaten Barito Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.14.1_1",
+        "search": "Kabupaten Barito Selatan Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Barito Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.14.2_1",
+        "search": "Kabupaten Barito Timur Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Barito Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.14.3_1",
+        "search": "Kabupaten Barito Utara Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Gunung Mas",
+        "type": "Kabupaten",
+        "gid": "IDN.14.4_1",
+        "search": "Kabupaten Gunung Mas Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Kapuas",
+        "type": "Kabupaten",
+        "gid": "IDN.14.5_1",
+        "search": "Kabupaten Kapuas Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Katingan",
+        "type": "Kabupaten",
+        "gid": "IDN.14.6_1",
+        "search": "Kabupaten Katingan Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Kotawaringin Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.14.7_1",
+        "search": "Kabupaten Kotawaringin Barat Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Kotawaringin Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.14.8_1",
+        "search": "Kabupaten Kotawaringin Timur Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Lamandau",
+        "type": "Kabupaten",
+        "gid": "IDN.14.9_1",
+        "search": "Kabupaten Lamandau Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Murung Raya",
+        "type": "Kabupaten",
+        "gid": "IDN.14.10_1",
+        "search": "Kabupaten Murung Raya Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Pulang Pisau",
+        "type": "Kabupaten",
+        "gid": "IDN.14.12_1",
+        "search": "Kabupaten Pulang Pisau Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Seruyan",
+        "type": "Kabupaten",
+        "gid": "IDN.14.13_1",
+        "search": "Kabupaten Seruyan Kalimantan Tengah"
+      },
+      {
+        "name": "Kabupaten Sukamara",
+        "type": "Kabupaten",
+        "gid": "IDN.14.14_1",
+        "search": "Kabupaten Sukamara Kalimantan Tengah"
+      },
+      {
+        "name": "Kota Palangka Raya",
+        "type": "Kota",
+        "gid": "IDN.14.11_1",
+        "search": "Kota Palangka Raya Kalimantan Tengah"
+      }
+    ]
+  },
+  {
+    "province": "Kalimantan Selatan",
+    "provinceKey": "KalimantanSelatan",
+    "cities": [
+      {
+        "name": "Kabupaten Balangan",
+        "type": "Kabupaten",
+        "gid": "IDN.13.1_1",
+        "search": "Kabupaten Balangan Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Banjar",
+        "type": "Kabupaten",
+        "gid": "IDN.13.3_1",
+        "search": "Kabupaten Banjar Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Barito Kuala",
+        "type": "Kabupaten",
+        "gid": "IDN.13.5_1",
+        "search": "Kabupaten Barito Kuala Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Hulu Sungai Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.13.6_1",
+        "search": "Kabupaten Hulu Sungai Selatan Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Hulu Sungai Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.13.7_1",
+        "search": "Kabupaten Hulu Sungai Tengah Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Hulu Sungai Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.13.8_1",
+        "search": "Kabupaten Hulu Sungai Utara Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Kota Baru",
+        "type": "Kabupaten",
+        "gid": "IDN.13.9_1",
+        "search": "Kabupaten Kota Baru Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Tabalong",
+        "type": "Kabupaten",
+        "gid": "IDN.13.10_1",
+        "search": "Kabupaten Tabalong Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Tanah Bumbu",
+        "type": "Kabupaten",
+        "gid": "IDN.13.11_1",
+        "search": "Kabupaten Tanah Bumbu Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Tanah Laut",
+        "type": "Kabupaten",
+        "gid": "IDN.13.12_1",
+        "search": "Kabupaten Tanah Laut Kalimantan Selatan"
+      },
+      {
+        "name": "Kabupaten Tapin",
+        "type": "Kabupaten",
+        "gid": "IDN.13.13_1",
+        "search": "Kabupaten Tapin Kalimantan Selatan"
+      },
+      {
+        "name": "Kota Banjar Baru",
+        "type": "Kota",
+        "gid": "IDN.13.2_1",
+        "search": "Kota Banjar Baru Kalimantan Selatan"
+      },
+      {
+        "name": "Kota Banjarmasin",
+        "type": "Kota",
+        "gid": "IDN.13.4_1",
+        "search": "Kota Banjarmasin Kalimantan Selatan"
+      }
+    ]
+  },
+  {
+    "province": "Kalimantan Timur",
+    "provinceKey": "KalimantanTimur",
+    "cities": [
+      {
+        "name": "Kabupaten Berau",
+        "type": "Kabupaten",
+        "gid": "IDN.34.2_1",
+        "search": "Kabupaten Berau Kalimantan Timur"
+      },
+      {
+        "name": "Kabupaten Kutai Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.34.5_1",
+        "search": "Kabupaten Kutai Barat Kalimantan Timur"
+      },
+      {
+        "name": "Kabupaten Kutai Kartanegara",
+        "type": "Kabupaten",
+        "gid": "IDN.34.6_1",
+        "search": "Kabupaten Kutai Kartanegara Kalimantan Timur"
+      },
+      {
+        "name": "Kabupaten Kutai Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.34.7_1",
+        "search": "Kabupaten Kutai Timur Kalimantan Timur"
+      },
+      {
+        "name": "Kabupaten Paser",
+        "type": "Kabupaten",
+        "gid": "IDN.34.10_1",
+        "search": "Kabupaten Paser Kalimantan Timur"
+      },
+      {
+        "name": "Kabupaten Penajam Paser Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.34.11_1",
+        "search": "Kabupaten Penajam Paser Utara Kalimantan Timur"
+      },
+      {
+        "name": "Kota Balikpapan",
+        "type": "Kota",
+        "gid": "IDN.34.1_1",
+        "search": "Kota Balikpapan Kalimantan Timur"
+      },
+      {
+        "name": "Kota Bontang",
+        "type": "Kota",
+        "gid": "IDN.34.3_1",
+        "search": "Kota Bontang Kalimantan Timur"
+      },
+      {
+        "name": "Kota Samarinda",
+        "type": "Kota",
+        "gid": "IDN.34.12_1",
+        "search": "Kota Samarinda Kalimantan Timur"
+      }
+    ]
+  },
+  {
+    "province": "Kalimantan Utara",
+    "provinceKey": "KalimantanUtara",
+    "cities": [
+      {
+        "name": "Bulungan",
+        "type": "NA",
+        "gid": "IDN.35.4",
+        "search": "Bulungan Kalimantan Utara"
+      },
+      {
+        "name": "Malinau",
+        "type": "NA",
+        "gid": "IDN.35.8",
+        "search": "Malinau Kalimantan Utara"
+      },
+      {
+        "name": "Nunukan",
+        "type": "NA",
+        "gid": "IDN.35.9",
+        "search": "Nunukan Kalimantan Utara"
+      },
+      {
+        "name": "Tana Tidung",
+        "type": "NA",
+        "gid": "IDN.35.13",
+        "search": "Tana Tidung Kalimantan Utara"
+      },
+      {
+        "name": "Tarakan",
+        "type": "NA",
+        "gid": "IDN.35.14",
+        "search": "Tarakan Kalimantan Utara"
+      }
+    ]
+  },
+  {
+    "province": "Sulawesi Utara",
+    "provinceKey": "SulawesiUtara",
+    "cities": [
+      {
+        "name": "Kabupaten Bolaang Mongondow",
+        "type": "Kabupaten",
+        "gid": "IDN.29.5_1",
+        "search": "Kabupaten Bolaang Mongondow Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Bolaang Mongondow Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.29.2_1",
+        "search": "Kabupaten Bolaang Mongondow Selatan Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Bolaang Mongondow Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.29.3_1",
+        "search": "Kabupaten Bolaang Mongondow Timur Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Bolaang Mongondow Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.29.4_1",
+        "search": "Kabupaten Bolaang Mongondow Utara Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Kepulauan Sangihe",
+        "type": "Kabupaten",
+        "gid": "IDN.29.6_1",
+        "search": "Kabupaten Kepulauan Sangihe Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Kepulauan Talaud",
+        "type": "Kabupaten",
+        "gid": "IDN.29.7_1",
+        "search": "Kabupaten Kepulauan Talaud Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Minahasa",
+        "type": "Kabupaten",
+        "gid": "IDN.29.13_1",
+        "search": "Kabupaten Minahasa Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Minahasa Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.29.10_1",
+        "search": "Kabupaten Minahasa Selatan Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Minahasa Tenggara",
+        "type": "Kabupaten",
+        "gid": "IDN.29.11_1",
+        "search": "Kabupaten Minahasa Tenggara Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Minahasa Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.29.12_1",
+        "search": "Kabupaten Minahasa Utara Sulawesi Utara"
+      },
+      {
+        "name": "Kabupaten Siau Tagulandang Biaro",
+        "type": "Kabupaten",
+        "gid": "IDN.29.14_1",
+        "search": "Kabupaten Siau Tagulandang Biaro Sulawesi Utara"
+      },
+      {
+        "name": "Kota Bitung",
+        "type": "Kota",
+        "gid": "IDN.29.1_1",
+        "search": "Kota Bitung Sulawesi Utara"
+      },
+      {
+        "name": "Kota Kotamobagu",
+        "type": "Kota",
+        "gid": "IDN.29.8_1",
+        "search": "Kota Kotamobagu Sulawesi Utara"
+      },
+      {
+        "name": "Kota Manado",
+        "type": "Kota",
+        "gid": "IDN.29.9_1",
+        "search": "Kota Manado Sulawesi Utara"
+      },
+      {
+        "name": "Kota Tomohon",
+        "type": "Kota",
+        "gid": "IDN.29.15_1",
+        "search": "Kota Tomohon Sulawesi Utara"
+      }
+    ]
+  },
+  {
+    "province": "Sulawesi Tengah",
+    "provinceKey": "SulawesiTengah",
+    "cities": [
+      {
+        "name": "Kabupaten Banggai",
+        "type": "Kabupaten",
+        "gid": "IDN.27.2_1",
+        "search": "Kabupaten Banggai Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Banggai Kepulauan",
+        "type": "Kabupaten",
+        "gid": "IDN.27.1_1",
+        "search": "Kabupaten Banggai Kepulauan Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Buol",
+        "type": "Kabupaten",
+        "gid": "IDN.27.3_1",
+        "search": "Kabupaten Buol Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Donggala",
+        "type": "Kabupaten",
+        "gid": "IDN.27.4_1",
+        "search": "Kabupaten Donggala Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Morowali",
+        "type": "Kabupaten",
+        "gid": "IDN.27.5_1",
+        "search": "Kabupaten Morowali Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Parigi Moutong",
+        "type": "Kabupaten",
+        "gid": "IDN.27.7_1",
+        "search": "Kabupaten Parigi Moutong Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Poso",
+        "type": "Kabupaten",
+        "gid": "IDN.27.8_1",
+        "search": "Kabupaten Poso Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Sigi",
+        "type": "Kabupaten",
+        "gid": "IDN.27.9_1",
+        "search": "Kabupaten Sigi Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Tojo Una-Una",
+        "type": "Kabupaten",
+        "gid": "IDN.27.10_1",
+        "search": "Kabupaten Tojo Una-Una Sulawesi Tengah"
+      },
+      {
+        "name": "Kabupaten Toli-Toli",
+        "type": "Kabupaten",
+        "gid": "IDN.27.11_1",
+        "search": "Kabupaten Toli-Toli Sulawesi Tengah"
+      },
+      {
+        "name": "Kota Palu",
+        "type": "Kota",
+        "gid": "IDN.27.6_1",
+        "search": "Kota Palu Sulawesi Tengah"
+      }
+    ]
+  },
+  {
+    "province": "Sulawesi Selatan",
+    "provinceKey": "SulawesiSelatan",
+    "cities": [
+      {
+        "name": "Kabupaten Bantaeng",
+        "type": "Kabupaten",
+        "gid": "IDN.26.1_1",
+        "search": "Kabupaten Bantaeng Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Barru",
+        "type": "Kabupaten",
+        "gid": "IDN.26.2_1",
+        "search": "Kabupaten Barru Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Bone",
+        "type": "Kabupaten",
+        "gid": "IDN.26.3_1",
+        "search": "Kabupaten Bone Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Bulukumba",
+        "type": "Kabupaten",
+        "gid": "IDN.26.4_1",
+        "search": "Kabupaten Bulukumba Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Enrekang",
+        "type": "Kabupaten",
+        "gid": "IDN.26.5_1",
+        "search": "Kabupaten Enrekang Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Gowa",
+        "type": "Kabupaten",
+        "gid": "IDN.26.6_1",
+        "search": "Kabupaten Gowa Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Jeneponto",
+        "type": "Kabupaten",
+        "gid": "IDN.26.7_1",
+        "search": "Kabupaten Jeneponto Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Kepulauan Selayar",
+        "type": "Kabupaten",
+        "gid": "IDN.26.8_1",
+        "search": "Kabupaten Kepulauan Selayar Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Luwu",
+        "type": "Kabupaten",
+        "gid": "IDN.26.11_1",
+        "search": "Kabupaten Luwu Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Luwu Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.26.9_1",
+        "search": "Kabupaten Luwu Timur Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Luwu Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.26.10_1",
+        "search": "Kabupaten Luwu Utara Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Maros",
+        "type": "Kabupaten",
+        "gid": "IDN.26.13_1",
+        "search": "Kabupaten Maros Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Pangkajene Dan Kepulauan",
+        "type": "Kabupaten",
+        "gid": "IDN.26.15_1",
+        "search": "Kabupaten Pangkajene Dan Kepulauan Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Pinrang",
+        "type": "Kabupaten",
+        "gid": "IDN.26.17_1",
+        "search": "Kabupaten Pinrang Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Sidenreng Rappang",
+        "type": "Kabupaten",
+        "gid": "IDN.26.18_1",
+        "search": "Kabupaten Sidenreng Rappang Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Sinjai",
+        "type": "Kabupaten",
+        "gid": "IDN.26.19_1",
+        "search": "Kabupaten Sinjai Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Soppeng",
+        "type": "Kabupaten",
+        "gid": "IDN.26.20_1",
+        "search": "Kabupaten Soppeng Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Takalar",
+        "type": "Kabupaten",
+        "gid": "IDN.26.21_1",
+        "search": "Kabupaten Takalar Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Tana Toraja",
+        "type": "Kabupaten",
+        "gid": "IDN.26.22_1",
+        "search": "Kabupaten Tana Toraja Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Toraja Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.26.23_1",
+        "search": "Kabupaten Toraja Utara Sulawesi Selatan"
+      },
+      {
+        "name": "Kabupaten Wajo",
+        "type": "Kabupaten",
+        "gid": "IDN.26.24_1",
+        "search": "Kabupaten Wajo Sulawesi Selatan"
+      },
+      {
+        "name": "Kota Makassar",
+        "type": "Kota",
+        "gid": "IDN.26.12_1",
+        "search": "Kota Makassar Sulawesi Selatan"
+      },
+      {
+        "name": "Kota Palopo",
+        "type": "Kota",
+        "gid": "IDN.26.14_1",
+        "search": "Kota Palopo Sulawesi Selatan"
+      },
+      {
+        "name": "Kota Parepare",
+        "type": "Kota",
+        "gid": "IDN.26.16_1",
+        "search": "Kota Parepare Sulawesi Selatan"
+      }
+    ]
+  },
+  {
+    "province": "Sulawesi Tenggara",
+    "provinceKey": "SulawesiTenggara",
+    "cities": [
+      {
+        "name": "Kabupaten Bombana",
+        "type": "Kabupaten",
+        "gid": "IDN.28.2_1",
+        "search": "Kabupaten Bombana Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Buton",
+        "type": "Kabupaten",
+        "gid": "IDN.28.4_1",
+        "search": "Kabupaten Buton Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Buton Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.28.3_1",
+        "search": "Kabupaten Buton Utara Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Kolaka",
+        "type": "Kabupaten",
+        "gid": "IDN.28.7_1",
+        "search": "Kabupaten Kolaka Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Kolaka Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.28.6_1",
+        "search": "Kabupaten Kolaka Utara Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Konawe",
+        "type": "Kabupaten",
+        "gid": "IDN.28.10_1",
+        "search": "Kabupaten Konawe Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Konawe Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.28.8_1",
+        "search": "Kabupaten Konawe Selatan Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Konawe Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.28.9_1",
+        "search": "Kabupaten Konawe Utara Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Muna",
+        "type": "Kabupaten",
+        "gid": "IDN.28.11_1",
+        "search": "Kabupaten Muna Sulawesi Tenggara"
+      },
+      {
+        "name": "Kabupaten Wakatobi",
+        "type": "Kabupaten",
+        "gid": "IDN.28.12_1",
+        "search": "Kabupaten Wakatobi Sulawesi Tenggara"
+      },
+      {
+        "name": "Kota Bau-Bau",
+        "type": "Kota",
+        "gid": "IDN.28.1_1",
+        "search": "Kota Bau-Bau Sulawesi Tenggara"
+      },
+      {
+        "name": "Kota Kendari",
+        "type": "Kota",
+        "gid": "IDN.28.5_1",
+        "search": "Kota Kendari Sulawesi Tenggara"
+      }
+    ]
+  },
+  {
+    "province": "Gorontalo",
+    "provinceKey": "Gorontalo",
+    "cities": [
+      {
+        "name": "Kabupaten Boalemo",
+        "type": "Kabupaten",
+        "gid": "IDN.6.1_1",
+        "search": "Kabupaten Boalemo Gorontalo"
+      },
+      {
+        "name": "Kabupaten Bone Bolango",
+        "type": "Kabupaten",
+        "gid": "IDN.6.2_1",
+        "search": "Kabupaten Bone Bolango Gorontalo"
+      },
+      {
+        "name": "Kabupaten Danau Limboto",
+        "type": "Kabupaten",
+        "gid": "IDN.6.3_1",
+        "search": "Kabupaten Danau Limboto Gorontalo"
+      },
+      {
+        "name": "Kabupaten Gorontalo",
+        "type": "Kabupaten",
+        "gid": "IDN.6.5_1",
+        "search": "Kabupaten Gorontalo Gorontalo"
+      },
+      {
+        "name": "Kabupaten Gorontalo Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.6.4_1",
+        "search": "Kabupaten Gorontalo Utara Gorontalo"
+      },
+      {
+        "name": "Kabupaten Pohuwato",
+        "type": "Kabupaten",
+        "gid": "IDN.6.7_1",
+        "search": "Kabupaten Pohuwato Gorontalo"
+      },
+      {
+        "name": "Kota Gorontalo",
+        "type": "Kota",
+        "gid": "IDN.6.6_1",
+        "search": "Kota Gorontalo Gorontalo"
+      }
+    ]
+  },
+  {
+    "province": "Sulawesi Barat",
+    "provinceKey": "SulawesiBarat",
+    "cities": [
+      {
+        "name": "Kabupaten Majene",
+        "type": "Kabupaten",
+        "gid": "IDN.25.1_1",
+        "search": "Kabupaten Majene Sulawesi Barat"
+      },
+      {
+        "name": "Kabupaten Mamasa",
+        "type": "Kabupaten",
+        "gid": "IDN.25.2_1",
+        "search": "Kabupaten Mamasa Sulawesi Barat"
+      },
+      {
+        "name": "Kabupaten Mamuju",
+        "type": "Kabupaten",
+        "gid": "IDN.25.4_1",
+        "search": "Kabupaten Mamuju Sulawesi Barat"
+      },
+      {
+        "name": "Kabupaten Mamuju Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.25.3_1",
+        "search": "Kabupaten Mamuju Utara Sulawesi Barat"
+      },
+      {
+        "name": "Kabupaten Polewali Mandar",
+        "type": "Kabupaten",
+        "gid": "IDN.25.5_1",
+        "search": "Kabupaten Polewali Mandar Sulawesi Barat"
+      }
+    ]
+  },
+  {
+    "province": "Maluku",
+    "provinceKey": "Maluku",
+    "cities": [
+      {
+        "name": "Kabupaten Buru",
+        "type": "Kabupaten",
+        "gid": "IDN.19.3_1",
+        "search": "Kabupaten Buru Maluku"
+      },
+      {
+        "name": "Kabupaten Buru Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.19.2_1",
+        "search": "Kabupaten Buru Selatan Maluku"
+      },
+      {
+        "name": "Kabupaten Kepulauan Aru",
+        "type": "Kabupaten",
+        "gid": "IDN.19.4_1",
+        "search": "Kabupaten Kepulauan Aru Maluku"
+      },
+      {
+        "name": "Kabupaten Maluku Barat Daya",
+        "type": "Kabupaten",
+        "gid": "IDN.19.5_1",
+        "search": "Kabupaten Maluku Barat Daya Maluku"
+      },
+      {
+        "name": "Kabupaten Maluku Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.19.6_1",
+        "search": "Kabupaten Maluku Tengah Maluku"
+      },
+      {
+        "name": "Kabupaten Maluku Tenggara",
+        "type": "Kabupaten",
+        "gid": "IDN.19.8_1",
+        "search": "Kabupaten Maluku Tenggara Maluku"
+      },
+      {
+        "name": "Kabupaten Maluku Tenggara Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.19.7_1",
+        "search": "Kabupaten Maluku Tenggara Barat Maluku"
+      },
+      {
+        "name": "Kabupaten Seram Bagian Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.19.9_1",
+        "search": "Kabupaten Seram Bagian Barat Maluku"
+      },
+      {
+        "name": "Kabupaten Seram Bagian Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.19.10_1",
+        "search": "Kabupaten Seram Bagian Timur Maluku"
+      },
+      {
+        "name": "Kota Ambon",
+        "type": "Kota",
+        "gid": "IDN.19.1_1",
+        "search": "Kota Ambon Maluku"
+      },
+      {
+        "name": "Kota Tual",
+        "type": "Kota",
+        "gid": "IDN.19.11_1",
+        "search": "Kota Tual Maluku"
+      }
+    ]
+  },
+  {
+    "province": "Maluku Utara",
+    "provinceKey": "MalukuUtara",
+    "cities": [
+      {
+        "name": "Kabupaten Halmahera Barat",
+        "type": "Kabupaten",
+        "gid": "IDN.18.1_1",
+        "search": "Kabupaten Halmahera Barat Maluku Utara"
+      },
+      {
+        "name": "Kabupaten Halmahera Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.18.2_1",
+        "search": "Kabupaten Halmahera Selatan Maluku Utara"
+      },
+      {
+        "name": "Kabupaten Halmahera Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.18.3_1",
+        "search": "Kabupaten Halmahera Tengah Maluku Utara"
+      },
+      {
+        "name": "Kabupaten Halmahera Timur",
+        "type": "Kabupaten",
+        "gid": "IDN.18.4_1",
+        "search": "Kabupaten Halmahera Timur Maluku Utara"
+      },
+      {
+        "name": "Kabupaten Halmahera Utara",
+        "type": "Kabupaten",
+        "gid": "IDN.18.5_1",
+        "search": "Kabupaten Halmahera Utara Maluku Utara"
+      },
+      {
+        "name": "Kabupaten Kepulauan Sula",
+        "type": "Kabupaten",
+        "gid": "IDN.18.6_1",
+        "search": "Kabupaten Kepulauan Sula Maluku Utara"
+      },
+      {
+        "name": "Kabupaten Pulau Morotai",
+        "type": "Kabupaten",
+        "gid": "IDN.18.7_1",
+        "search": "Kabupaten Pulau Morotai Maluku Utara"
+      },
+      {
+        "name": "Kota Ternate",
+        "type": "Kota",
+        "gid": "IDN.18.8_1",
+        "search": "Kota Ternate Maluku Utara"
+      },
+      {
+        "name": "Kota Tidore Kepulauan",
+        "type": "Kota",
+        "gid": "IDN.18.9_1",
+        "search": "Kota Tidore Kepulauan Maluku Utara"
+      }
+    ]
+  },
+  {
+    "province": "Papua",
+    "provinceKey": "Papua",
+    "cities": [
+      {
+        "name": "Kabupaten Asmat",
+        "type": "Kabupaten",
+        "gid": "IDN.23.1_1",
+        "search": "Kabupaten Asmat Papua"
+      },
+      {
+        "name": "Kabupaten Biak Numfor",
+        "type": "Kabupaten",
+        "gid": "IDN.23.2_1",
+        "search": "Kabupaten Biak Numfor Papua"
+      },
+      {
+        "name": "Kabupaten Boven Digoel",
+        "type": "Kabupaten",
+        "gid": "IDN.23.3_1",
+        "search": "Kabupaten Boven Digoel Papua"
+      },
+      {
+        "name": "Kabupaten Deiyai",
+        "type": "Kabupaten",
+        "gid": "IDN.23.4_1",
+        "search": "Kabupaten Deiyai Papua"
+      },
+      {
+        "name": "Kabupaten Dogiyai",
+        "type": "Kabupaten",
+        "gid": "IDN.23.5_1",
+        "search": "Kabupaten Dogiyai Papua"
+      },
+      {
+        "name": "Kabupaten Intan Jaya",
+        "type": "Kabupaten",
+        "gid": "IDN.23.6_1",
+        "search": "Kabupaten Intan Jaya Papua"
+      },
+      {
+        "name": "Kabupaten Jayapura",
+        "type": "Kabupaten",
+        "gid": "IDN.23.7_1",
+        "search": "Kabupaten Jayapura Papua"
+      },
+      {
+        "name": "Kabupaten Jayawijaya",
+        "type": "Kabupaten",
+        "gid": "IDN.23.8_1",
+        "search": "Kabupaten Jayawijaya Papua"
+      },
+      {
+        "name": "Kabupaten Keerom",
+        "type": "Kabupaten",
+        "gid": "IDN.23.9_1",
+        "search": "Kabupaten Keerom Papua"
+      },
+      {
+        "name": "Kabupaten Kepulauan Yapen",
+        "type": "Kabupaten",
+        "gid": "IDN.23.10_1",
+        "search": "Kabupaten Kepulauan Yapen Papua"
+      },
+      {
+        "name": "Kabupaten Lanny Jaya",
+        "type": "Kabupaten",
+        "gid": "IDN.23.12_1",
+        "search": "Kabupaten Lanny Jaya Papua"
+      },
+      {
+        "name": "Kabupaten Mamberamo Raya",
+        "type": "Kabupaten",
+        "gid": "IDN.23.13_1",
+        "search": "Kabupaten Mamberamo Raya Papua"
+      },
+      {
+        "name": "Kabupaten Mamberamo Tengah",
+        "type": "Kabupaten",
+        "gid": "IDN.23.14_1",
+        "search": "Kabupaten Mamberamo Tengah Papua"
+      },
+      {
+        "name": "Kabupaten Mappi",
+        "type": "Kabupaten",
+        "gid": "IDN.23.15_1",
+        "search": "Kabupaten Mappi Papua"
+      },
+      {
+        "name": "Kabupaten Merauke",
+        "type": "Kabupaten",
+        "gid": "IDN.23.16_1",
+        "search": "Kabupaten Merauke Papua"
+      },
+      {
+        "name": "Kabupaten Mimika",
+        "type": "Kabupaten",
+        "gid": "IDN.23.17_1",
+        "search": "Kabupaten Mimika Papua"
+      },
+      {
+        "name": "Kabupaten Nabire",
+        "type": "Kabupaten",
+        "gid": "IDN.23.18_1",
+        "search": "Kabupaten Nabire Papua"
+      },
+      {
+        "name": "Kabupaten Nduga",
+        "type": "Kabupaten",
+        "gid": "IDN.23.19_1",
+        "search": "Kabupaten Nduga Papua"
+      },
+      {
+        "name": "Kabupaten Paniai",
+        "type": "Kabupaten",
+        "gid": "IDN.23.20_1",
+        "search": "Kabupaten Paniai Papua"
+      },
+      {
+        "name": "Kabupaten Pegunungan Bintang",
+        "type": "Kabupaten",
+        "gid": "IDN.23.21_1",
+        "search": "Kabupaten Pegunungan Bintang Papua"
+      },
+      {
+        "name": "Kabupaten Puncak",
+        "type": "Kabupaten",
+        "gid": "IDN.23.23_1",
+        "search": "Kabupaten Puncak Papua"
+      },
+      {
+        "name": "Kabupaten Puncak Jaya",
+        "type": "Kabupaten",
+        "gid": "IDN.23.22_1",
+        "search": "Kabupaten Puncak Jaya Papua"
+      },
+      {
+        "name": "Kabupaten Sarmi",
+        "type": "Kabupaten",
+        "gid": "IDN.23.24_1",
+        "search": "Kabupaten Sarmi Papua"
+      },
+      {
+        "name": "Kabupaten Supiori",
+        "type": "Kabupaten",
+        "gid": "IDN.23.25_1",
+        "search": "Kabupaten Supiori Papua"
+      },
+      {
+        "name": "Kabupaten Tolikara",
+        "type": "Kabupaten",
+        "gid": "IDN.23.26_1",
+        "search": "Kabupaten Tolikara Papua"
+      },
+      {
+        "name": "Kabupaten Waropen",
+        "type": "Kabupaten",
+        "gid": "IDN.23.27_1",
+        "search": "Kabupaten Waropen Papua"
+      },
+      {
+        "name": "Kabupaten Yahukimo",
+        "type": "Kabupaten",
+        "gid": "IDN.23.28_1",
+        "search": "Kabupaten Yahukimo Papua"
+      },
+      {
+        "name": "Kabupaten Yalimo",
+        "type": "Kabupaten",
+        "gid": "IDN.23.29_1",
+        "search": "Kabupaten Yalimo Papua"
+      },
+      {
+        "name": "Kota Jayapura",
+        "type": "Kota",
+        "gid": "IDN.23.11_1",
+        "search": "Kota Jayapura Papua"
+      }
+    ]
+  },
+  {
+    "province": "Papua Barat",
+    "provinceKey": "PapuaBarat",
+    "cities": [
+      {
+        "name": "Kabupaten Fakfak",
+        "type": "Kabupaten",
+        "gid": "IDN.22.1_1",
+        "search": "Kabupaten Fakfak Papua Barat"
+      },
+      {
+        "name": "Kabupaten Kaimana",
+        "type": "Kabupaten",
+        "gid": "IDN.22.2_1",
+        "search": "Kabupaten Kaimana Papua Barat"
+      },
+      {
+        "name": "Kabupaten Manokwari",
+        "type": "Kabupaten",
+        "gid": "IDN.22.4_1",
+        "search": "Kabupaten Manokwari Papua Barat"
+      },
+      {
+        "name": "Kabupaten Maybrat",
+        "type": "Kabupaten",
+        "gid": "IDN.22.5_1",
+        "search": "Kabupaten Maybrat Papua Barat"
+      },
+      {
+        "name": "Kabupaten Raja Ampat",
+        "type": "Kabupaten",
+        "gid": "IDN.22.6_1",
+        "search": "Kabupaten Raja Ampat Papua Barat"
+      },
+      {
+        "name": "Kabupaten Sorong",
+        "type": "Kabupaten",
+        "gid": "IDN.22.8_1",
+        "search": "Kabupaten Sorong Papua Barat"
+      },
+      {
+        "name": "Kabupaten Sorong Selatan",
+        "type": "Kabupaten",
+        "gid": "IDN.22.7_1",
+        "search": "Kabupaten Sorong Selatan Papua Barat"
+      },
+      {
+        "name": "Kabupaten Tambrauw",
+        "type": "Kabupaten",
+        "gid": "IDN.22.9_1",
+        "search": "Kabupaten Tambrauw Papua Barat"
+      },
+      {
+        "name": "Kabupaten Teluk Bintuni",
+        "type": "Kabupaten",
+        "gid": "IDN.22.10_1",
+        "search": "Kabupaten Teluk Bintuni Papua Barat"
+      },
+      {
+        "name": "Kabupaten Teluk Wondama",
+        "type": "Kabupaten",
+        "gid": "IDN.22.11_1",
+        "search": "Kabupaten Teluk Wondama Papua Barat"
+      },
+      {
+        "name": "Kota Sorong",
+        "type": "Kota",
+        "gid": "IDN.22.3_1",
+        "search": "Kota Sorong Papua Barat"
+      }
+    ]
+  }
+]

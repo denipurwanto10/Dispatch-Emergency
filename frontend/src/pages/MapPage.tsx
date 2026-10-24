@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -27,11 +28,28 @@ import {
   INDONESIA_BOUNDS,
   INDONESIA_CENTER,
   INDONESIA_ZOOM,
-  findCity,
 } from '../cities'
 import { AppHeader } from '../components/AppHeader'
 import { CitySelect } from '../components/CitySelect'
-import { IconBack } from '../components/icons'
+import { IconBack, IconPlus } from '../components/icons'
+import { useTheme } from '../context/ThemeContext'
+import {
+  featureBounds,
+  featureContains,
+  loadCities,
+  loadDistricts,
+  loadProvinces,
+  findProvinceByKey,
+  findCityByName,
+  findProvinceByName,
+  operationCitiesForProvince,
+  operationCityForAdm2,
+  operationCityTarget,
+  regionLabel,
+  type RegionBounds,
+  type RegionFeature,
+  type RegionLevel,
+} from '../lib/regions'
 import type {
   Incident,
   IncidentPriority,
@@ -77,6 +95,52 @@ const PRIORITY_LABEL: Record<IncidentPriority, string> = {
 
 const INCIDENT_TYPES: IncidentType[] = ['ambulance', 'fire', 'police']
 const PRIORITIES: IncidentPriority[] = ['low', 'medium', 'high', 'critical']
+
+interface RegionPalette {
+  stroke: string
+  fill: string
+  selectedStroke: string
+  selectedFill: string
+  hoverStroke: string
+  hoverFill: string
+}
+
+const REGION_PALETTES: Record<'light' | 'dark', RegionPalette> = {
+  light: {
+    stroke: '#0f766e',
+    fill: '#0f766e',
+    selectedStroke: '#005a54',
+    selectedFill: '#00776f',
+    hoverStroke: '#005a54',
+    hoverFill: '#00776f',
+  },
+  dark: {
+    stroke: '#38c9bb',
+    fill: '#38c9bb',
+    selectedStroke: '#7ae3d8',
+    selectedFill: '#38c9bb',
+    hoverStroke: '#7ae3d8',
+    hoverFill: '#38c9bb',
+  },
+}
+
+function regionStyle(
+  level: RegionLevel,
+  selected: boolean,
+  palette: RegionPalette,
+): L.PathOptions {
+  const province = level === 'indonesia'
+  return {
+    color: selected ? palette.selectedStroke : palette.stroke,
+    weight: selected ? 2.4 : province ? 1.1 : 1.4,
+    opacity: 0.95,
+    fillColor: selected ? palette.selectedFill : palette.fill,
+    fillOpacity: selected ? 0.16 : 0.045,
+    lineCap: 'round',
+    lineJoin: 'round',
+    className: 'region-polygon',
+  }
+}
 
 type PanelMode = 'list' | 'create' | 'detail'
 
@@ -188,12 +252,25 @@ function nearestReasonText(reason: string | undefined): string {
 
 export function MapPage() {
   const navigate = useNavigate()
+  const { theme } = useTheme()
   const [session] = useState<Session | null>(() => readSession())
   const [city, setCity] = useState('')
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastLoaded, setLastLoaded] = useState<Date | null>(null)
+
+  // Drill-down wilayah
+  const [regionLevel, setRegionLevel] = useState<RegionLevel>('indonesia')
+  const [provinces, setProvinces] = useState<RegionFeature[]>([])
+  const [cities, setCities] = useState<RegionFeature[]>([])
+  const [districts, setDistricts] = useState<RegionFeature[]>([])
+  const [selectedProvince, setSelectedProvince] = useState<RegionFeature | null>(null)
+  const [selectedCity, setSelectedCity] = useState<RegionFeature | null>(null)
+  const [selectedDistrict, setSelectedDistrict] = useState<RegionFeature | null>(null)
+  const [regionLoading, setRegionLoading] = useState(true)
+  const [regionError, setRegionError] = useState<string | null>(null)
+  const [pickingLocation, setPickingLocation] = useState(false)
 
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [incidentLoading, setIncidentLoading] = useState(true)
@@ -222,12 +299,14 @@ export function MapPage() {
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
+  const regionLayerRef = useRef<L.LayerGroup | null>(null)
   const markerLayerRef = useRef<L.LayerGroup | null>(null)
   const vehicleMarkersRef = useRef<Map<number, L.Marker>>(new Map())
   const incidentLayerRef = useRef<L.LayerGroup | null>(null)
   const requestIDRef = useRef(0)
   const incidentRequestIDRef = useRef(0)
   const nearestRequestIDRef = useRef(0)
+  const regionRequestIDRef = useRef(0)
 
   const handleUnauthorized = useCallback(() => {
     clearSession()
@@ -238,7 +317,9 @@ export function MapPage() {
     if (!session) return
     const requestID = ++requestIDRef.current
     try {
-      const data = await fetchVehicles(session.token, city)
+      // Semua unit dimuat sekali; penyaringan kota/wilayah dilakukan di klien
+      // agar drill-down dan filter kota tidak saling bertabrakan.
+      const data = await fetchVehicles(session.token)
       if (requestID !== requestIDRef.current) return
       setVehicles(data)
       setLastLoaded(new Date())
@@ -257,7 +338,7 @@ export function MapPage() {
     } finally {
       if (requestID === requestIDRef.current) setLoading(false)
     }
-  }, [session, city, handleUnauthorized])
+  }, [session, handleUnauthorized])
 
   const loadIncidents = useCallback(async () => {
     if (!session) return
@@ -293,6 +374,245 @@ export function MapPage() {
     void loadIncidents()
   }, [loadIncidents])
 
+  const palette = REGION_PALETTES[theme]
+
+  const loadRegionData = useCallback(async () => {
+    setRegionLoading(true)
+    setRegionError(null)
+    try {
+      const [provinceData, cityData] = await Promise.all([loadProvinces(), loadCities()])
+      setProvinces(provinceData.features as RegionFeature[])
+      setCities(cityData.features as RegionFeature[])
+    } catch (err) {
+      setRegionError(
+        err instanceof Error ? err.message : 'Batas wilayah gagal dimuat. Coba lagi.',
+      )
+    } finally {
+      setRegionLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- memuat batas wilayah statis saat mount
+    void loadRegionData()
+  }, [loadRegionData])
+
+  const flyToRegion = useCallback((bounds: RegionBounds, maxZoom: number) => {
+    const map = mapRef.current
+    if (!map) return
+
+    const width = window.innerWidth
+    const compact = width <= 820
+    const desktop = width > 1180
+
+    map.flyToBounds(bounds, {
+      paddingTopLeft: desktop ? [340, 48] : [24, compact ? 84 : 64],
+      paddingBottomRight: desktop ? [420, 48] : compact ? [24, 248] : [392, 64],
+      maxZoom,
+      duration: 0.75,
+    })
+  }, [])
+
+  const resetToIndonesia = useCallback(() => {
+    regionRequestIDRef.current += 1
+    setRegionLevel('indonesia')
+    setSelectedProvince(null)
+    setSelectedCity(null)
+    setSelectedDistrict(null)
+    setDistricts([])
+    setPickingLocation(false)
+    setCity('')
+    mapRef.current?.flyToBounds(INDONESIA_BOUNDS, { padding: [24, 24], duration: 0.75 })
+  }, [])
+
+  const backToProvince = useCallback(() => {
+    if (!selectedProvince) {
+      resetToIndonesia()
+      return
+    }
+    regionRequestIDRef.current += 1
+    setRegionLevel('province')
+    setSelectedCity(null)
+    setSelectedDistrict(null)
+    setDistricts([])
+    setPickingLocation(false)
+    setCity('')
+    const bounds = featureBounds(selectedProvince)
+    if (bounds) flyToRegion(bounds, 8)
+  }, [selectedProvince, flyToRegion, resetToIndonesia])
+
+  const backToCity = useCallback(() => {
+    if (!selectedCity) {
+      backToProvince()
+      return
+    }
+    setRegionLevel('city')
+    setSelectedDistrict(null)
+    setPickingLocation(false)
+    setCity(operationCityForAdm2(selectedCity) ?? '')
+    const bounds = featureBounds(selectedCity)
+    if (bounds) flyToRegion(bounds, 11)
+  }, [selectedCity, backToProvince, flyToRegion])
+
+  const beginIncidentAt = useCallback((lat: number, lng: number) => {
+    setDraft({
+      lat: Number(lat.toFixed(6)),
+      lng: Number(lng.toFixed(6)),
+    })
+    setPanelMode('create')
+    setSelectedIncident(null)
+    setForm(emptyIncidentForm())
+    setFormError(null)
+    setNearest(null)
+    setNearestError(null)
+    setCancelError(null)
+    setPickingLocation(false)
+  }, [])
+
+  const openProvince = useCallback(
+    (feature: RegionFeature) => {
+      regionRequestIDRef.current += 1
+      setSelectedProvince(feature)
+      setSelectedCity(null)
+      setSelectedDistrict(null)
+      setDistricts([])
+      setRegionLevel('province')
+      setPickingLocation(false)
+      setCity('')
+      const bounds = featureBounds(feature)
+      if (bounds) flyToRegion(bounds, 8)
+    },
+    [flyToRegion],
+  )
+
+  const openCity = useCallback(
+    async (feature: RegionFeature) => {
+      const requestID = ++regionRequestIDRef.current
+      setSelectedCity(feature)
+      setSelectedDistrict(null)
+      setRegionLevel('city')
+      setPickingLocation(false)
+      setCity(operationCityForAdm2(feature) ?? '')
+
+      const bounds = featureBounds(feature)
+      if (bounds) flyToRegion(bounds, 11)
+
+      const provinceGid = feature.properties.GID_1
+      if (!provinceGid) {
+        setDistricts([])
+        return
+      }
+
+      setRegionLoading(true)
+      setRegionError(null)
+      try {
+        const districtData = await loadDistricts(provinceGid)
+        if (requestID !== regionRequestIDRef.current) return
+        setDistricts(
+          districtData.features.filter(
+            (item) => item.properties.GID_2 === feature.properties.GID_2,
+          ) as RegionFeature[],
+        )
+      } catch (err) {
+        if (requestID !== regionRequestIDRef.current) return
+        setDistricts([])
+        setRegionError(
+          err instanceof Error ? err.message : 'Batas kecamatan gagal dimuat. Coba lagi.',
+        )
+      } finally {
+        if (requestID === regionRequestIDRef.current) setRegionLoading(false)
+      }
+    },
+    [flyToRegion],
+  )
+
+  const openDistrict = useCallback(
+    (feature: RegionFeature) => {
+      setSelectedDistrict(feature)
+      setRegionLevel('district')
+      setPickingLocation(false)
+      const bounds = featureBounds(feature)
+      if (bounds) flyToRegion(bounds, 13)
+    },
+    [flyToRegion],
+  )
+
+  const focusOperationCity = useCallback(
+    async (name: string) => {
+      const target = operationCityTarget(name)
+      if (!target) return
+
+      const requestID = ++regionRequestIDRef.current
+      setRegionError(null)
+      try {
+        const [provinceData, cityData] = await Promise.all([loadProvinces(), loadCities()])
+        if (requestID !== regionRequestIDRef.current) return
+
+        setProvinces(provinceData.features as RegionFeature[])
+        setCities(cityData.features as RegionFeature[])
+
+        const province = provinceData.features.find(
+          (item) => item.properties.NAME_1 === target.provinceName,
+        ) as RegionFeature | undefined
+        if (!province) {
+          setRegionError('Provinsi untuk kota ini tidak ditemukan di data wilayah.')
+          return
+        }
+
+        setSelectedProvince(province)
+        setSelectedDistrict(null)
+        setDistricts([])
+
+        if (!target.cityName) {
+          setSelectedCity(null)
+          setRegionLevel('province')
+          const bounds = featureBounds(province)
+          if (bounds) flyToRegion(bounds, 10)
+          return
+        }
+
+        const cityFeature = cityData.features.find(
+          (item) =>
+            item.properties.NAME_1 === target.provinceName &&
+            item.properties.NAME_2 === target.cityName,
+        ) as RegionFeature | undefined
+        if (!cityFeature) {
+          setSelectedCity(null)
+          setRegionLevel('province')
+          setRegionError('Kota/kabupaten untuk kota operasi ini tidak ditemukan.')
+          const bounds = featureBounds(province)
+          if (bounds) flyToRegion(bounds, 8)
+          return
+        }
+
+        setSelectedCity(cityFeature)
+        setRegionLevel('city')
+        const bounds = featureBounds(cityFeature)
+        if (bounds) flyToRegion(bounds, 11)
+
+        const provinceGid = cityFeature.properties.GID_1
+        if (!provinceGid) return
+
+        setRegionLoading(true)
+        const districtData = await loadDistricts(provinceGid)
+        if (requestID !== regionRequestIDRef.current) return
+        setDistricts(
+          districtData.features.filter(
+            (item) => item.properties.GID_2 === cityFeature.properties.GID_2,
+          ) as RegionFeature[],
+        )
+      } catch (err) {
+        if (requestID !== regionRequestIDRef.current) return
+        setRegionError(
+          err instanceof Error ? err.message : 'Batas wilayah kota gagal dimuat. Coba lagi.',
+        )
+      } finally {
+        if (requestID === regionRequestIDRef.current) setRegionLoading(false)
+      }
+    },
+    [flyToRegion],
+  )
+
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return
 
@@ -311,33 +631,25 @@ export function MapPage() {
 
     addBasemap(map, { simple: true })
 
+    regionLayerRef.current = L.layerGroup().addTo(map)
     markerLayerRef.current = L.layerGroup().addTo(map)
     incidentLayerRef.current = L.layerGroup().addTo(map)
     mapRef.current = map
     map.fitBounds(INDONESIA_BOUNDS, { padding: [24, 24] })
 
     map.on('click', (event: L.LeafletMouseEvent) => {
-      setDraft({
-        lat: Number(event.latlng.lat.toFixed(6)),
-        lng: Number(event.latlng.lng.toFixed(6)),
-      })
-      setPanelMode('create')
-      setSelectedIncident(null)
-      setForm(emptyIncidentForm())
-      setFormError(null)
-      setNearest(null)
-      setNearestError(null)
-      setCancelError(null)
+      beginIncidentAt(event.latlng.lat, event.latlng.lng)
     })
 
     return () => {
       map.remove()
       mapRef.current = null
+      regionLayerRef.current = null
       markerLayerRef.current = null
       vehicleMarkersRef.current = new Map()
       incidentLayerRef.current = null
     }
-  }, [])
+  }, [beginIncidentAt])
 
   // WebSocket connection
   useEffect(() => {
@@ -422,24 +734,157 @@ export function MapPage() {
     }
   }, [routePolyline])
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map) return
+  const visibleVehicles = useMemo(() => {
+    if (regionLevel === 'indonesia') return []
 
-    const selected = findCity(city)
-    if (selected) {
-      map.setView(selected.center, selected.zoom)
-    } else {
-      map.fitBounds(INDONESIA_BOUNDS, { padding: [24, 24] })
+    const base = city ? vehicles.filter((item) => item.operating_city === city) : vehicles
+
+    if (regionLevel === 'province') {
+      const allowed = operationCitiesForProvince(selectedProvince)
+      if (allowed.length === 0) return []
+      return base.filter(
+        (item) => item.operating_city != null && allowed.includes(item.operating_city),
+      )
     }
-  }, [city])
+
+    if (!selectedCity) return []
+    const operationCity = operationCityForAdm2(selectedCity)
+    if (!operationCity) return []
+
+    // Di level kota, unit disaring juga secara geometris supaya kota administrasi
+    // DKI (mis. Jakarta Selatan) tidak menampilkan seluruh armada Jakarta.
+    let list = base.filter(
+      (item) =>
+        item.operating_city === operationCity &&
+        featureContains(selectedCity, item.lat, item.lng),
+    )
+
+    if (regionLevel === 'district' && selectedDistrict) {
+      list = list.filter((item) =>
+        featureContains(selectedDistrict, item.lat, item.lng),
+      )
+    }
+
+    return list
+  }, [regionLevel, selectedProvince, selectedCity, selectedDistrict, vehicles, city])
+
+  const regionScope =
+    regionLevel === 'district'
+      ? selectedDistrict
+      : regionLevel === 'city'
+        ? selectedCity
+        : selectedProvince
+  const regionScopeLabel = regionLabel(regionScope)
+
+  // Gambar ulang polygon setiap level/pilihan berubah. Jumlah polygon per level
+  // kecil (provinsi 34, kota per provinsi < 40, kecamatan per kota < 50), jadi
+  // layer SVG Leaflet masih sangat ringan.
+  useEffect(() => {
+    const layer = regionLayerRef.current
+    if (!layer) return
+
+    layer.clearLayers()
+
+    let features: RegionFeature[] = []
+    if (regionLevel === 'indonesia') {
+      features = provinces
+    } else if (regionLevel === 'province' && selectedProvince) {
+      const provinceGid = selectedProvince.properties.GID_1
+      features = cities.filter((item) => item.properties.GID_1 === provinceGid)
+    } else if ((regionLevel === 'city' || regionLevel === 'district') && selectedCity) {
+      features = districts
+    }
+
+    if (features.length === 0) return
+
+    const selectedDistrictGid =
+      regionLevel === 'district' ? selectedDistrict?.properties.GID_3 : undefined
+
+    const isSelected = (feature: RegionFeature) =>
+      selectedDistrictGid != null &&
+      feature.properties.GID_3 === selectedDistrictGid
+
+    const collection = { type: 'FeatureCollection' as const, features }
+    const geoLayer = L.geoJSON(collection, {
+      bubblingMouseEvents: false,
+      style: (feature) =>
+        regionStyle(
+          regionLevel,
+          isSelected(feature as RegionFeature),
+          palette,
+        ),
+      onEachFeature: (feature, path) => {
+        const item = feature as RegionFeature
+        const shape = path as L.Path
+        const selected = isSelected(item)
+
+        shape.bindTooltip(regionLabel(item), {
+          sticky: true,
+          direction: 'top',
+          className: 'region-tooltip',
+          opacity: 1,
+          offset: [0, -4],
+        })
+
+        shape.on('mouseover', () => {
+          const base = regionStyle(regionLevel, selected, palette)
+          shape.setStyle({
+            color: palette.hoverStroke,
+            weight: (base.weight ?? 1.4) + 0.9,
+            fillColor: palette.hoverFill,
+            fillOpacity: selected ? 0.24 : 0.13,
+          })
+          shape.bringToFront()
+        })
+
+        shape.on('mouseout', () => {
+          shape.setStyle(regionStyle(regionLevel, selected, palette))
+        })
+
+        shape.on('click', (event: L.LeafletMouseEvent) => {
+          L.DomEvent.stopPropagation(event.originalEvent)
+          if (pickingLocation) {
+            beginIncidentAt(event.latlng.lat, event.latlng.lng)
+            return
+          }
+          if (regionLevel === 'indonesia') {
+            openProvince(item)
+          } else if (regionLevel === 'province') {
+            void openCity(item)
+          } else {
+            openDistrict(item)
+          }
+        })
+      },
+    })
+
+    geoLayer.addTo(layer)
+
+    return () => {
+      layer.clearLayers()
+    }
+  }, [
+    provinces,
+    cities,
+    districts,
+    regionLevel,
+    selectedProvince,
+    selectedCity,
+    selectedDistrict,
+    palette,
+    pickingLocation,
+    beginIncidentAt,
+    openProvince,
+    openCity,
+    openDistrict,
+  ])
 
   useEffect(() => {
     const layer = markerLayerRef.current
     if (!layer) return
 
-    syncVehicleMarkers(layer, vehicleMarkersRef.current, vehicles, buildVehiclePopup)
-  }, [vehicles])
+    syncVehicleMarkers(layer, vehicleMarkersRef.current, visibleVehicles, buildVehiclePopup)
+  }, [visibleVehicles])
 
   useEffect(() => {
     const layer = incidentLayerRef.current
@@ -462,6 +907,7 @@ export function MapPage() {
         setNearest(null)
         setNearestError(null)
         setCancelError(null)
+        setPickingLocation(false)
         mapRef.current?.setView([incident.lat, incident.lng], 15)
       })
     }
@@ -484,11 +930,125 @@ export function MapPage() {
     void loadIncidents()
   }
 
-  function handleCityChange(nextCity: string) {
-    if (nextCity === city) return
-    setCity(nextCity)
-    setLoading(true)
+  async function handleCityChange(nextValue: string) {
+    if (nextValue === city) return
+    setCity(nextValue)
     setError(null)
+    setPickingLocation(false)
+
+    if (!nextValue) {
+      resetToIndonesia()
+      return
+    }
+
+    const requestID = ++regionRequestIDRef.current
+    setRegionLoading(true)
+    setRegionError(null)
+
+    try {
+      // Muat data provinsi dan kota jika belum ada
+      const [provinceData, cityData] = await Promise.all([
+        provinces.length > 0 ? Promise.resolve({ features: provinces }) : loadProvinces(),
+        cities.length > 0 ? Promise.resolve({ features: cities }) : loadCities(),
+      ])
+      if (requestID !== regionRequestIDRef.current) return
+
+      const provFeatures = provinceData.features as RegionFeature[]
+      const cityFeatures = cityData.features as RegionFeature[]
+
+      // Cek apakah value adalah province key (NAME_1 seperti "JawaBarat")
+      const provinceByKey = findProvinceByKey(provFeatures, nextValue)
+      if (provinceByKey) {
+        // User memilih provinsi
+        regionRequestIDRef.current += 1
+        setSelectedProvince(provinceByKey)
+        setSelectedCity(null)
+        setSelectedDistrict(null)
+        setDistricts([])
+        setRegionLevel('province')
+        setCity('') // clear city filter karena level provinsi
+        const bounds = featureBounds(provinceByKey)
+        if (bounds) flyToRegion(bounds, 8)
+        return
+      }
+
+      // Cek apakah value adalah nama provinsi tampilan (seperti "Jawa Barat")
+      const provinceByName = findProvinceByName(provFeatures, nextValue)
+      if (provinceByName) {
+        regionRequestIDRef.current += 1
+        setSelectedProvince(provinceByName)
+        setSelectedCity(null)
+        setSelectedDistrict(null)
+        setDistricts([])
+        setRegionLevel('province')
+        setCity('')
+        const bounds = featureBounds(provinceByName)
+        if (bounds) flyToRegion(bounds, 8)
+        return
+      }
+
+      // Cek apakah value adalah nama kota/kabupaten tampilan (seperti "Kota Bandung")
+      const cityFeature = findCityByName(cityFeatures, nextValue)
+      if (cityFeature) {
+        // User memilih kota/kabupaten
+        // Pertama tentukan provinsinya
+        const provinceGid = cityFeature.properties.GID_1
+        const provinceFeature = provinceByKey ? provinceByKey : provFeatures.find(f => f.properties.GID_1 === provinceGid)
+
+        regionRequestIDRef.current += 1
+        if (provinceFeature) {
+          setSelectedProvince(provinceFeature)
+        }
+        setSelectedCity(cityFeature)
+        setSelectedDistrict(null)
+        setRegionLevel('city')
+        setCity(operationCityForAdm2(cityFeature) ?? '')
+
+        const bounds = featureBounds(cityFeature)
+        if (bounds) flyToRegion(bounds, 11)
+
+        // Load districts untuk kota ini
+        if (provinceGid) {
+          setRegionLoading(true)
+          try {
+            const districtData = await loadDistricts(provinceGid)
+            if (requestID !== regionRequestIDRef.current) return
+            setDistricts(
+              districtData.features.filter(
+                (item) => item.properties.GID_2 === cityFeature.properties.GID_2,
+              ) as RegionFeature[],
+            )
+          } catch {
+            setDistricts([])
+          } finally {
+            if (requestID === regionRequestIDRef.current) setRegionLoading(false)
+          }
+        }
+        return
+      }
+
+      // Fallback: coba focusOperationCity untuk 6 kota operasi
+      void focusOperationCity(nextValue)
+    } catch (err) {
+      if (requestID !== regionRequestIDRef.current) return
+      setRegionError(
+        err instanceof Error ? err.message : 'Gagal memuat wilayah. Coba lagi.',
+      )
+    } finally {
+      if (requestID === regionRequestIDRef.current) setRegionLoading(false)
+    }
+  }
+
+  function startPickingLocation() {
+    setPickingLocation(true)
+    setPanelMode('create')
+    setDraft(null)
+    setSelectedIncident(null)
+    setForm(emptyIncidentForm())
+    setFormError(null)
+    setNearest(null)
+    setNearestError(null)
+    setCancelError(null)
   }
 
   function openIncidentDetail(incident: Incident) {
@@ -499,6 +1059,7 @@ export function MapPage() {
     setNearest(null)
     setNearestError(null)
     setCancelError(null)
+    setPickingLocation(false)
     mapRef.current?.setView([incident.lat, incident.lng], 15)
   }
 
@@ -697,6 +1258,14 @@ export function MapPage() {
             </div>
           </div>
 
+          <p className="fleet-scope">
+            {regionLevel === 'indonesia'
+              ? 'Pilih provinsi di peta untuk menampilkan unit.'
+              : visibleVehicles.length === 0
+                ? `Tidak ada unit di ${regionScopeLabel || 'wilayah ini'}.`
+                : `${visibleVehicles.length} unit di ${regionScopeLabel}.`}
+          </p>
+
           <ul className="fleet-types" aria-label="Unit menurut jenis">
             <li>
               <span className="legend-dot legend-dot--ambulance" aria-hidden="true" />
@@ -744,9 +1313,111 @@ export function MapPage() {
 
         <section className="map-stage">
           <div className="map-view">
-            <div ref={mapContainerRef} className="map-canvas" aria-label="Peta posisi unit dan laporan" />
+            <div
+              ref={mapContainerRef}
+              className={`map-canvas ${pickingLocation ? 'map-canvas--picking' : ''}`}
+              aria-label="Peta posisi unit dan laporan"
+            />
 
-            <p className="map-hint">Klik titik di peta untuk membuat laporan</p>
+            <div className="map-region-bar">
+              <nav className="map-breadcrumbs" aria-label="Telusuri wilayah">
+                <button
+                  className="crumb"
+                  type="button"
+                  onClick={resetToIndonesia}
+                  aria-current={regionLevel === 'indonesia' ? 'page' : undefined}
+                >
+                  Indonesia
+                </button>
+                {selectedProvince ? (
+                  <>
+                    <span className="crumb-sep" aria-hidden="true">/</span>
+                    <button
+                      className="crumb"
+                      type="button"
+                      onClick={backToProvince}
+                      aria-current={regionLevel === 'province' ? 'page' : undefined}
+                    >
+                      {regionLabel(selectedProvince)}
+                    </button>
+                  </>
+                ) : null}
+                {selectedCity ? (
+                  <>
+                    <span className="crumb-sep" aria-hidden="true">/</span>
+                    <button
+                      className="crumb"
+                      type="button"
+                      onClick={backToCity}
+                      aria-current={regionLevel === 'city' ? 'page' : undefined}
+                    >
+                      {regionLabel(selectedCity)}
+                    </button>
+                  </>
+                ) : null}
+                {selectedDistrict ? (
+                  <>
+                    <span className="crumb-sep" aria-hidden="true">/</span>
+                    <button
+                      className="crumb crumb--current"
+                      type="button"
+                      aria-current="page"
+                      onClick={() => {
+                        const bounds = featureBounds(selectedDistrict)
+                        if (bounds) flyToRegion(bounds, 13)
+                      }}
+                    >
+                      {regionLabel(selectedDistrict)}
+                    </button>
+                  </>
+                ) : null}
+              </nav>
+
+              <button
+                className={`button button-sm map-report-button ${
+                  pickingLocation ? 'button-primary' : 'button-ghost'
+                }`}
+                type="button"
+                onClick={startPickingLocation}
+                aria-pressed={pickingLocation}
+                title="Tandai lokasi laporan baru di peta"
+              >
+                <IconPlus size={16} />
+                Laporan
+              </button>
+            </div>
+
+            <p className="map-hint">
+              {pickingLocation
+                ? 'Klik peta untuk menandai lokasi laporan'
+                : regionLevel === 'indonesia'
+                  ? 'Klik provinsi untuk menelusuri wilayah'
+                  : regionLevel === 'province'
+                    ? 'Klik kota/kabupaten untuk melihat kecamatan'
+                    : regionLevel === 'city'
+                      ? 'Klik kecamatan untuk memfilter unit'
+                      : 'Klik kecamatan lain untuk berpindah'}
+            </p>
+
+            {regionLoading ? (
+              <div className="region-status" role="status">
+                <span className="spinner" aria-hidden="true" />
+                Memuat batas wilayah…
+              </div>
+            ) : null}
+
+            {regionError ? (
+              <div className="region-status region-status--error" role="alert">
+                <span>{regionError}</span>
+                <button
+                  className="button button-ghost button-sm"
+                  type="button"
+                  onClick={() => void loadRegionData()}
+                >
+                  Coba lagi
+                </button>
+              </div>
+            ) : null}
 
             {loading && vehicles.length === 0 ? (
               <div className="map-overlay">
@@ -846,6 +1517,7 @@ export function MapPage() {
                     setPanelMode('list')
                     setDraft(null)
                     setFormError(null)
+                    setPickingLocation(false)
                   }}
                 >
                   <IconBack size={16} />

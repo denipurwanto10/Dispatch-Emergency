@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { ApiError, login } from '../api/client'
 import { homeForRole, readSession, saveSession } from '../auth/session'
@@ -88,6 +89,8 @@ export function LoginPage() {
     try {
       const session = await login(email.trim(), password)
       saveSession(session)
+      const firstName = session.user.name.trim().split(/\s+/)[0]
+      toast.success(`Selamat datang kembali, ${firstName}`)
       navigate(homeForRole(session.user.role), { replace: true })
     } catch (err) {
       if (err instanceof ApiError) {

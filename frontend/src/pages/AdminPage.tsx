@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
   ApiError,
@@ -24,6 +25,8 @@ import type {
   VehicleType,
 } from '../types'
 import { AppHeader } from '../components/AppHeader'
+import { CitySearchSelect } from '../components/CitySearchSelect'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { IconMap, IconPlus } from '../components/icons'
 import { Select } from '../components/Select'
 
@@ -49,6 +52,10 @@ interface VehicleForm {
   driver_id: string
   status: 'available' | 'offline'
 }
+
+type PendingDelete =
+  | { kind: 'user'; user: User }
+  | { kind: 'vehicle'; vehicle: AdminVehicle }
 
 const ROLE_LABEL: Record<Role, string> = {
   admin: 'Admin',
@@ -100,6 +107,20 @@ function errorText(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback
 }
 
+function deleteDialogContent(pending: PendingDelete | null): { title: string; description: string } {
+  if (!pending) return { title: '', description: '' }
+  if (pending.kind === 'user') {
+    return {
+      title: `Hapus akun ${pending.user.name}?`,
+      description: `Akun ${pending.user.email} tidak bisa dipulihkan. Jika akun masih dipakai data insiden atau tugas, server akan menolak penghapusan.`,
+    }
+  }
+  return {
+    title: `Hapus kendaraan ${pending.vehicle.name}?`,
+    description: `Kendaraan ${pending.vehicle.plate} akan dihapus beserta riwayat tugas non-aktifnya. Unit yang sedang bertugas tidak bisa dihapus.`,
+  }
+}
+
 export function AdminPage() {
   const navigate = useNavigate()
   const [session] = useState<Session | null>(() => readSession())
@@ -109,12 +130,14 @@ export function AdminPage() {
   const [cityFilter, setCityFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
 
   const [userForm, setUserForm] = useState<UserForm | null>(null)
+  const [showFormPassword, setShowFormPassword] = useState(false)
   const [vehicleForm, setVehicleForm] = useState<VehicleForm | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const handleUnauthorized = useCallback(() => {
     clearSession()
@@ -167,7 +190,6 @@ export function AdminPage() {
     setTab('users')
     setUserForm(emptyUserForm())
     setFormError(null)
-    setNotice(null)
   }
 
   function openEditUser(user: User) {
@@ -181,14 +203,12 @@ export function AdminPage() {
       operating_city: user.operating_city ?? '',
     })
     setFormError(null)
-    setNotice(null)
   }
 
   function openCreateVehicle() {
     setTab('vehicles')
     setVehicleForm(emptyVehicleForm())
     setFormError(null)
-    setNotice(null)
   }
 
   function openEditVehicle(vehicle: AdminVehicle) {
@@ -205,7 +225,6 @@ export function AdminPage() {
       status: vehicle.status === 'offline' ? 'offline' : 'available',
     })
     setFormError(null)
-    setNotice(null)
   }
 
   function updateUserField<K extends keyof UserForm>(field: K, value: UserForm[K]) {
@@ -246,7 +265,6 @@ export function AdminPage() {
     if (!session || !userForm) return
     setSaving(true)
     setFormError(null)
-    setNotice(null)
 
     const input: AdminUserInput = {
       name: userForm.name.trim(),
@@ -259,10 +277,10 @@ export function AdminPage() {
     try {
       if (userForm.id == null) {
         await createAdminUser(session.token, input)
-        setNotice('Akun baru sudah dibuat.')
+        toast.success('Akun baru berhasil dibuat', { description: input.name })
       } else {
         await updateAdminUser(session.token, userForm.id, input)
-        setNotice('Perubahan akun tersimpan.')
+        toast.success('Perubahan akun tersimpan', { description: input.name })
       }
       setUserForm(null)
       await loadAll()
@@ -282,7 +300,6 @@ export function AdminPage() {
     if (!session || !vehicleForm) return
     setSaving(true)
     setFormError(null)
-    setNotice(null)
 
     const input: AdminVehicleInput = {
       name: vehicleForm.name.trim(),
@@ -302,10 +319,10 @@ export function AdminPage() {
     try {
       if (vehicleForm.id == null) {
         await createAdminVehicle(session.token, input)
-        setNotice('Kendaraan baru sudah ditambahkan.')
+        toast.success('Kendaraan baru berhasil ditambahkan', { description: input.name })
       } else {
         await updateAdminVehicle(session.token, vehicleForm.id, input)
-        setNotice('Perubahan kendaraan tersimpan.')
+        toast.success('Perubahan kendaraan tersimpan', { description: input.name })
       }
       setVehicleForm(null)
       await loadAll()
@@ -320,35 +337,58 @@ export function AdminPage() {
     }
   }
 
-  async function removeUser(user: User) {
-    if (!session) return
-    if (!window.confirm(`Hapus akun ${user.name} (${user.email})? Akun ini tidak bisa dipulihkan.`)) return
-    setFormError(null)
-    setNotice(null)
+  async function removeUser(user: User): Promise<boolean> {
+    if (!session) return false
     try {
       await deleteAdminUser(session.token, user.id)
-      setNotice(`Akun ${user.name} dihapus.`)
+      toast.success(`Akun ${user.name} berhasil dihapus`)
       if (userForm?.id === user.id) setUserForm(null)
       await loadAll()
+      return true
     } catch (err) {
-      setFormError(errorText(err, 'Akun belum bisa dihapus.'))
+      if (err instanceof ApiError && err.status === 401) {
+        handleUnauthorized()
+        return false
+      }
+      toast.error('Akun belum bisa dihapus', {
+        description: errorText(err, 'Akun masih terhubung dengan data lain atau koneksi bermasalah.'),
+      })
+      return false
     }
   }
 
-  async function removeVehicle(vehicle: AdminVehicle) {
-    if (!session) return
-    if (!window.confirm(`Hapus kendaraan ${vehicle.name} (${vehicle.plate})? Riwayat tugasnya tetap tersimpan.`)) return
-    setFormError(null)
-    setNotice(null)
+  async function removeVehicle(vehicle: AdminVehicle): Promise<boolean> {
+    if (!session) return false
     try {
       await deleteAdminVehicle(session.token, vehicle.id)
-      setNotice(`Kendaraan ${vehicle.name} dihapus.`)
+      toast.success(`Kendaraan ${vehicle.name} berhasil dihapus`)
       if (vehicleForm?.id === vehicle.id) setVehicleForm(null)
       await loadAll()
+      return true
     } catch (err) {
-      setFormError(errorText(err, 'Kendaraan belum bisa dihapus. Mungkin sedang menjalani tugas.'))
+      if (err instanceof ApiError && err.status === 401) {
+        handleUnauthorized()
+        return false
+      }
+      toast.error('Kendaraan belum bisa dihapus', {
+        description: errorText(err, 'Unit mungkin sedang menjalani tugas.'),
+      })
+      return false
     }
   }
+
+  async function handleConfirmDelete() {
+    if (!pendingDelete) return
+    setDeleting(true)
+    const ok =
+      pendingDelete.kind === 'user'
+        ? await removeUser(pendingDelete.user)
+        : await removeVehicle(pendingDelete.vehicle)
+    setDeleting(false)
+    if (ok) setPendingDelete(null)
+  }
+
+  const deleteCopy = deleteDialogContent(pendingDelete)
 
   if (!session) return null
 
@@ -391,11 +431,6 @@ export function AdminPage() {
         {loadError ? (
           <div className="admin-alert admin-alert--error" role="alert">
             {loadError}
-          </div>
-        ) : null}
-        {notice ? (
-          <div className="admin-alert admin-alert--success" role="status">
-            {notice}
           </div>
         ) : null}
         {formError && !userForm && !vehicleForm ? (
@@ -501,7 +536,7 @@ export function AdminPage() {
                           <button
                             className="admin-link admin-link--danger"
                             type="button"
-                            onClick={() => void removeUser(user)}
+                            onClick={() => setPendingDelete({ kind: 'user', user })}
                           >
                             Hapus
                           </button>
@@ -549,7 +584,7 @@ export function AdminPage() {
                           <button
                             className="admin-link admin-link--danger"
                             type="button"
-                            onClick={() => void removeVehicle(vehicle)}
+                            onClick={() => setPendingDelete({ kind: 'vehicle', vehicle })}
                           >
                             Hapus
                           </button>
@@ -615,13 +650,29 @@ export function AdminPage() {
                 </label>
                 <label className="field">
                   {userForm.id == null ? 'Password' : 'Password baru'}
-                  <input
-                    type="password"
-                    value={userForm.password}
-                    onChange={(event) => updateUserField('password', event.target.value)}
-                    placeholder={userForm.id == null ? 'Minimal 6 karakter' : 'Kosongkan jika tidak diganti'}
-                    required={userForm.id == null}
-                  />
+                  <span className="field-password">
+                    <input
+                      type={showFormPassword ? 'text' : 'password'}
+                      value={userForm.password}
+                      onChange={(event) => updateUserField('password', event.target.value)}
+                      placeholder={userForm.id == null ? 'Minimal 6 karakter' : 'Kosongkan jika tidak diganti'}
+                      autoComplete="new-password"
+                      required={userForm.id == null}
+                    />
+                    <button
+                      type="button"
+                      className="field-password-toggle"
+                      onClick={() => setShowFormPassword((value) => !value)}
+                      aria-label={showFormPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                      aria-pressed={showFormPassword}
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+                        <circle cx="12" cy="12" r="3" />
+                        {showFormPassword ? <path d="M4 4l16 16" /> : null}
+                      </svg>
+                    </button>
+                  </span>
                 </label>
                 <div className="form-grid">
                   <label className="field">
@@ -638,14 +689,15 @@ export function AdminPage() {
                   </label>
                   <label className="field">
                     Kota operasi
-                    <Select
+                    <CitySearchSelect
+                      mode="province-first"
                       value={userForm.operating_city}
                       onChange={(value) => updateUserField('operating_city', value)}
                       disabled={userForm.role === 'admin'}
-                      options={[
-                        ...(userForm.role !== 'driver' ? [{ value: '', label: 'Semua kota' }] : []),
-                        ...CITY_OPTIONS.map((city) => ({ value: city.name, label: city.name })),
-                      ]}
+                      variant="field"
+                      showAllOption={userForm.role !== 'driver'}
+                      allLabel="Semua kota"
+                      searchPlaceholder="Cari kota atau provinsi…"
                     />
                     {userForm.role === 'admin' ? (
                       <span className="field-hint">Admin bisa mengakses semua kota.</span>
@@ -721,10 +773,13 @@ export function AdminPage() {
                 <div className="form-grid">
                   <label className="field">
                     Kota operasi
-                    <Select
+                    <CitySearchSelect
+                      mode="province-first"
                       value={vehicleForm.operating_city}
                       onChange={(value) => updateVehicleField('operating_city', value)}
-                      options={CITY_OPTIONS.map((city) => ({ value: city.name, label: city.name }))}
+                      variant="field"
+                      showAllOption={false}
+                      searchPlaceholder="Cari kota atau provinsi…"
                     />
                   </label>
                   <label className="field">
@@ -795,6 +850,20 @@ export function AdminPage() {
           ) : null}
         </div>
       </main>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        tone="danger"
+        title={deleteCopy.title}
+        description={deleteCopy.description}
+        confirmLabel="Hapus"
+        cancelLabel="Batal"
+        busy={deleting}
+        onConfirm={() => void handleConfirmDelete()}
+        onCancel={() => {
+          if (!deleting) setPendingDelete(null)
+        }}
+      />
     </div>
   )
 }
