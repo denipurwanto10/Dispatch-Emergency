@@ -1,5 +1,5 @@
 # Dispatch — Emergency Response Command Center
-
+ 
 MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1–4 sudah selesai: auth/role, seed nasional, insiden + pencarian kandidat, assignment + rute + simulasi, WebSocket real-time, layar driver, dan panel admin. Antarmuka memakai desain flat, tema terang/gelap di semua halaman, dan layout responsif hingga ponsel.
 
 > **Tanpa Docker.** Semua layanan berjalan langsung di mesin lokal. Tidak ada `docker-compose.yml`, `Dockerfile`, atau instruksi berbasis container di proyek ini.
