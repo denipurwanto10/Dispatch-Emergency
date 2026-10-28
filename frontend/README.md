@@ -2,13 +2,14 @@
 
 React 19 + Vite + TypeScript + Leaflet untuk Dispatch. Berisi peta operasi dispatcher, layar tugas driver real-time, dan panel admin.
 
-Lihat [README](../README.md) di root proyek untuk prasyarat, cara menjalankan, kredensial seed, dan daftar endpoint.
+Lihat [README](../README.md) di root proyek untuk prasyarat, cara menjalankan, kredensial seed, dan daftar endpoint. Panduan agen ada di [AGENTS.md](../AGENTS.md), arsitektur di [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md), dan backlog di [docs/BACKLOG.md](../docs/BACKLOG.md).
 
 ```powershell
 npm install
 npm run dev
-npm run build
 npm run lint
+npm run typecheck
+npm run build
 ```
 
 Konfigurasi API memakai environment variable:

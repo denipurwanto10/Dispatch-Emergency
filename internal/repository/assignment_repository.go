@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"dispatch/internal/model"
+	"dispatch/internal/state"
 )
 
 var ErrAssignmentConflict = errors.New("assignment conflict: kendaraan sudah memiliki assignment aktif")
@@ -82,6 +83,10 @@ func scanAssignment(row interface {
 }
 
 func (r *AssignmentRepository) Create(ctx context.Context, params CreateAssignmentParams) (model.Assignment, error) {
+	if !state.IsInitialAssignmentStatus(params.Status) {
+		return model.Assignment{}, fmt.Errorf("status awal assignment tidak valid: %q", params.Status)
+	}
+
 	var routeGeoJSON any
 	if params.RouteGeoJSON != "" {
 		routeGeoJSON = params.RouteGeoJSON
@@ -91,10 +96,10 @@ func (r *AssignmentRepository) Create(ctx context.Context, params CreateAssignme
 		INSERT INTO assignments
 			(incident_id, vehicle_id, assigned_by, route_geom, distance_m, eta_seconds, progress_m, status)
 		VALUES
-			($1, $2, $3, ST_GeomFromGeoJSON($4), $5, $6, 0, 'assigned')
+			($1, $2, $3, ST_GeomFromGeoJSON($4), $5, $6, 0, $7)
 		RETURNING `+AssignmentColumns,
 		params.IncidentID, params.VehicleID, params.AssignedBy,
-		routeGeoJSON, params.DistanceM, params.ETASecs,
+		routeGeoJSON, params.DistanceM, params.ETASecs, string(params.Status),
 	)
 
 	assignment, err := scanAssignment(row)
@@ -111,6 +116,7 @@ type CreateAssignmentParams struct {
 	RouteGeoJSON string
 	DistanceM    float64
 	ETASecs      int
+	Status       state.AssignmentStatus
 }
 
 func (r *AssignmentRepository) GetByID(ctx context.Context, id int64) (model.Assignment, error) {
@@ -211,9 +217,13 @@ func (r *AssignmentRepository) ListActiveEnRoute(ctx context.Context) ([]model.A
 	return assignments, nil
 }
 
-func (r *AssignmentRepository) UpdateStatusAndTimes(ctx context.Context, id int64, status string, startedAt, arrivedAt, completedAt *time.Time) (model.Assignment, error) {
+func (r *AssignmentRepository) UpdateStatusAndTimes(ctx context.Context, id int64, status state.AssignmentStatus, startedAt, arrivedAt, completedAt *time.Time) (model.Assignment, error) {
+	if !state.IsAssignmentStatus(status) {
+		return model.Assignment{}, fmt.Errorf("status assignment tidak valid: %q", status)
+	}
+
 	query := `UPDATE assignments SET status = $1`
-	args := []any{status}
+	args := []any{string(status)}
 	argIdx := 2
 
 	if startedAt != nil {
@@ -263,9 +273,13 @@ func (r *AssignmentRepository) UpdateProgress(ctx context.Context, id int64, pro
 	return assignment, nil
 }
 
-func (r *AssignmentRepository) UpdateProgressAndStatus(ctx context.Context, id int64, progressM float64, status string, arrivedAt *time.Time) (model.Assignment, error) {
+func (r *AssignmentRepository) UpdateProgressAndStatus(ctx context.Context, id int64, progressM float64, status state.AssignmentStatus, arrivedAt *time.Time) (model.Assignment, error) {
+	if !state.IsAssignmentStatus(status) {
+		return model.Assignment{}, fmt.Errorf("status assignment tidak valid: %q", status)
+	}
+
 	query := `UPDATE assignments SET progress_m = $1, status = $2`
-	args := []any{progressM, status}
+	args := []any{progressM, string(status)}
 	argIdx := 3
 
 	if arrivedAt != nil {

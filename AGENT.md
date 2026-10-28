@@ -1,6 +1,6 @@
 # AGENT.md — Konvensi Proyek Dispatch
 
-Dokumen ini adalah kontrak kerja untuk agen/engineer yang melanjutkan proyek. Baca sebelum mengubah kode.
+Dokumen ini adalah kontrak kerja untuk agen/engineer yang melanjutkan proyek. Baca sebelum mengubah kode. Untuk panduan ringkas perintah/verifikasi, lihat [`AGENTS.md`](AGENTS.md). Untuk arsitektur dan backlog, lihat [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) dan [`docs/BACKLOG.md`](docs/BACKLOG.md).
 
 ## Status proyek
 
@@ -16,7 +16,7 @@ Fitur yang sudah ada:
 - Pencarian maksimal 3 kandidat kendaraan terdekat lewat OSRM publik.
 - Assignment transaksional, rute OSRM, `assigned_by` fail-closed dari JWT.
 - Simulasi pergerakan kendaraan dan event WebSocket.
-- Layar driver real-time tanpa polling, peta mini, ETA, riwayat 20 tugas.
+- Layar driver real-time tanpa polling, peta mini, ETA, tombol tiba manual (fallback), riwayat 20 tugas.
 - Panel admin CRUD user dan kendaraan dengan validasi + pesan `409`.
 
 Jangan mengulang scaffold, menghapus fitur yang sudah bekerja, atau menambahkan Docker.
@@ -58,7 +58,7 @@ Jangan mengulang scaffold, menghapus fitur yang sudah bekerja, atau menambahkan 
 - `DISPATCH_RADIUS_M` default `50000` meter. Jangan menaruh angka radius tersebar di handler/repository.
 - `SIM_SPEED_MULTIPLIER` default `20`; nilai harus > 0. Simulator berjalan dengan ticker 1 detik.
 - Password hanya disimpan sebagai hash bcrypt; `password_hash` tidak pernah keluar di JSON.
-- Sebelum selesai: `gofmt -l .` kosong, `go vet ./...`, dan `go build ./...` lolos.
+- Sebelum selesai: `gofmt -l .` kosong, `go vet ./...`, `go test ./...`, dan `go build ./...` lolos.
 
 ### Database
 
@@ -92,7 +92,7 @@ Jangan mengulang scaffold, menghapus fitur yang sudah bekerja, atau menambahkan 
 - Layar driver **tidak boleh polling** `/assignments/mine/active`. Pemuatan awal sekali; pembaruan lewat WebSocket. Reconnect otomatis setiap 3 detik, lalu refresh state sekali setelah reconnect.
 - Peta driver memakai Leaflet dengan marker kendaraan yang bergerak, marker insiden, dan polyline rute. Jangan membuat instance peta ganda saat kartu tugas muncul/hilang; gunakan callback ref container.
 - Panel admin memakai tab Users/Kendaraan, form create/edit, dan konfirmasi hapus. Tampilkan pesan error backend apa adanya agar `409` terbaca.
-- Sebelum selesai: `npm run build` dan `npm run lint` lolos.
+- Sebelum selesai: `npm run build`, `npm run lint`, dan `npm run typecheck` lolos.
 
 ## Status legal
 
@@ -162,17 +162,42 @@ CREATE UNIQUE INDEX uniq_active_assignment_per_vehicle
 
 Handler wajib menangkap pelanggaran constraint ini dan mengembalikan `409`, bukan `500`.
 
-### State machine
+### State machine terpusat
 
-```text
-assigned --start--> en_route --simulator--> arrived --complete--> completed
-```
+Sumber kebenaran ada di `internal/state`. Handler, repository, dan simulator wajib memakai tabel ini; jangan menulis status langsung tanpa validator.
 
+**Insiden (`incidents.status`)**
+
+| Dari | Tujuan legal |
+| --- | --- |
+| `open` | `assigned`, `cancelled` |
+| `assigned` | `en_route` |
+| `en_route` | `on_scene` |
+| `on_scene` | `resolved` |
+| `resolved` | — |
+| `cancelled` | — |
+
+**Assignment (`assignments.status`)**
+
+| Dari | Tujuan legal |
+| --- | --- |
+| `assigned` | `en_route`, `cancelled` |
+| `en_route` | `arrived`, `cancelled` |
+| `arrived` | `completed` |
+| `completed` | — |
+| `cancelled` | — |
+
+- Transisi ilegal → `409`; data tidak boleh berubah.
+- `start` memvalidasi assignment `assigned → en_route` dan insiden `assigned → en_route`.
+- `arrive` memvalidasi assignment `en_route → arrived` dan insiden `en_route → on_scene`.
+- `complete` memvalidasi assignment `arrived → completed` dan insiden `on_scene → resolved`.
+- Simulator memakai validator yang sama; state tidak konsisten dilewati dan dicatat ke log.
 - `POST /assignments/:id/start` hanya untuk driver pemilik kendaraan dan hanya dari `assigned`.
 - Simulator mengubah `en_route` → `arrived` saat progress mencapai `distance_m`.
+- `POST /assignments/:id/arrive` adalah fallback manual untuk driver pemilik kendaraan dari `en_route`; frontend menampilkan tombol "Sampai di Lokasi".
 - `POST /assignments/:id/complete` hanya dari `arrived`, boleh oleh driver pemilik, dispatcher, atau admin.
 - Complete mengubah kendaraan menjadi `available` di lokasi insiden dan insiden menjadi `resolved`.
-- `cancelled` ada di status legal, tetapi belum ada endpoint cancel assignment terpisah di MVP.
+- `cancelled` ada di status legal dan tabel transisi, tetapi belum ada endpoint cancel/reject assignment terpisah di MVP.
 
 ### Assignment aktif untuk driver/admin
 
@@ -230,10 +255,11 @@ assigned --start--> en_route --simulator--> arrived --complete--> completed
 - JWT HS256, klaim: `uid`, `role`, `name`, `email`, `sub`, `iat`, `exp`, `iss=dispatch`.
 - Middleware `RequireAuth` memvalidasi Bearer token; `RequireRole(...)` membatasi role.
 - `GET /vehicles` cukup login (semua role) dan mendukung query `?city=`.
-- `POST /incidents`, `POST /incidents/:id/cancel`, dan `POST /incidents/:id/assign` hanya `dispatcher`.
+- `POST /incidents`, `POST /incidents/:id/cancel`, dan `POST /incidents/:id/assign` hanya `dispatcher`/`admin`.
 - `GET /incidents`, `GET /incidents/:id`, dan `GET /incidents/:id/nearest` hanya `dispatcher`/`admin`.
 - `GET /assignments/mine/active` dan `GET /assignments/mine/history` hanya `driver`.
 - `POST /assignments/:id/start` hanya `driver` pemilik kendaraan.
+- `POST /assignments/:id/arrive` hanya `driver` pemilik kendaraan, dari `en_route`.
 - `POST /assignments/:id/complete` boleh driver pemilik, `dispatcher`, atau `admin`.
 - `GET /assignments/:id` boleh `dispatcher`/`admin`, atau `driver` pemilik kendaraan.
 - Semua route `/admin/*` hanya `admin`; role lain `403`, tanpa token `401`.
@@ -279,13 +305,14 @@ i. Field kandidat: `vehicle_id`, `name`, `plate`, `type`, `operating_city`, `dri
 - `POST /auth/login` — response memuat `operating_city`
 - `GET /vehicles` (auth) — semua kendaraan, response memuat `operating_city`
 - `GET /vehicles?city=Bandung` (auth) — filter exact `operating_city`
-- `POST /incidents` (dispatcher)
+- `POST /incidents` (dispatcher/admin)
 - `GET /incidents` (dispatcher/admin) — filter `?status=` dan `?city=`
 - `GET /incidents/:id` (dispatcher/admin)
-- `POST /incidents/:id/cancel` (dispatcher)
+- `POST /incidents/:id/cancel` (dispatcher/admin)
 - `GET /incidents/:id/nearest` (dispatcher/admin)
-- `POST /incidents/:id/assign` (dispatcher) — body `{vehicle_id}`
+- `POST /incidents/:id/assign` (dispatcher/admin) — body `{vehicle_id}`
 - `POST /assignments/:id/start` (driver pemilik)
+- `POST /assignments/:id/arrive` (driver pemilik) — fallback manual `en_route → arrived`
 - `POST /assignments/:id/complete` (driver pemilik/dispatcher/admin)
 - `GET /assignments/mine/active` (driver)
 - `GET /assignments/mine/history` (driver) — maksimal 20
@@ -334,6 +361,7 @@ Backend:
 ```powershell
 gofmt -l .
 go vet ./...
+go test ./...
 go build ./...
 ```
 
@@ -343,6 +371,7 @@ Frontend:
 cd frontend
 npm run build
 npm run lint
+npm run typecheck
 ```
 
 Cek juga:

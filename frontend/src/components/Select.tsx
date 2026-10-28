@@ -16,6 +16,8 @@ interface SelectProps {
   icon?: ReactNode
   /** "filter" memakai latar abu-abu muda untuk bilah alat; "field" untuk form. */
   variant?: 'field' | 'filter'
+  /** Label kecil sebelum nilai, mis. "Jenis" atau "Urut". */
+  prefix?: string
 }
 
 function IconChevron() {
@@ -38,7 +40,7 @@ function IconCheck() {
  * Pemilih kustom. Daftar memakai posisi fixed supaya tidak terpotong panel yang bisa digulir
  * (form admin, strip armada). Mendukung keyboard: panah, Home/End, Enter/Spasi, Esc.
  */
-export function Select({ value, options, onChange, disabled = false, ariaLabel, icon, variant = 'field' }: SelectProps) {
+export function Select({ value, options, onChange, disabled = false, ariaLabel, icon, variant = 'field', prefix }: SelectProps) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
   const [pos, setPos] = useState<CSSProperties>({})
@@ -150,6 +152,7 @@ export function Select({ value, options, onChange, disabled = false, ariaLabel, 
         }}
       >
         {icon}
+        {prefix ? <span className="select-prefix">{prefix}</span> : null}
         <span className="select-value">{current?.label ?? ''}</span>
         <IconChevron />
       </button>

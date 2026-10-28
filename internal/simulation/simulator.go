@@ -9,6 +9,7 @@ import (
 
 	"dispatch/internal/model"
 	"dispatch/internal/repository"
+	"dispatch/internal/state"
 )
 
 type Simulator struct {
@@ -148,17 +149,29 @@ func (s *Simulator) tick() {
 			newProgress = assignment.DistanceM
 			persistThisTick = true
 
+			if !state.CanTransitionAssignment(state.AssignmentStatus(assignment.Status), state.AssignmentArrived) {
+				log.Printf("simulasi: assignment %d status %q tidak bisa pindah ke arrived; dilewati",
+					assignment.ID, assignment.Status)
+				continue
+			}
+
 			// Update assignment status ke arrived
 			arrivedAt := now
-			updated, err := s.assignments.UpdateProgressAndStatus(s.ctx, assignment.ID, newProgress, "arrived", &arrivedAt)
+			updated, err := s.assignments.UpdateProgressAndStatus(s.ctx, assignment.ID, newProgress, state.AssignmentArrived, &arrivedAt)
 			if err != nil {
 				log.Printf("simulasi: error update assignment %d ke arrived: %v", assignment.ID, err)
 				continue
 			}
 			assignment = updated
 
-			// Update vehicle status ke on_scene, pos_geom = incident location
-			if _, err := s.incidents.GetByID(s.ctx, assignment.IncidentID); err == nil {
+			// Update vehicle dan insiden hanya bila transisi insiden legal.
+			incident, err := s.incidents.GetByID(s.ctx, assignment.IncidentID)
+			if err != nil {
+				log.Printf("simulasi: error mengambil insiden %d: %v", assignment.IncidentID, err)
+			} else if !state.CanTransition(state.IncidentStatus(incident.Status), state.IncidentOnScene) {
+				log.Printf("simulasi: insiden %d status %q tidak bisa pindah ke on_scene; update insiden dilewati",
+					incident.ID, incident.Status)
+			} else {
 				if _, err := s.vehicles.DB().ExecContext(s.ctx, `
 					UPDATE vehicles
 					SET status = 'on_scene',
@@ -170,7 +183,7 @@ func (s *Simulator) tick() {
 
 				// Update incident status ke on_scene
 				if _, err := s.incidents.DB().ExecContext(s.ctx, `
-					UPDATE incidents SET status = 'on_scene' WHERE id = $1`, assignment.IncidentID); err != nil {
+					UPDATE incidents SET status = $2 WHERE id = $1`, assignment.IncidentID, string(state.IncidentOnScene)); err != nil {
 					log.Printf("simulasi: error update incident on_scene: %v", err)
 				}
 			}

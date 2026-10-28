@@ -6,7 +6,7 @@ import {
   useState,
   type FormEvent,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import { toast } from 'sonner'
 import { createRouteLine } from '../lib/routeLine'
@@ -21,7 +21,7 @@ import {
   fetchAssignment,
 } from '../api/client'
 import { API_BASE } from '../api/client'
-import { clearSession, homeForRole, readSession } from '../auth/session'
+import { clearSession, readSession } from '../auth/session'
 import { addBasemap } from '../lib/basemap'
 import { syncVehicleMarkers } from '../lib/vehicleMarker'
 import {
@@ -30,9 +30,10 @@ import {
   INDONESIA_CENTER,
   INDONESIA_ZOOM,
 } from '../cities'
-import { AppHeader } from '../components/AppHeader'
+import { AppShell } from '../components/AppShell'
 import { CitySelect } from '../components/CitySelect'
-import { IconBack, IconPlus } from '../components/icons'
+import { IconBack, IconExpand, IconLayers, IconPlus, IconRefresh, IconSearch } from '../components/icons'
+import { Select } from '../components/Select'
 import { useTheme } from '../context/ThemeContext'
 import {
   featureBounds,
@@ -52,6 +53,7 @@ import {
   type RegionLevel,
 } from '../lib/regions'
 import type {
+  Assignment,
   Incident,
   IncidentPriority,
   IncidentType,
@@ -89,6 +91,9 @@ const INCIDENT_STATUS_LABEL: Record<Incident['status'], string> = {
 }
 
 // Status insiden yang sudah tidak bisa dibatalkan lagi.
+/** Status penugasan yang masih perlu garis rute ke TKP. */
+const ROUTE_STATUS = new Set<Assignment['status']>(['assigned', 'en_route'])
+
 const CLOSED_INCIDENT_STATUS: Incident['status'][] = ['resolved', 'cancelled']
 
 function upsertIncident(list: Incident[], incident: Incident): Incident[] {
@@ -105,6 +110,25 @@ const PRIORITY_LABEL: Record<IncidentPriority, string> = {
   high: 'Tinggi',
   critical: 'Kritis',
 }
+
+type IncidentTab = 'all' | 'urgent' | 'other'
+type IncidentSort = 'newest' | 'priority' | 'title'
+
+const PRIORITY_RANK: Record<IncidentPriority, number> = { critical: 0, high: 1, medium: 2, low: 3 }
+const isUrgent = (priority: IncidentPriority) => priority === 'critical' || priority === 'high'
+
+const TYPE_FILTER_OPTIONS = [
+  { value: 'all', label: 'Semua jenis' },
+  { value: 'ambulance', label: 'Ambulans' },
+  { value: 'fire', label: 'Damkar' },
+  { value: 'police', label: 'Patroli' },
+]
+
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Terbaru' },
+  { value: 'priority', label: 'Prioritas' },
+  { value: 'title', label: 'Judul A-Z' },
+]
 
 const INCIDENT_TYPES: IncidentType[] = ['ambulance', 'fire', 'police']
 const PRIORITIES: IncidentPriority[] = ['low', 'medium', 'high', 'critical']
@@ -298,17 +322,17 @@ export function MapPage() {
   const [nearestError, setNearestError] = useState<string | null>(null)
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
-  const [sheetCollapsed, setSheetCollapsed] = useState(false)
-
-  // Bottom sheet (mobile) otomatis terbuka saat mode panel berubah.
-  useEffect(() => {
-    setSheetCollapsed(false)
-    document.querySelector('.incident-panel')?.scrollTo({ top: 0 })
-  }, [panelMode])
+  // Pencarian, tab, filter, dan urutan untuk daftar laporan.
+  const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<IncidentTab>('all')
+  const [typeFilter, setTypeFilter] = useState<'all' | IncidentType>('all')
+  const [sortBy, setSortBy] = useState<IncidentSort>('newest')
 
   // Assignment & WebSocket state
   const [wsConnected, setWsConnected] = useState(false)
-  const routePolylineRef = useRef<L.FeatureGroup | null>(null)
+  // Satu garis rute per penugasan aktif (key = assignment id), supaya semua
+  // kendaraan yang sedang menuju TKP punya garisnya sendiri.
+  const routeLayersRef = useRef<Map<number, L.FeatureGroup>>(new Map())
   // Status terakhir per assignment agar toast hanya muncul saat status berubah.
   const assignmentStatusRef = useRef<Map<number, string>>(new Map())
   const hasConnectedRef = useRef(false)
@@ -656,7 +680,7 @@ export function MapPage() {
       wheelDebounceTime: 30,
     })
 
-    L.control.zoom({ position: 'bottomleft' }).addTo(map)
+    L.control.zoom({ position: 'topright' }).addTo(map)
 
     addBasemap(map, { simple: true })
 
@@ -677,8 +701,41 @@ export function MapPage() {
       markerLayerRef.current = null
       vehicleMarkersRef.current = new Map()
       incidentLayerRef.current = null
+      routeLayersRef.current.clear()
     }
   }, [beginIncidentAt])
+
+  const clearRoute = useCallback((assignmentId: number) => {
+    const layer = routeLayersRef.current.get(assignmentId)
+    if (!layer) return
+    layer.remove()
+    routeLayersRef.current.delete(assignmentId)
+  }, [])
+
+  const clearAllRoutes = useCallback(() => {
+    for (const layer of routeLayersRef.current.values()) layer.remove()
+    routeLayersRef.current.clear()
+  }, [])
+
+  /** Gambar (atau ganti) garis rute kendaraan -> TKP untuk satu penugasan aktif. */
+  const drawRoute = useCallback(
+    (assignment: Assignment) => {
+      const map = mapRef.current
+      if (!map || !assignment.route_geojson) return
+      let geojson: { type?: string; coordinates?: number[][] }
+      try {
+        geojson = JSON.parse(assignment.route_geojson)
+      } catch {
+        return
+      }
+      if (geojson.type !== 'LineString' || !geojson.coordinates || geojson.coordinates.length < 2) return
+      const latlngs = geojson.coordinates.map((c) => [c[1], c[0]] as [number, number])
+      clearRoute(assignment.id)
+      routeLayersRef.current.set(assignment.id, createRouteLine(latlngs).addTo(map))
+    },
+    [clearRoute],
+  )
+
 
   // Handler event WebSocket. Didefinisikan sebelum effect koneksi dan hanya
   // bergantung pada setter stabil, sehingga socket tidak ikut reconnect saat
@@ -696,16 +753,10 @@ export function MapPage() {
         assignmentStatusRef.current = new Map(
           data.assignments.map((assignment) => [assignment.id, assignment.status]),
         )
-        // Restore route polyline for active assignments
+        // Pulihkan garis rute semua penugasan aktif (admin melihat seluruh armada).
+        clearAllRoutes()
         for (const assignment of data.assignments) {
-          if (assignment.status === 'en_route' && assignment.route_geojson) {
-            const geojson = JSON.parse(assignment.route_geojson)
-            if (geojson.type === 'LineString' && geojson.coordinates.length >= 2) {
-              const latlngs = geojson.coordinates.map((c: number[]) => [c[1], c[0]] as [number, number])
-              const polyline = createRouteLine(latlngs).addTo(mapRef.current!)
-              routePolylineRef.current = polyline
-            }
-          }
+          if (ROUTE_STATUS.has(assignment.status)) drawRoute(assignment)
         }
         break
       }
@@ -732,11 +783,11 @@ export function MapPage() {
         if (vehicle) {
           setVehicles(prev => prev.map(v => v.id === vehicle.id ? vehicle : v))
         }
-        if (assignment.status === 'completed' || assignment.status === 'cancelled') {
-          if (routePolylineRef.current) {
-            mapRef.current?.removeLayer(routePolylineRef.current)
-            routePolylineRef.current = null
-          }
+        if (ROUTE_STATUS.has(assignment.status)) {
+          // Hanya gambar ulang kalau belum ada, supaya event berulang tidak berkedip.
+          if (!routeLayersRef.current.has(assignment.id)) drawRoute(assignment)
+        } else {
+          clearRoute(assignment.id)
         }
 
         // Toast hanya saat status benar-benar berubah, bukan tiap event berulang.
@@ -764,7 +815,7 @@ export function MapPage() {
         break
       }
     }
-  }, [])
+  }, [clearAllRoutes, clearRoute, drawRoute])
 
   // WebSocket connection dengan reconnect otomatis. Semua dispatcher yang login
   // menerima broadcast yang sama dari hub.
@@ -1212,16 +1263,7 @@ export function MapPage() {
     if (!session) return
     try {
       const assignment = await assignIncident(session.token, incidentId, vehicleId)
-      // Draw route polyline
-      const geojson = JSON.parse(assignment.route_geojson)
-      if (geojson.type === 'LineString' && geojson.coordinates.length >= 2) {
-        const latlngs = geojson.coordinates.map((c: number[]) => [c[1], c[0]] as [number, number])
-        if (routePolylineRef.current) {
-          mapRef.current?.removeLayer(routePolylineRef.current)
-        }
-        const polyline = createRouteLine(latlngs).addTo(mapRef.current!)
-        routePolylineRef.current = polyline
-      }
+      drawRoute(assignment)
       // Refresh incidents and vehicles
       await loadIncidents()
       await load()
@@ -1283,104 +1325,45 @@ export function MapPage() {
   const openIncidents = incidents.filter((incident) => incident.status === 'open')
   const connectionError = error || incidentError
 
+  const needle = query.trim().toLowerCase()
+  const searchedIncidents = openIncidents.filter((incident) => {
+    if (typeFilter !== 'all' && incident.type !== typeFilter) return false
+    if (!needle) return true
+    const haystack = `${incident.title} ${TYPE_META[incident.type]?.label ?? ''} ${incident.operating_city ?? ''}`
+    return haystack.toLowerCase().includes(needle)
+  })
+  const tabCounts = {
+    all: searchedIncidents.length,
+    urgent: searchedIncidents.filter((incident) => isUrgent(incident.priority)).length,
+    other: searchedIncidents.filter((incident) => !isUrgent(incident.priority)).length,
+  }
+  const visibleIncidents = searchedIncidents
+    .filter((incident) => tab === 'all' || (tab === 'urgent') === isUrgent(incident.priority))
+    .sort((a, b) => {
+      if (sortBy === 'title') return a.title.localeCompare(b.title, 'id')
+      if (sortBy === 'priority') {
+        return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || b.created_at.localeCompare(a.created_at)
+      }
+      return b.created_at.localeCompare(a.created_at)
+    })
+
   return (
-    <div className="map-shell">
-      <AppHeader subtitle="Peta operasi" session={session} onLogout={handleLogout}>
+    <AppShell
+      title="Peta operasi"
+      subtitle="Pantau unit dan kelola laporan kejadian"
+      session={session}
+      onLogout={handleLogout}
+      badges={{ '/map': openIncidents.length }}
+      contentClassName="shell-main--map"
+      actions={
         <span className={`connection ${connectionError || !wsConnected ? 'connection--off' : ''}`}>
           <span className="connection-dot" aria-hidden="true" />
-          {connectionError
-            ? 'Koneksi bermasalah'
-            : wsConnected
-              ? 'Tersambung'
-              : 'Menyambung ulang…'}
+          {connectionError ? 'Koneksi bermasalah' : wsConnected ? 'Tersambung' : 'Menyambung ulang…'}
         </span>
-        {session && session.user.role !== 'dispatcher' ? (
-          <Link className="button button-ghost" to={homeForRole(session.user.role)}>
-            <IconBack />
-            {session.user.role === 'admin' ? 'Panel admin' : 'Layar driver'}
-          </Link>
-        ) : null}
-      </AppHeader>
-
-      <main className="map-main">
-        <aside className="fleet-panel" aria-label="Ringkasan unit">
-          <CitySelect
-            value={city}
-            options={CITY_OPTIONS.map((option) => option.name)}
-            allLabel="Semua kota"
-            onChange={(next) => handleCityChange(next)}
-          />
-
-          <div className="fleet-summary">
-            <p className="fleet-total">
-              <strong>{vehicles.length}</strong>
-              <span>unit terpantau</span>
-            </p>
-            <div className="fleet-bar" aria-hidden="true">
-              {(['ambulance', 'fire', 'police'] as const).map((type) => (
-                <span
-                  key={type}
-                  className={`legend-dot--${type}`}
-                  style={{ width: `${vehicles.length ? (counts[type] / vehicles.length) * 100 : 0}%` }}
-                />
-              ))}
-            </div>
-          </div>
-
-          <p className="fleet-scope">
-            {regionLevel === 'indonesia'
-              ? 'Pilih provinsi di peta untuk menampilkan unit.'
-              : visibleVehicles.length === 0
-                ? `Tidak ada unit di ${regionScopeLabel || 'wilayah ini'}.`
-                : `${visibleVehicles.length} unit di ${regionScopeLabel}.`}
-          </p>
-
-          <ul className="fleet-types" aria-label="Unit menurut jenis">
-            <li>
-              <span className="legend-dot legend-dot--ambulance" aria-hidden="true" />
-              <strong>{counts.ambulance}</strong>
-              <span>Ambulans</span>
-            </li>
-            <li>
-              <span className="legend-dot legend-dot--fire" aria-hidden="true" />
-              <strong>{counts.fire}</strong>
-              <span>Damkar</span>
-            </li>
-            <li>
-              <span className="legend-dot legend-dot--police" aria-hidden="true" />
-              <strong>{counts.police}</strong>
-              <span>Patroli</span>
-            </li>
-          </ul>
-
-          <ul className="fleet-status" aria-label="Unit menurut kesiapan">
-            <li>
-              <span className="status-dot status-dot--available" aria-hidden="true" />
-              {statusCounts.available} siap
-            </li>
-            <li>
-              <span className="status-dot status-dot--busy" aria-hidden="true" />
-              {statusCounts.busy} bertugas
-            </li>
-            <li>
-              <span className="status-dot status-dot--offline" aria-hidden="true" />
-              {statusCounts.offline} offline
-            </li>
-          </ul>
-
-          <div className="fleet-foot">
-            <span className="fleet-meta">
-              {lastLoaded
-                ? `Data pukul ${lastLoaded.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
-                : 'Belum dimuat'}
-            </span>
-            <button className="button button-ghost button-sm" type="button" onClick={reload} disabled={loading}>
-              {loading ? 'Memuat…' : 'Segarkan'}
-            </button>
-          </div>
-        </aside>
-
-        <section className="map-stage">
+      }
+    >
+      <div className="map-layout">
+        <section className="map-card">
           <div className="map-view">
             <div
               ref={mapContainerRef}
@@ -1389,6 +1372,9 @@ export function MapPage() {
             />
 
             <div className="map-region-bar">
+              <span className="region-tile" aria-hidden="true">
+                <IconLayers size={18} />
+              </span>
               <nav className="map-breadcrumbs" aria-label="Telusuri wilayah">
                 <button
                   className="crumb"
@@ -1441,20 +1427,17 @@ export function MapPage() {
                   </>
                 ) : null}
               </nav>
-
-              <button
-                className={`button button-sm map-report-button ${
-                  pickingLocation ? 'button-primary' : 'button-ghost'
-                }`}
-                type="button"
-                onClick={startPickingLocation}
-                aria-pressed={pickingLocation}
-                title="Tandai lokasi laporan baru di peta"
-              >
-                <IconPlus size={16} />
-                Laporan
-              </button>
             </div>
+
+            <button
+              className="map-expand"
+              type="button"
+              onClick={resetToIndonesia}
+              aria-label="Kembali ke seluruh Indonesia"
+              title="Kembali ke seluruh Indonesia"
+            >
+              <IconExpand size={18} />
+            </button>
 
             <p className="map-hint">
               {pickingLocation
@@ -1506,33 +1489,39 @@ export function MapPage() {
               </div>
             ) : null}
           </div>
+        </section>
 
-          <aside
-            className={`incident-panel ${sheetCollapsed ? 'incident-panel--collapsed' : ''}`}
-            aria-label="Laporan kejadian"
-          >
-            <button
-              className="sheet-handle"
-              type="button"
-              aria-label={sheetCollapsed ? 'Buka panel laporan' : 'Tutup panel laporan'}
-              aria-expanded={!sheetCollapsed}
-              onClick={() => setSheetCollapsed((value) => !value)}
-            />
+          <aside className="incident-panel" aria-label="Laporan kejadian">
             <div className="incident-panel-head">
-              <div>
-                <h2>{panelMode === 'create' ? 'Laporan baru' : panelMode === 'detail' ? 'Detail laporan' : 'Laporan masuk'}</h2>
+              <h2>
+                {panelMode === 'create' ? 'Laporan baru' : panelMode === 'detail' ? 'Detail laporan' : 'Laporan masuk'}
+                {panelMode === 'list' ? <span className="count-pill">{openIncidents.length}</span> : null}
+              </h2>
+              <div className="panel-head-actions">
+                <button
+                  className={`icon-button ${incidentLoading ? 'is-spinning' : ''}`}
+                  type="button"
+                  onClick={reloadIncidents}
+                  disabled={incidentLoading}
+                  aria-label="Segarkan laporan"
+                  title="Segarkan laporan"
+                >
+                  <IconRefresh size={17} />
+                </button>
                 {panelMode === 'list' ? (
-                  <p className="panel-sub">{openIncidents.length === 0 ? 'Antrean kosong' : `${openIncidents.length} belum ditangani`}</p>
+                  <button
+                    className={`button button-add ${pickingLocation ? 'button-primary is-picking' : 'button-primary'}`}
+                    type="button"
+                    onClick={startPickingLocation}
+                    aria-pressed={pickingLocation}
+                    title="Tandai lokasi laporan baru di peta"
+                    aria-label="Tambah laporan: tandai lokasi di peta"
+                  >
+                    <IconPlus size={16} />
+                    <span>{pickingLocation ? 'Pilih di peta' : 'Tambah'}</span>
+                  </button>
                 ) : null}
               </div>
-              <button
-                className="button button-ghost incident-refresh"
-                type="button"
-                onClick={reloadIncidents}
-                disabled={incidentLoading}
-              >
-                {incidentLoading ? 'Memuat…' : 'Segarkan'}
-              </button>
             </div>
 
             {incidentError ? (
@@ -1542,41 +1531,167 @@ export function MapPage() {
             ) : null}
 
             {panelMode === 'list' ? (
-              <div className="incident-panel-body">
-                {incidentLoading ? <p className="muted">Memuat laporan…</p> : null}
-                {!incidentLoading && openIncidents.length === 0 ? (
-                  <div className="panel-empty">
-                    <p>Tidak ada laporan yang menunggu.</p>
-                    <p className="muted">Laporan baru dibuat dengan mengklik lokasi di peta.</p>
+              <>
+                <div className="list-tools">
+                  <CitySelect
+                    value={city}
+                    options={CITY_OPTIONS.map((option) => option.name)}
+                    allLabel="Semua kota"
+                    onChange={(next) => handleCityChange(next)}
+                  />
+
+                  <div className="fleet-compact" aria-label="Ringkasan unit">
+                    <div className="fleet-compact-top">
+                      <p className="fleet-total">
+                        <strong>{vehicles.length}</strong>
+                        <span>unit terpantau</span>
+                      </p>
+                      <ul className="fleet-status" aria-label="Unit menurut kesiapan">
+                        <li>
+                          <span className="status-dot status-dot--available" aria-hidden="true" />
+                          {statusCounts.available} siap
+                        </li>
+                        <li>
+                          <span className="status-dot status-dot--busy" aria-hidden="true" />
+                          {statusCounts.busy} tugas
+                        </li>
+                        <li>
+                          <span className="status-dot status-dot--offline" aria-hidden="true" />
+                          {statusCounts.offline} off
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="fleet-bar" aria-hidden="true">
+                      {(['ambulance', 'fire', 'police'] as const).map((type) => (
+                        <span
+                          key={type}
+                          className={`legend-dot--${type}`}
+                          style={{ width: `${vehicles.length ? (counts[type] / vehicles.length) * 100 : 0}%` }}
+                        />
+                      ))}
+                    </div>
+                    <ul className="fleet-types" aria-label="Unit menurut jenis">
+                      <li>
+                        <span className="legend-dot legend-dot--ambulance" aria-hidden="true" />
+                        <strong>{counts.ambulance}</strong> Ambulans
+                      </li>
+                      <li>
+                        <span className="legend-dot legend-dot--fire" aria-hidden="true" />
+                        <strong>{counts.fire}</strong> Damkar
+                      </li>
+                      <li>
+                        <span className="legend-dot legend-dot--police" aria-hidden="true" />
+                        <strong>{counts.police}</strong> Patroli
+                      </li>
+                    </ul>
+                    <p className="fleet-scope">
+                      {regionLevel === 'indonesia'
+                        ? 'Pilih provinsi di peta untuk menampilkan unit.'
+                        : visibleVehicles.length === 0
+                          ? `Tidak ada unit di ${regionScopeLabel || 'wilayah ini'}.`
+                          : `${visibleVehicles.length} unit di ${regionScopeLabel}.`}
+                      {lastLoaded
+                        ? ` Data pukul ${lastLoaded.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}.`
+                        : ''}
+                    </p>
                   </div>
-                ) : null}
-                <ul className="incident-list">
-                  {openIncidents.map((incident) => (
-                    <li key={incident.id}>
+
+                  <label className="search-field">
+                    <IconSearch size={18} />
+                    <input
+                      type="search"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder="Cari judul, jenis, atau kota"
+                      aria-label="Cari laporan"
+                    />
+                  </label>
+
+                  <div className="tabs" role="tablist" aria-label="Kelompok prioritas">
+                    {(
+                      [
+                        ['all', 'Semua'],
+                        ['urgent', 'Mendesak'],
+                        ['other', 'Lainnya'],
+                      ] as const
+                    ).map(([value, label]) => (
                       <button
-                        className={`incident-list-item incident-list-item--${incident.priority}`}
+                        key={value}
                         type="button"
-                        onClick={() => openIncidentDetail(incident)}
+                        role="tab"
+                        aria-selected={tab === value}
+                        className={`tab ${tab === value ? 'is-active' : ''}`}
+                        onClick={() => setTab(value)}
                       >
-                        <span className={`type-chip type-chip--${incident.type}`} aria-hidden="true">
-                          {TYPE_META[incident.type]?.short ?? '?'}
-                        </span>
-                        <span className="incident-list-top">
-                          <span className="incident-list-title">{incident.title}</span>
-                          <span className={`priority-tag priority-tag--${incident.priority}`}>
-                            {PRIORITY_LABEL[incident.priority] ?? incident.priority}
-                          </span>
-                        </span>
-                        <span className="incident-list-meta">
-                          {TYPE_META[incident.type]?.label ?? incident.type} di{' '}
-                          {incident.operating_city ?? 'kota belum diatur'}
-                        </span>
-                        <span className="incident-list-time">{formatIncidentTime(incident.created_at)}</span>
+                        {label} <span>{tabCounts[value]}</span>
                       </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                    ))}
+                  </div>
+
+                  <div className="filter-row">
+                    <Select
+                      variant="filter"
+                      prefix="Jenis"
+                      ariaLabel="Filter jenis laporan"
+                      value={typeFilter}
+                      options={TYPE_FILTER_OPTIONS}
+                      onChange={(next) => setTypeFilter(next as 'all' | IncidentType)}
+                    />
+                    <Select
+                      variant="filter"
+                      prefix="Urut"
+                      ariaLabel="Urutkan laporan"
+                      value={sortBy}
+                      options={SORT_OPTIONS}
+                      onChange={(next) => setSortBy(next as IncidentSort)}
+                    />
+                  </div>
+                </div>
+
+                <div className="incident-panel-body incident-panel-body--list">
+                  {incidentLoading && openIncidents.length === 0 ? <p className="muted">Memuat laporan…</p> : null}
+                  {!incidentLoading && openIncidents.length === 0 ? (
+                    <div className="panel-empty">
+                      <p>Tidak ada laporan yang menunggu.</p>
+                      <p className="muted">Tekan Tambah lalu klik lokasi di peta untuk membuat laporan.</p>
+                    </div>
+                  ) : null}
+                  {openIncidents.length > 0 && visibleIncidents.length === 0 ? (
+                    <div className="panel-empty">
+                      <p>Tidak ada laporan yang cocok.</p>
+                      <p className="muted">Ubah kata kunci, tab, atau filter jenis.</p>
+                    </div>
+                  ) : null}
+                  <ul className="incident-list">
+                    {visibleIncidents.map((incident) => (
+                      <li key={incident.id}>
+                        <button
+                          className={`incident-list-item incident-list-item--${incident.priority}`}
+                          type="button"
+                          onClick={() => openIncidentDetail(incident)}
+                        >
+                          <span className={`type-chip type-chip--${incident.type}`} aria-hidden="true">
+                            {TYPE_META[incident.type]?.short ?? '?'}
+                          </span>
+                          <span className="incident-list-main">
+                            <span className="incident-list-title">{incident.title}</span>
+                            <span className="incident-list-meta">
+                              <b>{TYPE_META[incident.type]?.label ?? incident.type}</b>
+                              {incident.operating_city ?? 'kota belum diatur'}
+                            </span>
+                          </span>
+                          <span className="incident-list-side">
+                            <span className={`priority-tag priority-tag--${incident.priority}`}>
+                              {PRIORITY_LABEL[incident.priority] ?? incident.priority}
+                            </span>
+                            <span className="incident-list-time">{formatIncidentTime(incident.created_at)}</span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
             ) : null}
 
             {panelMode === 'create' ? (
@@ -1794,9 +1909,7 @@ export function MapPage() {
               </div>
             ) : null}
           </aside>
-
-        </section>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }

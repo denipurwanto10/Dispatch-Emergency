@@ -1,0 +1,15 @@
+# CODEOWNERS
+#
+# TODO: ganti komentar di bawah dengan owner GitHub yang sebenarnya.
+# Format: <pattern> <@username-atau-@org/team>
+# Contoh:
+#   *                       @pemilik-repo
+#   /internal/              @backend-team
+#   /frontend/              @frontend-team
+#   /migrations/            @backend-team @dba
+#   /docs/                  @pemilik-repo
+#   /.github/               @pemilik-repo
+#
+# Sampai owner ditentukan, file ini sengaja tidak mengaktifkan aturan apa pun
+# agar tidak menunjuk akun yang salah. Setelah owner jelas, hapus tanda komentar
+# pada pola yang relevan dan buka PR.

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -24,10 +24,10 @@ import type {
   User,
   VehicleType,
 } from '../types'
-import { AppHeader } from '../components/AppHeader'
+import { AppShell } from '../components/AppShell'
 import { CitySearchSelect } from '../components/CitySearchSelect'
 import { ConfirmDialog } from '../components/ConfirmDialog'
-import { IconMap, IconPlus } from '../components/icons'
+import { IconPlus } from '../components/icons'
 import { Select } from '../components/Select'
 
 type Tab = 'users' | 'vehicles'
@@ -393,17 +393,16 @@ export function AdminPage() {
   if (!session) return null
 
   return (
-    <div className="admin-shell">
-      <AppHeader subtitle="Panel admin" session={session} onLogout={handleLogout}>
-        <Link className="button button-ghost" to="/map">
-          <IconMap size={16} />
-          Buka peta
-        </Link>
-      </AppHeader>
-
-      <main className="admin-main">
+    <AppShell
+      title="Panel admin"
+      subtitle="Kelola akun petugas dan armada kendaraan"
+      session={session}
+      onLogout={handleLogout}
+      contentClassName="shell-main--scroll"
+    >
+      <div className="admin-main">
         <div className="admin-heading">
-          <h1>Akun dan armada</h1>
+          <h2>Akun dan armada</h2>
           <p className="muted">
             Tambah petugas, tetapkan driver ke kendaraan, dan atur kota tugas. Perubahan langsung terbaca di peta dispatcher.
           </p>
@@ -849,7 +848,7 @@ export function AdminPage() {
             </aside>
           ) : null}
         </div>
-      </main>
+      </div>
 
       <ConfirmDialog
         open={pendingDelete !== null}
@@ -864,6 +863,6 @@ export function AdminPage() {
           if (!deleting) setPendingDelete(null)
         }}
       />
-    </div>
+    </AppShell>
   )
 }

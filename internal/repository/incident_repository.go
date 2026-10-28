@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"dispatch/internal/model"
+	"dispatch/internal/state"
 )
 
 var ErrIncidentNotOpen = errors.New("insiden tidak berstatus open")
@@ -30,6 +31,7 @@ type CreateIncidentParams struct {
 	Description   *string
 	Type          string
 	Priority      string
+	Status        state.IncidentStatus
 	CreatedBy     int64
 	OperatingCity *string
 }
@@ -79,6 +81,10 @@ func scanIncident(row rowScanner) (model.Incident, error) {
 }
 
 func (r *IncidentRepository) Create(ctx context.Context, params CreateIncidentParams) (model.Incident, error) {
+	if !state.IsInitialIncidentStatus(params.Status) {
+		return model.Incident{}, fmt.Errorf("status awal insiden tidak valid: %q", params.Status)
+	}
+
 	var description any
 	if params.Description != nil {
 		description = *params.Description
@@ -93,10 +99,10 @@ func (r *IncidentRepository) Create(ctx context.Context, params CreateIncidentPa
 			(geom, title, description, type, priority, status, created_by, operating_city)
 		VALUES
 			(ST_SetSRID(ST_MakePoint($1, $2), 4326),
-			 $3, $4, $5, $6, 'open', $7, $8)
+			 $3, $4, $5, $6, $7, $8, $9)
 		RETURNING `+incidentColumns,
 		params.Lng, params.Lat, params.Title, description,
-		params.Type, params.Priority, params.CreatedBy, operatingCity,
+		params.Type, params.Priority, string(params.Status), params.CreatedBy, operatingCity,
 	)
 	incident, err := scanIncident(row)
 	if err != nil {
@@ -152,15 +158,15 @@ func (r *IncidentRepository) Cancel(ctx context.Context, id int64) (model.Incide
 	if err != nil {
 		return model.Incident{}, err
 	}
-	if incident.Status != "open" {
+	if !state.CanTransition(state.IncidentStatus(incident.Status), state.IncidentCancelled) {
 		return model.Incident{}, ErrIncidentNotOpen
 	}
 
 	row := r.db.QueryRowContext(ctx, `
 		UPDATE incidents
-		SET status = 'cancelled'
-		WHERE id = $1 AND status = 'open'
-		RETURNING `+incidentColumns, id)
+		SET status = $2
+		WHERE id = $1 AND status = $3
+		RETURNING `+incidentColumns, id, string(state.IncidentCancelled), incident.Status)
 
 	updated, err := scanIncident(row)
 	if errors.Is(err, sql.ErrNoRows) {

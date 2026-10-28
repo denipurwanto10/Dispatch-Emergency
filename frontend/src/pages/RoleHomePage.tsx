@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { clearSession, readSession } from '../auth/session'
-import { AppHeader } from '../components/AppHeader'
+import { AppShell } from '../components/AppShell'
 
 interface RoleHomePageProps {
   role: 'driver' | 'admin'
@@ -39,13 +39,11 @@ export function RoleHomePage({ role }: RoleHomePageProps) {
   const copy = COPY[role]
 
   return (
-    <div className="home-shell">
-      <AppHeader subtitle="Fase 1 · Foundation" session={session} onLogout={handleLogout} />
-
-      <main className="home-main">
+    <AppShell title={copy.title} subtitle="Fase 1 · Foundation" session={session} onLogout={handleLogout}>
+      <div className="home-main">
         <section className="placeholder-card">
           <p className="driver-kicker">Halaman placeholder</p>
-          <h1>{copy.title}</h1>
+          <h2>{copy.title}</h2>
           <p className="muted">{copy.description}</p>
 
           <div className="placeholder-links">
@@ -67,7 +65,7 @@ export function RoleHomePage({ role }: RoleHomePageProps) {
             </p>
           </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }

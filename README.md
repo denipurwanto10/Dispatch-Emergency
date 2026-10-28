@@ -3,16 +3,18 @@
 MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1–4 sudah selesai: auth/role, seed nasional, insiden + pencarian kandidat, assignment + rute + simulasi, WebSocket real-time, layar driver, dan panel admin. Antarmuka memakai desain flat, tema terang/gelap di semua halaman, dan layout responsif hingga ponsel.
 
 > **Tanpa Docker.** Semua layanan berjalan langsung di mesin lokal. Tidak ada `docker-compose.yml`, `Dockerfile`, atau instruksi berbasis container di proyek ini.
+>
+> **Dokumen pendamping:** [AGENTS.md](AGENTS.md) untuk perintah/verifikasi agen, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) untuk arsitektur dan alur data, [docs/BACKLOG.md](docs/BACKLOG.md) untuk backlog prioritas, serta [CONTRIBUTING.md](CONTRIBUTING.md) dan [SECURITY.md](SECURITY.md).
 
 ## Fitur MVP final
 
 - **Auth & role** — JWT HS256, password bcrypt, role `admin`, `dispatcher`, dan `driver`.
 - **Seed nasional** — 6 kota, 36 kendaraan, 14 user; semua kendaraan punya posisi dan home di kota operasinya.
-- **Insiden** — dispatcher membuat, melihat daftar/detail, dan membatalkan insiden `open`. `operating_city` insiden ditentukan server, bukan client.
+- **Insiden** — dispatcher/admin membuat, melihat daftar/detail, dan membatalkan insiden `open`. `operating_city` insiden ditentukan server, bukan client.
 - **Pencarian kandidat** — maksimal 3 kendaraan `available` dari kota yang sama, diurutkan memakai durasi OSRM publik. Tipe kendaraan adalah penanda `type_match`, bukan filter keras.
 - **Assignment** — dispatcher meng-assign kandidat; server mengambil rute OSRM, menyimpan polyline, jarak, ETA, dan `assigned_by` dari identitas JWT. Assignment berjalan dalam transaksi dan menghormati constraint satu assignment aktif per kendaraan.
 - **Simulasi & real-time** — simulator menggerakkan kendaraan di sepanjang rute dan mengirim event WebSocket `vehicle_position` serta `assignment_status`.
-- **Layar driver `/driver`** — kartu tugas muncul tanpa refresh, peta mini Leaflet dengan marker kendaraan/insiden dan polyline rute, ETA dari `eta_remaining_seconds`, tombol mulai/selesai, riwayat 20 tugas terakhir, dan reconnect WebSocket otomatis. **Tidak ada polling tugas aktif.**
+- **Layar driver `/driver`** — kartu tugas muncul tanpa refresh, peta mini Leaflet dengan marker kendaraan/insiden dan polyline rute, ETA dari `eta_remaining_seconds`, tombol mulai/tandai tiba/selesai, riwayat 20 tugas terakhir, dan reconnect WebSocket otomatis. Tiba biasanya ditandai otomatis oleh simulator; tombol **Sampai di Lokasi** tersedia sebagai fallback manual. **Tidak ada polling tugas aktif.**
 - **Panel admin `/admin`** — tab Users dan Kendaraan, tabel, form create/edit, konfirmasi hapus, tombol tampilkan password, dan pesan error backend yang terbaca.
 - **Peta drill-down interaktif** — hierarki Indonesia → Provinsi → Kota/Kabupaten → Kecamatan; klik provinsi/kota pada peta atau dropdown untuk zoom; kendaraan hanya muncul di level kota/kecamatan; breadcrumb navigasi; pencarian nama kota/provinsi di dropdown; data batas wilayah dari GADM 4.1 (502 kota/kabupaten, 34 provinsi).
 - **Tema terang/gelap** — tombol tema di header semua halaman. Bawaan: gelap untuk dispatcher, terang untuk driver/admin. Pilihan pengguna disimpan di `localStorage` (`tanggap.theme`) dan menang atas bawaan peran.
@@ -60,6 +62,8 @@ MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1
 | Basemap | Tile Google Maps publik (tanpa API key), fallback otomatis ke OpenStreetMap |
 | Tema | CSS variables + toggle terang/gelap, tersimpan di `localStorage` |
 | Data wilayah | GADM 4.1 (UC Davis) → disederhanakan mapshaper → GeoJSON statis di `public/geo/` |
+
+> Diagram arsitektur lengkap ada di [Ringkasan Arsitektur](#ringkasan-arsitektur); penjelasan komponen, alur data, dan keterbatasan ada di [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Prasyarat lokal
 
@@ -270,13 +274,14 @@ Otorisasi sebenarnya tetap ditegakkan backend. Role yang salah mendapat `403`, r
 | `POST` | `/auth/login` | — | Login email + password; response memuat `operating_city` |
 | `GET` | `/vehicles` | Bearer JWT (semua role) | Semua kendaraan, termasuk `operating_city` |
 | `GET` | `/vehicles?city=Bandung` | Bearer JWT (semua role) | Filter kendaraan berdasarkan `operating_city` |
-| `POST` | `/incidents` | `dispatcher` | Buat insiden; `201` + `{incident}` |
+| `POST` | `/incidents` | `dispatcher`/`admin` | Buat insiden; `201` + `{incident}` |
 | `GET` | `/incidents` | `dispatcher`/`admin` | Daftar insiden terbaru; filter `?status=` dan `?city=` |
 | `GET` | `/incidents/:id` | `dispatcher`/`admin` | Detail insiden; `404` bila tidak ada |
-| `POST` | `/incidents/:id/cancel` | `dispatcher` | Batalkan insiden `open`; status lain `409` |
+| `POST` | `/incidents/:id/cancel` | `dispatcher`/`admin` | Batalkan insiden `open`; status lain `409` |
 | `GET` | `/incidents/:id/nearest` | `dispatcher`/`admin` | Maksimal 3 kandidat dari OSRM; insiden non-open `409` |
-| `POST` | `/incidents/:id/assign` | `dispatcher` | Assign kendaraan; body `{vehicle_id}`; `201` + `{assignment}` |
+| `POST` | `/incidents/:id/assign` | `dispatcher`/`admin` | Assign kendaraan; body `{vehicle_id}`; `201` + `{assignment}` |
 | `POST` | `/assignments/:id/start` | `driver` pemilik kendaraan | `assigned` → `en_route` |
+| `POST` | `/assignments/:id/arrive` | `driver` pemilik kendaraan | Fallback manual `en_route` → `arrived`; biasanya otomatis oleh simulator |
 | `POST` | `/assignments/:id/complete` | driver pemilik, `dispatcher`, `admin` | `arrived` → `completed`; insiden resolved |
 | `GET` | `/assignments/mine/active` | `driver` | Assignment aktif driver (`assigned`, `en_route`, `arrived`) atau `null` |
 | `GET` | `/assignments/mine/history` | `driver` | Maksimal 20 assignment `completed`/`cancelled`, terbaru dulu |
@@ -304,8 +309,8 @@ Format error standar:
 
 ## Alur assignment
 
-1. Dispatcher membuat insiden. Server menentukan `operating_city` dari kendaraan `available` terdekat dalam radius.
-2. Dispatcher memanggil `GET /incidents/:id/nearest` dan memilih kandidat.
+1. Dispatcher/admin membuat insiden. Server menentukan `operating_city` dari kendaraan `available` terdekat dalam radius.
+2. Dispatcher/admin memanggil `GET /incidents/:id/nearest` dan memilih kandidat.
 3. `POST /incidents/:id/assign` memvalidasi:
    - insiden masih `open` dan punya `operating_city`;
    - kendaraan `available` dan kota sama;
@@ -313,10 +318,37 @@ Format error standar:
    - OSRM `/route` berhasil.
 4. Dalam satu transaksi, server membuat assignment (`assigned`), mengubah kendaraan menjadi `assigned`, dan insiden menjadi `assigned`. Partial unique index mencegah dua assignment aktif untuk kendaraan yang sama; pelanggaran dipetakan ke `409`.
 5. Driver menekan **Mulai** → assignment `en_route`, kendaraan `en_route`, insiden `en_route`.
-6. Simulator menggerakkan kendaraan setiap detik. Saat progress mencapai jarak rute, assignment menjadi `arrived`, kendaraan `on_scene`, insiden `on_scene`, dan event WebSocket dikirim.
+6. Simulator menggerakkan kendaraan setiap detik. Saat progress mencapai jarak rute, assignment menjadi `arrived`, kendaraan `on_scene`, insiden `on_scene`, dan event WebSocket dikirim. Driver juga bisa menekan **Sampai di Lokasi** (`POST /assignments/:id/arrive`) sebagai fallback manual dari `en_route`.
 7. Driver menekan **Selesai Ditangani** → assignment `completed`, kendaraan kembali `available` di lokasi insiden, insiden `resolved`.
 
 `assigned_by` selalu diambil dari JWT yang sudah divalidasi middleware. Body request tidak bisa menentukannya.
+
+## State machine
+
+Transisi divalidasi terpusat di `internal/state`. Transisi ilegal menghasilkan `409` tanpa mengubah data.
+
+**Insiden**
+
+| Dari | Tujuan legal |
+| --- | --- |
+| `open` | `assigned`, `cancelled` |
+| `assigned` | `en_route` |
+| `en_route` | `on_scene` |
+| `on_scene` | `resolved` |
+| `resolved` | — |
+| `cancelled` | — |
+
+**Assignment**
+
+| Dari | Tujuan legal |
+| --- | --- |
+| `assigned` | `en_route`, `cancelled` |
+| `en_route` | `arrived`, `cancelled` |
+| `arrived` | `completed` |
+| `completed` | — |
+| `cancelled` | — |
+
+Handler memvalidasi pasangan transisi assignment dan insiden pada `start`, `arrive`, dan `complete`; simulator memakai validator yang sama. `cancelled` assignment sudah ada di tabel, tetapi endpoint cancel/reject belum tersedia di MVP.
 
 ## Riwayat driver
 
@@ -420,8 +452,14 @@ Rescue/
 │   ├── public/geo/    # adm1.geojson, adm2.geojson, adm3-*.geojson (GADM 4.1 disederhanakan)
 │   └── scripts/       # generate-cities-json.mjs (generate dataset dari GADM)
 ├── .playwright-cli/   # artefak inspeksi browser (auto-generated)
+├── docs/              # ARCHITECTURE.md, BACKLOG.md, screenshots/
+├── .github/           # issue/PR template
 ├── .env.example
-├── AGENT.md
+├── AGENT.md           # kontrak domain lengkap
+├── AGENTS.md          # panduan singkat agen (perintah, konvensi, larangan)
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── CODEOWNERS         # TODO owner
 └── README.md
 ```
 
@@ -432,6 +470,7 @@ Backend:
 ```powershell
 gofmt -l .
 go vet ./...
+go test ./...
 go build ./...
 ```
 
@@ -441,7 +480,10 @@ Frontend:
 cd frontend
 npm run build
 npm run lint
+npm run typecheck
 ```
+
+Belum ada test runner frontend (Vitest/RTL belum dipasang). Smoke test kritis saat ini ada di backend: `go test ./internal/auth -v`. Penambahan test frontend ada di [docs/BACKLOG.md](docs/BACKLOG.md) dan membutuhkan persetujuan karena menambah dependensi.
 
 Regenerasi data batas wilayah (jika perlu update GADM):
 
@@ -462,6 +504,8 @@ Get-ChildItem -Recurse -Force -Include Dockerfile,docker-compose.yml,docker-comp
 - Self-host OSRM atau Docker.
 - Multi-dispatcher per kota, penjadwalan shift, dan audit log penuh.
 - Filter/export laporan lanjutan dan dashboard analitik.
+
+Daftar backlog prioritas (termasuk state machine, audit log, metrik, timeout, rate limiting, OpenAPI, dan CI) ada di [docs/BACKLOG.md](docs/BACKLOG.md).
 
 ## Tangkapan Layar
 
@@ -534,7 +578,7 @@ Repo tidak menyimpan file screenshot agar tetap ringan. Untuk portofolio, jalank
 
 ## Perbaikan Bug & Perbaikan Kualitas (Update Terbaru)
 
-- **RBAC Admin** — Endpoint `POST /incidents` dan `POST /incidents/:id/cancel` kini mengizinkan role `admin` selain `dispatcher`. Middleware `RequireRole` menormalkan role (trim + lowercase) agar toleran terhadap variasi casing dari JWT.
+- **RBAC Admin** — Endpoint `POST /incidents`, `POST /incidents/:id/cancel`, dan `POST /incidents/:id/assign` kini mengizinkan role `admin` selain `dispatcher`. Middleware `RequireRole` menormalkan role (trim + lowercase) agar toleran terhadap variasi casing dari JWT.
 - **Error Handling Backend** — Semua `ExecContext` di handler assignment (Start, Arrive, Complete) dan simulator kini menangani error dengan benar: gagal update vehicle/incident status akan membatalkan response dan mengembalikan `500` bukan diam-diam diabaikan.
 - **Context Propagation** — `broadcastAssignment` menerima `context.Context` agar timeout/cancellation request diteruskan ke query DB relasi insiden/kendaraan. Simulator menggunakan `s.ctx` (bukan `context.Background()`).
 - **Simulator Reliability** — Broadcast event yang di-drop saat channel penuh kini dicatat ke log. Interpolasi posisi pakai context simulator.
@@ -616,7 +660,7 @@ flowchart LR
 | **Dispatch selalu satu `operating_city`** | Kendaraan dan insiden harus kota sama. Insiden `operating_city=NULL` tidak punya kandidat. Menghindari assignment lintas kota yang tidak realistis untuk MVP. |
 | **Hasil OSRM tak terjangkau dibuang** | Kendaraan tanpa rute OSRM valid tidak masuk kandidat. Tidak ada fallback Euclidean — menghindari ETA palsu. |
 | **`type_match` penanda, bukan filter** | Semua tipe kendaraan `available` di kota yang sama ikut diurutkan durasi OSRM. `type_match` hanya badge informasi. Fleksibel untuk skenario lintas tipe (mis. ambulans ke kebakaran kecil). |
-| **Tiba terdeteksi otomatis oleh backend (simulator)** | Driver tidak menekan "Tiba". Simulator mengubah `en_route→arrived` saat progress ≥ jarak rute. Menghindari manipulasi/kehilangan klik. |
+| **Tiba otomatis oleh simulator, dengan aksi manual sebagai fallback** | Simulator mengubah `en_route→arrived` saat progress ≥ jarak rute. Driver tetap bisa menekan "Sampai di Lokasi" (`POST /assignments/:id/arrive`) bila perlu mengoreksi status. Menghindari ketergantungan pada satu klik, tetapi tetap memberi kontrol lapangan. |
 | **Kendaraan bebas di lokasi insiden setelah selesai** | Setelah `complete`, kendaraan `available` di `pos_geom = lokasi insiden` (bukan kembali ke `home_geom`). Realistis untuk operasi nyata; dispatcher bisa lihat posisi aktual. |
 | **UI flat tanpa bayangan** | Kedalaman hanya dari garis tepi dan kontras; marker, rute, dan status tetap jadi fokus utama. Efek angkat saat hover dihapus agar tampilan tidak goyah. |
 | **Tema per peran, bisa ditimpa** | Dispatcher sering bekerja di ruang redup (bawaan gelap), driver dan admin di lapangan/siang (bawaan terang). Pilihan manual disimpan agar tidak berubah saat berpindah halaman. |
@@ -625,6 +669,49 @@ flowchart LR
 | **OSRM publik untuk MVP** | `https://router.project-osrm.org` gratis, tanpa self-host. Timeout 5 detik, error → `502`. Cocok untuk demo/portfolio. |
 | **Tanpa Docker, semua lokal** | PostgreSQL, Go, Vite berjalan langsung di mesin developer. Mudah dijalankan, debug, dan dipahami tanpa lapisan container. |
 | **Proyek portofolio yang berjalan lokal** | Bukan sistem produksi. Tidak ada: push notification, GPS asli, registrasi publik, refresh token, multi-dispatcher per kota, shift scheduling, audit log penuh, dashboard analitik. |
+
+## Status Proyek
+
+**MVP portofolio — Fase 1–4 selesai dan berjalan lokal.** Backend, database, frontend dispatcher/driver/admin, simulasi, dan WebSocket sudah terhubung end-to-end.
+
+Sudah berjalan:
+
+- Auth JWT + role, seed 6 kota, insiden, pencarian kandidat OSRM, assignment transaksional, simulasi, WebSocket, layar driver, panel admin.
+- State machine terpusat untuk insiden dan assignment di `internal/state`, dengan unit test transisi legal/ilegal dan test handler yang memastikan transisi ilegal ditolak `409`.
+- Migrasi additive + seed/reset demo idempotent.
+- Verifikasi lokal: `go test`/`go vet`/`go build` dan `npm run lint`/`typecheck`/`build`.
+- Smoke test JWT di `internal/auth/jwt_test.go`; unit test transisi di `internal/state/state_test.go` dan test handler di `internal/handler/transition_test.go`.
+
+Belum siap produksi:
+
+- Belum ada audit log domain, metrik/monitoring, timeout/auto-reassignment, crash recovery, rate limiting, OpenAPI, dan CI.
+- Belum ada test frontend/integration/e2e yang komprehensif.
+- OSRM dan tile peta masih memakai layanan publik; basemap Google tidak resmi.
+
+Rincian keterbatasan ada di [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#5-keterbatasan-saat-ini).
+
+## Roadmap Singkat
+
+Prioritas lengkap dan acceptance criteria ada di [docs/BACKLOG.md](docs/BACKLOG.md). Urutan singkat:
+
+1. **P0:** audit logging, timeout/auto-reassignment, crash recovery, rate limiting.
+2. **P1:** metrik/monitoring (Prometheus), OpenAPI/Swagger, unit/integration/e2e test, CI lint/format/test.
+3. **P2:** interpolasi posisi sepanjang `route_geom`, optimasi persist simulasi, pagination, WebSocket room per kota, dokumentasi troubleshooting.
+
+## Lisensi
+
+**TODO:** Lisensi belum dipilih. Pemilik proyek perlu memilih lisensi yang sesuai (mis. MIT, Apache-2.0, atau lisensi lain) sebelum repo dipublikasikan atau digunakan pihak lain. Jangan menganggap repo ini open source sampai file `LICENSE` ditambahkan.
+
+## Dokumen dan Kontribusi
+
+- [AGENTS.md](AGENTS.md) — perintah build/lint/test/run, struktur, konvensi, larangan, dan kapan harus berhenti dan bertanya.
+- [AGENT.md](AGENT.md) — kontrak domain lengkap (status, assignment, auth, seed, endpoint).
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — komponen, alur data, keputusan desain, keterbatasan.
+- [docs/BACKLOG.md](docs/BACKLOG.md) — backlog prioritas P0/P1/P2.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — setup, alur kontribusi, commit, dan checklist PR.
+- [SECURITY.md](SECURITY.md) — kebijakan pelaporan kerentanan dan keterbatasan keamanan.
+- [CODEOWNERS](CODEOWNERS) — masih berisi TODO owner; lengkapi sebelum mengaktifkan review wajib.
+- `.github/ISSUE_TEMPLATE/` dan `.github/PULL_REQUEST_TEMPLATE.md` — template issue/PR.
 
 ---
 

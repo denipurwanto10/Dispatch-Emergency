@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"dispatch/internal/model"
 	"dispatch/internal/osrm"
 	"dispatch/internal/repository"
+	"dispatch/internal/state"
 	"dispatch/internal/ws"
 )
 
@@ -91,8 +93,13 @@ func (h *AssignmentHandler) Assign(c *gin.Context) {
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal mengambil insiden.")
 		return
 	}
-	if incident.Status != "open" {
-		httpx.Error(c, http.StatusConflict, "incident_not_open", "Insiden hanya bisa di-assign saat status open.")
+	if !requireIncidentTransition(
+		c,
+		state.IncidentStatus(incident.Status),
+		state.IncidentAssigned,
+		"incident_not_open",
+		"Insiden hanya bisa di-assign saat status open.",
+	) {
 		return
 	}
 	if incident.OperatingCity == nil {
@@ -159,6 +166,7 @@ func (h *AssignmentHandler) Assign(c *gin.Context) {
 		RouteGeoJSON: route.Geometry,
 		DistanceM:    route.Distance,
 		ETASecs:      int(math.Round(route.Duration)),
+		Status:       state.AssignmentAssigned,
 	})
 	if err != nil {
 		_ = tx.Rollback()
@@ -189,12 +197,19 @@ func (h *AssignmentHandler) Assign(c *gin.Context) {
 	}
 
 	// Update incident status to assigned
-	_, err = tx.ExecContext(c.Request.Context(), `
-		UPDATE incidents SET status = 'assigned' WHERE id = $1 AND status = 'open'`, incident.ID)
+	res, err = tx.ExecContext(c.Request.Context(), `
+		UPDATE incidents SET status = $2 WHERE id = $1 AND status = $3`,
+		incident.ID, string(state.IncidentAssigned), incident.Status)
 	if err != nil {
 		_ = tx.Rollback()
 		log.Printf("assignments: update incident: %v", err)
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal mengupdate status insiden.")
+		return
+	}
+	rowsAffected, _ = res.RowsAffected()
+	if rowsAffected == 0 {
+		_ = tx.Rollback()
+		httpx.Error(c, http.StatusConflict, "incident_not_open", "Insiden sudah tidak open saat assign.")
 		return
 	}
 
@@ -210,6 +225,10 @@ func (h *AssignmentHandler) Assign(c *gin.Context) {
 }
 
 func (h *AssignmentHandler) createAssignmentTx(tx *sql.Tx, params repository.CreateAssignmentParams) (model.Assignment, error) {
+	if !state.IsInitialAssignmentStatus(params.Status) {
+		return model.Assignment{}, fmt.Errorf("status awal assignment tidak valid: %q", params.Status)
+	}
+
 	var routeGeoJSON any
 	if params.RouteGeoJSON != "" {
 		routeGeoJSON = params.RouteGeoJSON
@@ -219,10 +238,10 @@ func (h *AssignmentHandler) createAssignmentTx(tx *sql.Tx, params repository.Cre
 		INSERT INTO assignments
 			(incident_id, vehicle_id, assigned_by, route_geom, distance_m, eta_seconds, progress_m, status)
 		VALUES
-			($1, $2, $3, ST_GeomFromGeoJSON($4), $5, $6, 0, 'assigned')
+			($1, $2, $3, ST_GeomFromGeoJSON($4), $5, $6, 0, $7)
 		RETURNING `+repository.AssignmentColumns,
 		params.IncidentID, params.VehicleID, params.AssignedBy,
-		routeGeoJSON, params.DistanceM, params.ETASecs,
+		routeGeoJSON, params.DistanceM, params.ETASecs, string(params.Status),
 	)
 
 	return h.scanAssignmentRow(row)
@@ -376,13 +395,38 @@ func (h *AssignmentHandler) Start(c *gin.Context) {
 		return
 	}
 
-	if assignment.Status != "assigned" {
-		httpx.Error(c, http.StatusConflict, "assignment_not_startable", "Assignment hanya bisa dimulai dari status assigned.")
+	if !requireAssignmentTransition(
+		c,
+		state.AssignmentStatus(assignment.Status),
+		state.AssignmentEnRoute,
+		"assignment_not_startable",
+		"Assignment hanya bisa dimulai dari status assigned.",
+	) {
+		return
+	}
+
+	incident, err := h.incidents.GetByID(c.Request.Context(), assignment.IncidentID)
+	if errors.Is(err, repository.ErrNotFound) {
+		httpx.Error(c, http.StatusNotFound, "not_found", "Insiden tidak ditemukan.")
+		return
+	}
+	if err != nil {
+		log.Printf("assignments: start get incident: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal mengambil insiden.")
+		return
+	}
+	if !requireIncidentTransition(
+		c,
+		state.IncidentStatus(incident.Status),
+		state.IncidentEnRoute,
+		"incident_not_assigned",
+		"Insiden harus berstatus assigned sebelum assignment dimulai.",
+	) {
 		return
 	}
 
 	now := time.Now()
-	updated, err := h.assignments.UpdateStatusAndTimes(c.Request.Context(), id, "en_route", &now, nil, nil)
+	updated, err := h.assignments.UpdateStatusAndTimes(c.Request.Context(), id, state.AssignmentEnRoute, &now, nil, nil)
 	if err != nil {
 		log.Printf("assignments: start update: %v", err)
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memulai assignment.")
@@ -398,7 +442,7 @@ func (h *AssignmentHandler) Start(c *gin.Context) {
 	}
 	// Update incident status
 	if _, err := h.incidents.DB().ExecContext(c.Request.Context(), `
-		UPDATE incidents SET status = 'en_route' WHERE id = $1`, assignment.IncidentID); err != nil {
+		UPDATE incidents SET status = $2 WHERE id = $1`, assignment.IncidentID, string(state.IncidentEnRoute)); err != nil {
 		log.Printf("assignments: start update incident: %v", err)
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status insiden.")
 		return
@@ -445,13 +489,38 @@ func (h *AssignmentHandler) Arrive(c *gin.Context) {
 		return
 	}
 
-	if assignment.Status != "en_route" {
-		httpx.Error(c, http.StatusConflict, "assignment_not_arrivable", "Assignment hanya bisa ditandai tiba dari status en_route.")
+	if !requireAssignmentTransition(
+		c,
+		state.AssignmentStatus(assignment.Status),
+		state.AssignmentArrived,
+		"assignment_not_arrivable",
+		"Assignment hanya bisa ditandai tiba dari status en_route.",
+	) {
+		return
+	}
+
+	incident, err := h.incidents.GetByID(c.Request.Context(), assignment.IncidentID)
+	if errors.Is(err, repository.ErrNotFound) {
+		httpx.Error(c, http.StatusNotFound, "not_found", "Insiden tidak ditemukan.")
+		return
+	}
+	if err != nil {
+		log.Printf("assignments: arrive get incident: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal mengambil insiden.")
+		return
+	}
+	if !requireIncidentTransition(
+		c,
+		state.IncidentStatus(incident.Status),
+		state.IncidentOnScene,
+		"incident_not_en_route",
+		"Insiden harus berstatus en_route sebelum kendaraan tiba.",
+	) {
 		return
 	}
 
 	now := time.Now()
-	updated, err := h.assignments.UpdateStatusAndTimes(c.Request.Context(), id, "arrived", nil, &now, nil)
+	updated, err := h.assignments.UpdateStatusAndTimes(c.Request.Context(), id, state.AssignmentArrived, nil, &now, nil)
 	if err != nil {
 		log.Printf("assignments: arrive update: %v", err)
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal menandai tiba di lokasi.")
@@ -467,7 +536,7 @@ func (h *AssignmentHandler) Arrive(c *gin.Context) {
 	}
 	// Update incident status to on_scene
 	if _, err := h.incidents.DB().ExecContext(c.Request.Context(), `
-		UPDATE incidents SET status = 'on_scene' WHERE id = $1`, assignment.IncidentID); err != nil {
+		UPDATE incidents SET status = $2 WHERE id = $1`, assignment.IncidentID, string(state.IncidentOnScene)); err != nil {
 		log.Printf("assignments: arrive update incident: %v", err)
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status insiden.")
 		return
@@ -518,13 +587,38 @@ func (h *AssignmentHandler) Complete(c *gin.Context) {
 		return
 	}
 
-	if assignment.Status != "arrived" {
-		httpx.Error(c, http.StatusConflict, "assignment_not_completable", "Assignment hanya bisa diselesaikan dari status arrived (ON SCENE).")
+	if !requireAssignmentTransition(
+		c,
+		state.AssignmentStatus(assignment.Status),
+		state.AssignmentCompleted,
+		"assignment_not_completable",
+		"Assignment hanya bisa diselesaikan dari status arrived (ON SCENE).",
+	) {
+		return
+	}
+
+	incident, err := h.incidents.GetByID(c.Request.Context(), assignment.IncidentID)
+	if errors.Is(err, repository.ErrNotFound) {
+		httpx.Error(c, http.StatusNotFound, "not_found", "Insiden tidak ditemukan.")
+		return
+	}
+	if err != nil {
+		log.Printf("assignments: complete get incident: %v", err)
+		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal mengambil insiden.")
+		return
+	}
+	if !requireIncidentTransition(
+		c,
+		state.IncidentStatus(incident.Status),
+		state.IncidentResolved,
+		"incident_not_on_scene",
+		"Insiden harus berstatus on_scene sebelum diselesaikan.",
+	) {
 		return
 	}
 
 	now := time.Now()
-	updated, err := h.assignments.UpdateStatusAndTimes(c.Request.Context(), id, "completed", nil, nil, &now)
+	updated, err := h.assignments.UpdateStatusAndTimes(c.Request.Context(), id, state.AssignmentCompleted, nil, nil, &now)
 	if err != nil {
 		log.Printf("assignments: complete update: %v", err)
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal menyelesaikan assignment.")
@@ -545,7 +639,8 @@ func (h *AssignmentHandler) Complete(c *gin.Context) {
 
 	// Update incident: resolved
 	if _, err := h.incidents.DB().ExecContext(c.Request.Context(), `
-		UPDATE incidents SET status = 'resolved', resolved_at = $1 WHERE id = $2`, now, assignment.IncidentID); err != nil {
+		UPDATE incidents SET status = $3, resolved_at = $1 WHERE id = $2`,
+		now, assignment.IncidentID, string(state.IncidentResolved)); err != nil {
 		log.Printf("assignments: complete update incident: %v", err)
 		httpx.Error(c, http.StatusInternalServerError, "internal_error", "Gagal memperbarui status insiden.")
 		return

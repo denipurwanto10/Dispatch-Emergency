@@ -9,8 +9,11 @@ interface PageTransitionProps {
 }
 
 /**
- * Transisi antar halaman: halaman lama memudar keluar, halaman baru
- * masuk dengan fade + slide + sedikit scale. Tanpa dependensi tambahan.
+ * Transisi antar halaman (datar, tanpa dependensi):
+ *  1. bilah progres aksen di atas layar
+ *  2. halaman lama memudar sambil naik sedikit
+ *  3. dua tirai warna (aksen lalu tinta) menyapu layar dari kiri
+ *  4. halaman baru masuk dari bawah, tirai menyingkir ke kanan
  */
 export function PageTransition({ render }: PageTransitionProps) {
   const location = useLocation()

@@ -16,6 +16,7 @@ import (
 	"dispatch/internal/model"
 	"dispatch/internal/osrm"
 	"dispatch/internal/repository"
+	"dispatch/internal/state"
 	"dispatch/internal/ws"
 )
 
@@ -116,6 +117,7 @@ func (h *IncidentHandler) Create(c *gin.Context) {
 		Description:   description,
 		Type:          incidentType,
 		Priority:      priority,
+		Status:        state.IncidentOpen,
 		CreatedBy:     userID,
 		OperatingCity: operatingCity,
 	})

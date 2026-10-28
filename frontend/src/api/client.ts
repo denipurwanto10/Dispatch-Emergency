@@ -285,4 +285,11 @@ export async function deleteAdminVehicle(token: string, id: number): Promise<voi
   })
 }
 
+export async function fetchAdminAssignments(token: string): Promise<AssignmentWithRelations[]> {
+  const payload = await request<{ assignments: AssignmentWithRelations[] }>('/admin/assignments', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return payload.assignments
+}
+
 export { API_BASE }

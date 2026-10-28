@@ -17,7 +17,7 @@ import { clearSession, readSession } from '../auth/session'
 import { addBasemap } from '../lib/basemap'
 import { syncVehicleMarkers } from '../lib/vehicleMarker'
 import { findCity } from '../cities'
-import { AppHeader } from '../components/AppHeader'
+import { AppShell } from '../components/AppShell'
 import type {
   AssignmentHistoryItem,
   AssignmentStatusEvent,
@@ -745,15 +745,20 @@ export function DriverPage() {
     : 0
 
   return (
-    <div className="driver-shell">
-      <AppHeader subtitle="Layar driver" session={session} onLogout={handleLogout}>
+    <AppShell
+      title="Layar driver"
+      subtitle="Tugas aktif, rute, dan riwayat perjalanan"
+      session={session}
+      onLogout={handleLogout}
+      contentClassName="shell-main--scroll"
+      actions={
         <span className={`connection ${wsConnected ? '' : 'connection--off'}`}>
           <span className="connection-dot" aria-hidden="true" />
           {wsConnected ? 'Tersambung' : 'Menyambung ulang…'}
         </span>
-      </AppHeader>
-
-      <main className="driver-main">
+      }
+    >
+      <div className="driver-main">
         {/* Error banner with retry - ONLY shows if error state is set AND no assignment data */}
         {error && !assignment ? (
           <div className="driver-alert" role="alert">
@@ -970,8 +975,8 @@ export function DriverPage() {
             </section>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }
 
