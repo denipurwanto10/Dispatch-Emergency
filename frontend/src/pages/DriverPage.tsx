@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
-import { createRouteLine } from '../lib/routeLine'
+import { createRouteLine, type RouteLine } from '../lib/routeLine'
 
 import {
   API_BASE,
@@ -96,7 +96,7 @@ function formatDistance(meters: number | null | undefined): string {
 }
 
 // Helper to safely get bounds from route line
-function getRouteBounds(routeLine: L.FeatureGroup | null): L.LatLngBounds | null {
+function getRouteBounds(routeLine: RouteLine | null): L.LatLngBounds | null {
   if (!routeLine) return null
   try {
     return routeLine.getBounds()
@@ -175,7 +175,7 @@ export function DriverPage() {
   const vehicleMarkerRef = useRef<L.Marker | null>(null)
   const vehicleMarkersRef = useRef<Map<number, L.Marker>>(new Map())
   const incidentMarkerRef = useRef<L.Marker | null>(null)
-  const routeLineRef = useRef<L.FeatureGroup | null>(null)
+  const routeLineRef = useRef<RouteLine | null>(null)
 
   const assignmentRef = useRef<AssignmentWithRelations | null>(null)
   const myVehicleIDRef = useRef<number | null>(null)
@@ -598,6 +598,9 @@ export function DriverPage() {
               (coordinate) => [coordinate[1], coordinate[0]] as [number, number],
             )
             routeLineRef.current = createRouteLine(latlngs).addTo(map)
+            routeLineRef.current.setVehicle(
+              myVehicle ? { lat: myVehicle.lat, lng: myVehicle.lng } : null,
+            )
             setRouteError(null)
             return
           }

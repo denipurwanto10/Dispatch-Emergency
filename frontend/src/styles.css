@@ -1479,8 +1479,11 @@ img, svg, canvas, video { max-width: 100%; }
 /* Garis rute (Leaflet): statis & ringan, tanpa animasi/filter agar peta tidak lag. */
 .leaflet-container path.route-casing { stroke: #ffffff; stroke-opacity: 0.95; }
 .leaflet-container path.route-main { stroke: #2563eb; stroke-opacity: 1; }
+/* Bagian rute yang sudah dilalui: pudar, supaya sisa perjalanan menonjol. */
+.leaflet-container path.route-done { stroke: #2563eb; stroke-opacity: 0.22; }
 [data-theme='dark'] .leaflet-container path.route-casing { stroke: #0b1220; stroke-opacity: 0.9; }
 [data-theme='dark'] .leaflet-container path.route-main { stroke: #3b82f6; }
+[data-theme='dark'] .leaflet-container path.route-done { stroke: #3b82f6; stroke-opacity: 0.26; }
 
 /* ---------- Marker peta (kendaraan & insiden) ---------- */
 

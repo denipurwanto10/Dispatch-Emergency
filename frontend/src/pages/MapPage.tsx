@@ -9,7 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import { toast } from 'sonner'
-import { createRouteLine } from '../lib/routeLine'
+import { createRouteLine, type RouteLine } from '../lib/routeLine'
 
 import {
   ApiError,
@@ -332,7 +332,10 @@ export function MapPage() {
   const [wsConnected, setWsConnected] = useState(false)
   // Satu garis rute per penugasan aktif (key = assignment id), supaya semua
   // kendaraan yang sedang menuju TKP punya garisnya sendiri.
-  const routeLayersRef = useRef<Map<number, L.FeatureGroup>>(new Map())
+  const routeLayersRef = useRef<Map<number, RouteLine>>(new Map())
+  // Kendaraan pemilik tiap garis rute, agar posisi kendaraan bisa dipetakan
+  // ke rute tanpa menyimpan ulang seluruh data penugasan.
+  const routeVehiclesRef = useRef<Map<number, number>>(new Map())
   // Status terakhir per assignment agar toast hanya muncul saat status berubah.
   const assignmentStatusRef = useRef<Map<number, string>>(new Map())
   const hasConnectedRef = useRef(false)
@@ -702,6 +705,7 @@ export function MapPage() {
       vehicleMarkersRef.current = new Map()
       incidentLayerRef.current = null
       routeLayersRef.current.clear()
+      routeVehiclesRef.current.clear()
     }
   }, [beginIncidentAt])
 
@@ -710,11 +714,13 @@ export function MapPage() {
     if (!layer) return
     layer.remove()
     routeLayersRef.current.delete(assignmentId)
+    routeVehiclesRef.current.delete(assignmentId)
   }, [])
 
   const clearAllRoutes = useCallback(() => {
     for (const layer of routeLayersRef.current.values()) layer.remove()
     routeLayersRef.current.clear()
+    routeVehiclesRef.current.clear()
   }, [])
 
   /** Gambar (atau ganti) garis rute kendaraan -> TKP untuk satu penugasan aktif. */
@@ -732,9 +738,21 @@ export function MapPage() {
       const latlngs = geojson.coordinates.map((c) => [c[1], c[0]] as [number, number])
       clearRoute(assignment.id)
       routeLayersRef.current.set(assignment.id, createRouteLine(latlngs).addTo(map))
+      routeVehiclesRef.current.set(assignment.id, assignment.vehicle_id)
     },
     [clearRoute],
   )
+
+  // Sisa rute ikut menyusut saat kendaraan bergerak: bagian yang sudah
+  // dilalui dipudarkan agar peta tetap rapi.
+  useEffect(() => {
+    if (!routeLayersRef.current.size) return
+    for (const [assignmentId, layer] of routeLayersRef.current) {
+      const vehicleId = routeVehiclesRef.current.get(assignmentId)
+      const vehicle = vehicles.find((item) => item.id === vehicleId)
+      layer.setVehicle(vehicle ? { lat: vehicle.lat, lng: vehicle.lng } : null)
+    }
+  }, [vehicles])
 
 
   // Handler event WebSocket. Didefinisikan sebelum effect koneksi dan hanya
