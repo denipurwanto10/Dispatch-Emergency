@@ -1,4 +1,4 @@
-# Dispatch — Emergency Response Command Center
+# Dispatch — Emergency Response Command Center 
  
 MVP command center respons darurat untuk **6 kota operasi di Indonesia**. Fase 1–4 sudah selesai: auth/role, seed nasional, insiden + pencarian kandidat, assignment + rute + simulasi, WebSocket real-time, layar driver, dan panel admin. Antarmuka memakai desain flat, tema terang/gelap di semua halaman, dan layout responsif hingga ponsel.
 
